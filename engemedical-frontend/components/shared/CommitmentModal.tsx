@@ -263,7 +263,7 @@ export function CommitmentModal({ isOpen, onOpenChange, onSubmit, onDelete, init
                         <option key={name} value={name} />
                       ))}
                     </datalist>
-                    <Button className="bg-[#44735E] text-white font-semibold hover:bg-[#355a4a] transition-colors" onPress={handleAddParticipant} variant="solid">
+                    <Button className="bg-[#0698C2] text-white font-semibold hover:bg-[#047A9E] transition-colors" onPress={handleAddParticipant} variant="solid">
                       Adicionar
                     </Button>
                   </div>
@@ -320,7 +320,7 @@ export function CommitmentModal({ isOpen, onOpenChange, onSubmit, onDelete, init
                       onKeyDown={(e) => e.key === 'Enter' && handleAddEmail()}
                       className="flex-1"
                     />
-                    <Button onPress={handleAddEmail} className="bg-[#44735E] text-white font-semibold hover:bg-[#355a4a] transition-colors" variant="solid">
+                    <Button onPress={handleAddEmail} className="bg-[#0698C2] text-white font-semibold hover:bg-[#047A9E] transition-colors" variant="solid">
                       Adicionar
                     </Button>
                   </div>
@@ -395,7 +395,7 @@ export function CommitmentModal({ isOpen, onOpenChange, onSubmit, onDelete, init
                 <Button color="default" variant="light" onPress={onClose}>
                   Cancelar
                 </Button>
-                <Button className="bg-[#44735E] text-white font-semibold hover:bg-[#355a4a] transition-colors" onPress={() => { 
+                <Button className="bg-[#0698C2] text-white font-semibold hover:bg-[#047A9E] transition-colors" onPress={() => { 
                   if (!computedStart || !computedEnd) {
                     if (showAlert) {
                       showAlert("warning", "Preencha as datas corretamente.");

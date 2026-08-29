@@ -806,7 +806,7 @@ const FichaAssistencial: React.FC<FichaAssistencialProps> = ({
         </Button>
         
         <Button
-          className="px-8 bg-[#104e35] text-white shadow-sm hover:bg-[#0d3d29] transition-colors"
+          className="px-8 bg-[#0698C2] text-white shadow-sm hover:bg-[#005C7A] transition-colors"
           color="success"
           isDisabled={isLoading || missingMedicoData}
           isLoading={isLoading}

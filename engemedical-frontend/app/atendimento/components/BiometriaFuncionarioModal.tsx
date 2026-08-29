@@ -175,7 +175,7 @@ const BiometriaFuncionarioModal: React.FC<BiometriaFuncionarioModalProps> = ({
           </p>
           <Button
             color="success"
-            className="w-full mt-4 font-bold text-white bg-[#44735e]"
+            className="w-full mt-4 font-bold text-white bg-[#0698C2]"
             onPress={() => onAction("CADASTRAR")}
           >
             Cadastrar biometria
@@ -203,8 +203,8 @@ const BiometriaFuncionarioModal: React.FC<BiometriaFuncionarioModalProps> = ({
                       className={[
                         "w-full cursor-pointer rounded-xl border px-4 py-3 text-left transition-colors",
                         isSelected
-                          ? "border-[#44735e] bg-[#44735e]/5"
-                          : "border-gray-200 bg-white hover:border-[#44735e]/40",
+                          ? "border-[#0698C2] bg-[#0698C2]/5"
+                          : "border-gray-200 bg-white hover:border-[#0698C2]/40",
                       ].join(" ")}
                       onClick={() => setDedoSelecionado(cadastro.dedo)}
                     >
@@ -217,7 +217,7 @@ const BiometriaFuncionarioModal: React.FC<BiometriaFuncionarioModalProps> = ({
                             {formatDataHora(cadastro.cadastradoEm)}
                           </p>
                         </div>
-                        <span className="rounded-full bg-[#44735e]/10 px-2.5 py-1 text-xs font-semibold text-[#44735e]">
+                        <span className="rounded-full bg-[#0698C2]/10 px-2.5 py-1 text-xs font-semibold text-[#0698C2]">
                           {isSelected ? "Selecionado" : "Selecionar"}
                         </span>
                       </div>
@@ -234,7 +234,7 @@ const BiometriaFuncionarioModal: React.FC<BiometriaFuncionarioModalProps> = ({
           </div>
           <Button
             color="success"
-            className="w-full mt-4 font-bold text-white bg-[#44735e]"
+            className="w-full mt-4 font-bold text-white bg-[#0698C2]"
             onPress={() => onAction("VALIDAR", { dedo: dedoSelecionado || dedoCadastrado || undefined })}
           >
             Validar identidade
@@ -295,8 +295,8 @@ const BiometriaFuncionarioModal: React.FC<BiometriaFuncionarioModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="sm">
-      <ModalContent className="border border-[#44735e]/20">
-        <ModalHeader className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white flex flex-col gap-1">
+      <ModalContent className="border border-[#0698C2]/20">
+        <ModalHeader className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <span className="text-base font-semibold">Biometria do Funcionário</span>
           </div>

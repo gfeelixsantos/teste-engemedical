@@ -169,13 +169,13 @@ const ExamUploadModal: React.FC<{
       size="xl"
       onClose={onClose}
     >
-      <ModalContent className="border border-[#104e35]/20">
-        <ModalHeader className="flex flex-col gap-1 text-[#104e35] border-b border-[#104e35]/15">
+      <ModalContent className="border border-[#0698C2]/20">
+        <ModalHeader className="flex flex-col gap-1 text-[#0698C2] border-b border-[#0698C2]/15">
           <div className="flex items-center gap-2">
-            <Upload className="text-[#104e35]" size={20} />
+            <Upload className="text-[#0698C2]" size={20} />
             <p>Envio de Resultado </p>
           </div>
-          <p className="text-sm text-[#104e35]">{exame.nomeExame}</p>
+          <p className="text-sm text-[#0698C2]">{exame.nomeExame}</p>
         </ModalHeader>
         <ModalBody>
           <div className="space-y-4">
@@ -202,7 +202,7 @@ const ExamUploadModal: React.FC<{
                     className={`cursor-pointer flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border ${
                       isUploading
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
-                        : "bg-[#e8f4e3] text-[#44735e] hover:bg-[#d9ebd1] border-[#b8d864]"
+                        : "bg-[#E6F5FA] text-[#0698C2] hover:bg-[#d9ebd1] border-[#30D158]"
                     }`}
                     htmlFor="file-input-modal"
                   >
@@ -247,9 +247,9 @@ const ExamUploadModal: React.FC<{
             </div>
           </div>
         </ModalBody>
-        <ModalFooter className="border-t border-[#104e35]/15">
+        <ModalFooter className="border-t border-[#0698C2]/15">
           <Button
-            className="text-[#104e35] hover:bg-[#e8f4e3]"
+            className="text-[#0698C2] hover:bg-[#E6F5FA]"
             disabled={isUploading}
             variant="light"
             onPress={onClose}
@@ -257,7 +257,7 @@ const ExamUploadModal: React.FC<{
             Cancelar
           </Button>
           <Button
-            className="bg-gradient-to-r from-[#104e35] to-[#0d3d29] text-white focus-visible:ring-2 focus-visible:ring-[#104e35]/40"
+            className="bg-gradient-to-r from-[#0698C2] to-[#005C7A] text-white focus-visible:ring-2 focus-visible:ring-[#0698C2]/40"
             disabled={selectedFiles.length === 0 || isUploading}
             isLoading={isUploading}
             startContent={<Upload size={16} />}

@@ -215,7 +215,7 @@ const AnexoCard = memo(
       >
         <td className="p-2 text-default-800 overflow-hidden">
           <div className="flex items-start gap-2">
-            <FileText className="w-4 h-4 text-[#44735E] shrink-0 mt-0.5" />
+            <FileText className="w-4 h-4 text-[#0698C2] shrink-0 mt-0.5" />
             <div className="flex flex-col min-w-0 overflow-hidden">
               <span className="font-medium truncate text-xs sm:text-sm">
                 {anexo.Name}
@@ -2157,8 +2157,8 @@ const PainelDireita: React.FC<RightPanelProps> = ({
         isDismissable={false}
         isOpen={isPscAuthenticating}
       >
-        <ModalContent className="border border-[#44735e]/20">
-          <ModalHeader className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white flex flex-col gap-1">
+        <ModalContent className="border border-[#0698C2]/20">
+          <ModalHeader className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white flex flex-col gap-1">
             Autenticação Necessária
           </ModalHeader>
           <ModalBody className="py-6 flex flex-col items-center justify-center text-center">
@@ -2171,12 +2171,12 @@ const PainelDireita: React.FC<RightPanelProps> = ({
             </p>
 
             {pscAuthWindowUrl && (
-              <div className="bg-[#e8f4e3] border border-[#b8d864] p-3 rounded-lg w-full mb-4">
-                <p className="text-xs text-[#2a4a3a] mb-1 font-medium text-center">
+              <div className="bg-[#E6F5FA] border border-[#30D158] p-3 rounded-lg w-full mb-4">
+                <p className="text-xs text-[#005C7A] mb-1 font-medium text-center">
                   A janela não abriu?
                 </p>
                 <a
-                  className="text-[#44735e] hover:text-[#2a4a3a] hover:underline text-xs break-all text-center block"
+                  className="text-[#0698C2] hover:text-[#005C7A] hover:underline text-xs break-all text-center block"
                   href={pscAuthWindowUrl}
                   rel="noopener noreferrer"
                   target="_blank"
@@ -2212,8 +2212,8 @@ const PainelDireita: React.FC<RightPanelProps> = ({
         isOpen={modalPscAvisoOpen}
         onClose={() => setModalPscAvisoOpen(false)}
       >
-        <ModalContent className="border border-[#44735e]/20">
-          <ModalHeader className="flex flex-col gap-1 bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white">
+        <ModalContent className="border border-[#0698C2]/20">
+          <ModalHeader className="flex flex-col gap-1 bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white">
             <div className="flex items-center gap-2">
               <UserLock className="h-8 w-8" />
               <span className="text-lg font-semibold">
@@ -2244,7 +2244,7 @@ const PainelDireita: React.FC<RightPanelProps> = ({
               Continuar sem autenticar
             </Button>
             <Button
-              className="font-medium bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white focus-visible:ring-2 focus-visible:ring-[#44735e]/40"
+              className="font-medium bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white focus-visible:ring-2 focus-visible:ring-[#0698C2]/40"
               onPress={() => {
                 // Opção: Autenticar agora
                 setModalPscAvisoOpen(false);

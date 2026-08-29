@@ -297,7 +297,7 @@ export function UsuariosSection({ user }: UsuariosSectionProps) {
         <CardBody className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3 min-w-0">
-              <Users size={28} aria-hidden="true" style={{ color: "#44735e" }} className="flex-shrink-0" />
+              <Users size={28} aria-hidden="true" style={{ color: "#0698C2" }} className="flex-shrink-0" />
               <h2 className="text-xl font-semibold text-gray-800 whitespace-nowrap">Profissionais</h2>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0">
@@ -345,7 +345,7 @@ export function UsuariosSection({ user }: UsuariosSectionProps) {
                   onPress={openCreate}
                   size="sm"
                   className="h-9 px-4 whitespace-nowrap flex-shrink-0"
-                  style={{ backgroundColor: "#44735e" }}
+                  style={{ backgroundColor: "#0698C2" }}
                 >
                   Novo Profissional
                 </Button>
@@ -580,7 +580,7 @@ export function UsuariosSection({ user }: UsuariosSectionProps) {
               color="primary"
               onPress={handleSaveEdit}
               isLoading={saving}
-              style={{ backgroundColor: "#44735e" }}
+              style={{ backgroundColor: "#0698C2" }}
             >
               Salvar
             </Button>

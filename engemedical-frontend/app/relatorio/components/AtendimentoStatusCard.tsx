@@ -116,7 +116,7 @@ const AtendimentoStatusCard: React.FC<AtendimentoStatusCardProps> = ({
                 </label>
                 {termoCienciaUrl ? (
                   <a
-                    className="text-sm font-medium text-[#44735e] hover:underline uppercase"
+                    className="text-sm font-medium text-[#0698C2] hover:underline uppercase"
                     href={buildViewerUrl(termoCienciaUrl, buildDocFilename(['CMSO_TERMO_CIENCIA', nomePart, dataPart]))}
                     rel="noopener noreferrer"
                     target="_blank"
@@ -146,7 +146,7 @@ const AtendimentoStatusCard: React.FC<AtendimentoStatusCardProps> = ({
                       disableAnimation={true}
                     >
                       <a
-                        className="rounded-full p-1.5 text-[#44735e] transition-colors hover:bg-green-50"
+                        className="rounded-full p-1.5 text-[#0698C2] transition-colors hover:bg-green-50"
                         href={buildViewerUrl(asoUrl, buildDocFilename(['CMSO_ASO', nomePart, dataPart]))}
                         rel="noopener noreferrer"
                         target="_blank"
@@ -162,7 +162,7 @@ const AtendimentoStatusCard: React.FC<AtendimentoStatusCardProps> = ({
                       disableAnimation={true}
                     >
                       <a
-                        className="rounded-full p-1.5 text-[#44735e] transition-colors hover:bg-green-50"
+                        className="rounded-full p-1.5 text-[#0698C2] transition-colors hover:bg-green-50"
                         href={buildViewerUrl(validacaoUrl, buildDocFilename(['CMSO_VALIDACAO', metodoAutenticacao, nomePart, dataPart]))}
                         rel="noopener noreferrer"
                         target="_blank"

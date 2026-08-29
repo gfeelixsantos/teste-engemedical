@@ -148,10 +148,10 @@ export const ScheduledJobsMonitor: React.FC = () => {
   return (
     <div className="flex flex-col gap-6">
       {/* Header Section */}
-      <div className="rounded-xl bg-gradient-to-br from-[#104e35] to-[#0a3121] p-5 shadow-lg">
+      <div className="rounded-xl bg-gradient-to-br from-[#0698C2] to-[#0a3121] p-5 shadow-lg">
         <div>
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Clock className="h-5 w-5 text-[#b8d864]" />
+            <Clock className="h-5 w-5 text-[#30D158]" />
             Serviços Agendados (Cron Jobs)
           </h3>
           <p className="mt-1 text-sm text-white/70">

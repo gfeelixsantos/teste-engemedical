@@ -435,7 +435,7 @@ export function RiscosConfigSection() {
               isLoading={saving}
               isDisabled={!form.descricao.trim() || !formCodigosStr.trim() || !form.grupo}
               size="sm"
-              style={{ backgroundColor: "#44735e" }}
+              style={{ backgroundColor: "#0698C2" }}
             >
               {creatingNew ? "Criar" : "Atualizar"}
             </Button>
@@ -454,7 +454,7 @@ export function RiscosConfigSection() {
       <CardBody className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Radiation size={28} aria-hidden="true" style={{ color: "#44735e" }} />
+            <Radiation size={28} aria-hidden="true" style={{ color: "#0698C2" }} />
             <h2 className="text-xl font-semibold text-gray-800">Riscos</h2>
             <Chip size="sm" variant="flat">{configs.length} configurações</Chip>
           </div>
@@ -465,7 +465,7 @@ export function RiscosConfigSection() {
               onPress={handleOpenCreate}
               size="sm"
               className="h-9 px-4 whitespace-nowrap flex-shrink-0"
-              style={{ backgroundColor: "#44735e" }}
+              style={{ backgroundColor: "#0698C2" }}
             >
               Novo Risco
             </Button>

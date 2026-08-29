@@ -1090,7 +1090,7 @@ const AtendimentoPage: React.FC = () => {
         <Modal
           aria-label="Modal de detalhes do atendimento"
           classNames={{
-            base: "max-h-[90vh] border border-[#104e35]/20",
+            base: "max-h-[90vh] border border-[#0698C2]/20",
             wrapper: "z-[500]",
             backdrop: "z-[400]",
           }}
@@ -1135,23 +1135,23 @@ const AtendimentoPage: React.FC = () => {
       />
 
       <Modal disableAnimation={true} isDismissable={false} isOpen={modalAlert}>
-        <ModalContent className="border border-[#44735e]/20">
-          <ModalHeader className="text-[#2a4a3a]"><ExclamationCircleIcon className="h-6 w-6 text-[#44735e]" /> Atenção</ModalHeader>
+        <ModalContent className="border border-[#0698C2]/20">
+          <ModalHeader className="text-[#005C7A]"><ExclamationCircleIcon className="h-6 w-6 text-[#0698C2]" /> Atenção</ModalHeader>
           <ModalBody>{modalText}</ModalBody>
-          <ModalFooter><Button className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white" size="sm" onPress={() => setModalAlert(false)}>Confirmar</Button></ModalFooter>
+          <ModalFooter><Button className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white" size="sm" onPress={() => setModalAlert(false)}>Confirmar</Button></ModalFooter>
         </ModalContent>
       </Modal>
 
       <Modal hideCloseButton disableAnimation={true} isDismissable={false} isOpen={isPscAuthenticating}>
-        <ModalContent className="border border-[#44735e]/20">
-          <ModalHeader className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white">Autenticação Necessária</ModalHeader>
+        <ModalContent className="border border-[#0698C2]/20">
+          <ModalHeader className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white">Autenticação Necessária</ModalHeader>
           <ModalBody className="py-6 flex flex-col items-center justify-center text-center">
             <Spinner className="mb-4" color="primary" size="lg" />
             <h3 className="text-lg font-semibold text-gray-800 mb-2">Aguardando provedor...</h3>
             <p className="text-gray-600 mb-4 text-sm">Conclua a autenticação na janela que foi aberta.</p>
             {pscAuthWindowUrl && (
-              <div className="bg-[#e8f4e3] border border-[#b8d864] p-3 rounded-lg w-full mb-4">
-                <a className="text-[#44735e] hover:underline text-xs break-all" href={pscAuthWindowUrl} rel="noopener noreferrer" target="_blank">Clique aqui se a janela não abrir</a>
+              <div className="bg-[#E6F5FA] border border-[#30D158] p-3 rounded-lg w-full mb-4">
+                <a className="text-[#0698C2] hover:underline text-xs break-all" href={pscAuthWindowUrl} rel="noopener noreferrer" target="_blank">Clique aqui se a janela não abrir</a>
               </div>
             )}
           </ModalBody>
@@ -1162,8 +1162,8 @@ const AtendimentoPage: React.FC = () => {
       </Modal>
 
       <Modal disableAnimation={true} isDismissable={false} isOpen={modalPscAvisoOpen} onClose={() => setModalPscAvisoOpen(false)}>
-        <ModalContent className="border border-[#44735e]/20">
-          <ModalHeader className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white"><div className="flex items-center gap-2"><UserLock className="h-8 w-8" /><span className="text-lg font-semibold">Autenticação Necessária</span></div></ModalHeader>
+        <ModalContent className="border border-[#0698C2]/20">
+          <ModalHeader className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white"><div className="flex items-center gap-2"><UserLock className="h-8 w-8" /><span className="text-lg font-semibold">Autenticação Necessária</span></div></ModalHeader>
           <ModalBody className="py-6 px-6">
             <p className="font-semibold text-lg text-gray-800">Você possui assinatura digital habilitada.</p>
             <p className="text-gray-600 mt-2">Sua sessão de assinatura não está ativa. Deseja autenticar agora para assinar os exames automaticamente?</p>
@@ -1173,7 +1173,7 @@ const AtendimentoPage: React.FC = () => {
               setModalPscAvisoOpen(false); 
               // "Continuar sem autenticar": just stay connected, since we already connected
             }}>Continuar sem autenticar</Button>
-            <Button className="font-medium bg-[#44735e] text-white" onPress={() => { 
+            <Button className="font-medium bg-[#0698C2] text-white" onPress={() => { 
               setModalPscAvisoOpen(false); 
               setIsWaitingForAuthToConnect(true); 
               const defaultPscProvider = settings?.pscPadrao ?? settings?.provedorPadrao;

@@ -365,7 +365,7 @@ export default function AgendaPage() {
               <SelectItem key="VEICULO">Veículo</SelectItem>
             </Select>
             <Button 
-              className="bg-[#44735E] text-white font-semibold hover:bg-[#355a4a] hover:shadow-md transition-all duration-200 transform hover:scale-[1.02]"
+              className="bg-[#0698C2] text-white font-semibold hover:bg-[#047A9E] hover:shadow-md transition-all duration-200 transform hover:scale-[1.02]"
               onPress={() => {
                 setSelectedEvent(null);
                 onOpen();
@@ -385,7 +385,7 @@ export default function AgendaPage() {
           >
             <div className="p-5 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#44735E] text-white shadow-md">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#0698C2] text-white shadow-md">
                   <Truck className="h-5 w-5" />
                 </div>
                 <div>
@@ -393,7 +393,7 @@ export default function AgendaPage() {
                   <p className="text-base font-bold text-gray-900">Frota de Veículos</p>
                 </div>
               </div>
-              <span className="text-xs text-[#44735E] font-semibold select-none">
+              <span className="text-xs text-[#0698C2] font-semibold select-none">
                 {showFleet ? "Recolher ▲" : "Expandir ▼"}
               </span>
             </div>
@@ -542,7 +542,7 @@ export default function AgendaPage() {
           >
             <div className="p-5 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#44735E] text-white shadow-md">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#0698C2] text-white shadow-md">
                   <Users className="h-5 w-5" />
                 </div>
                 <div>
@@ -550,7 +550,7 @@ export default function AgendaPage() {
                   <p className="text-base font-bold text-gray-900">Funcionários / Participantes</p>
                 </div>
               </div>
-              <span className="text-xs text-[#44735E] font-semibold select-none">
+              <span className="text-xs text-[#0698C2] font-semibold select-none">
                 {showEmployees ? "Recolher ▲" : "Expandir ▼"}
               </span>
             </div>
@@ -910,7 +910,7 @@ export default function AgendaPage() {
           isOpen={alertModal.open}
           onClose={() => setAlertModal({ ...alertModal, open: false })}
         >
-          <ModalContent className="border border-[#104e35]/20">
+          <ModalContent className="border border-[#0698C2]/20">
             <ModalHeader
               className={
                 alertModal.type === "success"
@@ -931,7 +931,7 @@ export default function AgendaPage() {
             </ModalBody>
             <ModalFooter>
               <Button
-                className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white"
+                className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white"
                 onPress={() => setAlertModal({ ...alertModal, open: false })}
               >
                 OK

@@ -25,7 +25,7 @@ export default function EngemedicalLoading() {
         <div className="w-32 h-1 bg-gray-200 rounded-full overflow-hidden">
           <motion.div
             animate={{ width: "100%" }}
-            className="h-1 bg-gradient-to-r from-[#104e35] to-[#a6ce39] rounded-full"
+            className="h-1 bg-gradient-to-r from-[#0698C2] to-[#a6ce39] rounded-full"
             initial={{ width: 0 }}
             transition={{ duration: 1.2, ease: "easeInOut" }}
           />

@@ -202,8 +202,8 @@ const CadastroBiometricoModal: React.FC<CadastroBiometricoModalProps> = ({
       size="md"
       onClose={inProgress ? undefined : onClose}
     >
-      <ModalContent className="border border-[#44735e]/20">
-        <ModalHeader className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white flex flex-col gap-1">
+      <ModalContent className="border border-[#0698C2]/20">
+        <ModalHeader className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <span className="text-base font-semibold text-white leading-tight">Cadastro Biométrico</span>
           </div>

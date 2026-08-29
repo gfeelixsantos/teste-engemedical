@@ -63,7 +63,7 @@ const InputField: React.FC<InputProps> = ({
         )}
         <input
           aria-describedby={describedBy}
-          className={`block w-full rounded-xl border border-gray-300 bg-white py-3 placeholder-gray-400 text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#104e35] focus:border-[#104e35] disabled:opacity-60 disabled:bg-gray-100 ${
+          className={`block w-full rounded-xl border border-gray-300 bg-white py-3 placeholder-gray-400 text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#0698C2] focus:border-[#0698C2] disabled:opacity-60 disabled:bg-gray-100 ${
             startIcon ? "pl-10" : "pl-4"
           } ${endIcon ? "pr-10" : "pr-4"}`}
           disabled={disabled}
@@ -262,7 +262,7 @@ export default function RegistroPage(): JSX.Element {
                 </p>
               </div>
               <Link
-                className="text-[#104e35] hover:text-[#0d3d29] hover:underline transition-colors inline-flex items-center gap-2 text-sm"
+                className="text-[#0698C2] hover:text-[#005C7A] hover:underline transition-colors inline-flex items-center gap-2 text-sm"
                 href="/"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -347,7 +347,7 @@ export default function RegistroPage(): JSX.Element {
                       aria-label={
                         showPassword ? "Ocultar senha" : "Mostrar senha"
                       }
-                      className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-[#104e35] rounded p-1"
+                      className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-[#0698C2] rounded p-1"
                       type="button"
                       onClick={() => setShowPassword((s) => !s)}
                     >
@@ -385,7 +385,7 @@ export default function RegistroPage(): JSX.Element {
                           ? "Ocultar confirmação"
                           : "Mostrar confirmação"
                       }
-                      className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-[#104e35] rounded p-1"
+                      className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-[#0698C2] rounded p-1"
                       type="button"
                       onClick={() => setShowConfirm((s) => !s)}
                     >
@@ -422,7 +422,7 @@ export default function RegistroPage(): JSX.Element {
                     type="checkbox"
                     checked={consentTermos}
                     onChange={(e) => setConsentTermos(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#104e35] focus:ring-[#104e35]"
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#0698C2] focus:ring-[#0698C2]"
                   />
                   <span className="text-sm text-gray-600">
                     Aceito os <strong>Termos de Uso</strong> do Engemedical Connect
@@ -433,7 +433,7 @@ export default function RegistroPage(): JSX.Element {
                     type="checkbox"
                     checked={consentPrivacidade}
                     onChange={(e) => setConsentPrivacidade(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#104e35] focus:ring-[#104e35]"
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#0698C2] focus:ring-[#0698C2]"
                   />
                   <span className="text-sm text-gray-600">
                     Aceito a{" "}
@@ -455,7 +455,7 @@ export default function RegistroPage(): JSX.Element {
                 transition={{ duration: 0.4, delay: 0.55 }}
               >
                 <button
-                  className="w-full py-3 px-4 bg-[#104e35] text-white font-semibold rounded-xl hover:bg-[#0d3d29] focus:ring-2 focus:ring-[#104e35] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-300 shadow-md hover:shadow-lg"
+                  className="w-full py-3 px-4 bg-[#0698C2] text-white font-semibold rounded-xl hover:bg-[#005C7A] focus:ring-2 focus:ring-[#0698C2] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-300 shadow-md hover:shadow-lg"
                   disabled={isLoading || !consentTermos || !consentPrivacidade}
                   type="submit"
                 >
@@ -481,7 +481,7 @@ export default function RegistroPage(): JSX.Element {
               >
                 Já possui uma conta?{" "}
                 <Link
-                  className="text-[#104e35] font-semibold hover:text-[#0d3d29] hover:underline transition-colors"
+                  className="text-[#0698C2] font-semibold hover:text-[#005C7A] hover:underline transition-colors"
                   href="/"
                 >
                   Faça login aqui

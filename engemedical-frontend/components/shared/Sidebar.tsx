@@ -71,7 +71,7 @@ const SelectField = ({
         className={`w-full px-2 py-1.5 border rounded-lg text-xs shadow-sm focus:outline-none transition-colors appearance-none ${
           conectado
             ? "bg-white border-gray-200 text-gray-400 cursor-not-allowed"
-            : "bg-white border-gray-300 text-gray-800 hover:border-[#104e35] focus:ring-2 focus:ring-[#104e35]"
+            : "bg-white border-gray-300 text-gray-800 hover:border-[#0698C2] focus:ring-2 focus:ring-[#0698C2]"
         }`}
         disabled={conectado}
         id={id}
@@ -113,7 +113,7 @@ const ActionButtonGroup = ({
   <div className="flex flex-col gap-1 mt-3">
     <Button
       aria-label="Iniciar atendimento do dia"
-      className="flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold shadow-sm bg-[#104e35] text-white hover:bg-[#7FA830] focus:ring-2 focus:ring-[#104e35]/40"
+      className="flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold shadow-sm bg-[#0698C2] text-white hover:bg-[#047A9E] focus:ring-2 focus:ring-[#0698C2]/40"
       onPress={onAddAtendimento}
     >
       <Users className="h-4 w-4" />
@@ -185,7 +185,7 @@ export function SidebarRecepcao({
       <main className="p-4 pt-4">
         {/* Header */}
         <header className="mb-4">
-          <h2 className="text-sm font-bold text-[#104e35] mb-3">Controles</h2>
+          <h2 className="text-sm font-bold text-[#0698C2] mb-3">Controles</h2>
 
           <div className="flex flex-col gap-2">
             <div className="grid grid-cols-[85px_minmax(0,1fr)] items-center gap-x-2">
@@ -200,8 +200,8 @@ export function SidebarRecepcao({
                   </>
                 ) : conectado && !onLoading ? (
                   <>
-                    <Wifi className="w-3 h-3 text-[#104e35]" />
-                    <span className="text-sm text-[#104e35] font-semibold">Conectado</span>
+                    <Wifi className="w-3 h-3 text-[#0698C2]" />
+                    <span className="text-sm text-[#0698C2] font-semibold">Conectado</span>
                   </>
                 ) : (
                   <>
@@ -287,8 +287,8 @@ export function SidebarRecepcao({
             aria-pressed={conectado}
             className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-all ${
               conectado
-                ? "bg-white text-[#104e35] hover:bg-[#e8f4e3]"
-                : "bg-[#104e35] text-white hover:bg-[#7FA830] hover:text-white"
+                ? "bg-white text-[#0698C2] hover:bg-[#E6F5FA]"
+                : "bg-[#0698C2] text-white hover:bg-[#047A9E] hover:text-white"
             }`}
             disabled={onLoading}
             isLoading={onLoading}
@@ -323,7 +323,7 @@ export function SidebarRecepcao({
           <div className="flex flex-col gap-1 mt-3 mb-3">
             <Button
               aria-label="Ativar Vídeochamada"
-              className="flex w-full items-center justify-center gap-2 py-2 rounded-xl text-sm font-medium bg-[#e8f4e3] text-[#104e35] border border-[#104e35]/30 hover:bg-[#d4e8d0] focus:ring-2 focus:ring-[#104e35]/20"
+              className="flex w-full items-center justify-center gap-2 py-2 rounded-xl text-sm font-medium bg-[#E6F5FA] text-[#0698C2] border border-[#0698C2]/30 hover:bg-[#d4e8d0] focus:ring-2 focus:ring-[#0698C2]/20"
               onPress={toggleTelemedicinaModo}
             >
               <Users className="h-4 w-4" />

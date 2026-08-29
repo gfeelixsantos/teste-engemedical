@@ -49,7 +49,7 @@ export function ConsentModal() {
       <ModalContent>
         <ModalHeader className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="text-[#44735e]">{content.title}</span>
+            <span className="text-[#0698C2]">{content.title}</span>
           </div>
           <p className="text-sm font-normal text-gray-500">
             Versão 1.0 &mdash; Leia atentamente antes de aceitar
@@ -102,7 +102,7 @@ export function ConsentModal() {
               isDisabled={!checked}
               isLoading={accepting}
               onPress={handleAccept}
-              style={{ backgroundColor: "#44735e" }}
+              style={{ backgroundColor: "#0698C2" }}
             >
               {isLast ? "Aceitar e Continuar" : "Aceitar e Próximo"}
             </Button>

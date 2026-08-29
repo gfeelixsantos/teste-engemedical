@@ -190,14 +190,14 @@ export function UnidadesSection() {
         <CardBody className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <Building2 size={28} aria-hidden="true" style={{ color: "#44735e" }} />
+              <Building2 size={28} aria-hidden="true" style={{ color: "#0698C2" }} />
               <h2 className="text-xl font-semibold text-gray-800">Unidades de Atendimento</h2>
             </div>
             <Button
               color="primary"
               startContent={<Plus size={18} />}
               onPress={openCreate}
-              style={{ backgroundColor: "#44735e" }}
+              style={{ backgroundColor: "#0698C2" }}
             >
               Nova Unidade
             </Button>
@@ -345,13 +345,13 @@ export function UnidadesSection() {
                 <div className="pt-4 space-y-6">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <DoorOpen size={18} style={{ color: "#44735e" }} />
+                      <DoorOpen size={18} style={{ color: "#0698C2" }} />
                       <h3 className="font-medium text-gray-800">Salas de Recepção</h3>
                       <Chip size="sm" variant="flat">{salasRecepcao.length}</Chip>
                     </div>
                     <p className="text-xs text-gray-400 mb-2">Uma sala por linha</p>
                     <textarea
-                      className="w-full border border-gray-300 rounded-lg p-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#44735e] focus:border-[#44735e]"
+                      className="w-full border border-gray-300 rounded-lg p-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0698C2] focus:border-[#0698C2]"
                       rows={8}
                       value={salasRecepcao.join('\n')}
                       onChange={(e) => setSalasRecepcao(parseSalas(e.target.value))}
@@ -360,13 +360,13 @@ export function UnidadesSection() {
                   </div>
                   <div className="border-t border-gray-200 pt-6">
                     <div className="flex items-center gap-2 mb-2">
-                      <Stethoscope size={18} style={{ color: "#44735e" }} />
+                      <Stethoscope size={18} style={{ color: "#0698C2" }} />
                       <h3 className="font-medium text-gray-800">Salas de Exames</h3>
                       <Chip size="sm" variant="flat">{salasExames.length}</Chip>
                     </div>
                     <p className="text-xs text-gray-400 mb-2">Uma sala por linha</p>
                     <textarea
-                      className="w-full border border-gray-300 rounded-lg p-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#44735e] focus:border-[#44735e]"
+                      className="w-full border border-gray-300 rounded-lg p-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0698C2] focus:border-[#0698C2]"
                       rows={8}
                       value={salasExames.join('\n')}
                       onChange={(e) => setSalasExames(parseSalas(e.target.value))}
@@ -385,7 +385,7 @@ export function UnidadesSection() {
               color="primary"
               onPress={handleSave}
               isLoading={saving}
-              style={{ backgroundColor: "#44735e" }}
+              style={{ backgroundColor: "#0698C2" }}
             >
               {editing ? "Atualizar" : "Criar"}
             </Button>

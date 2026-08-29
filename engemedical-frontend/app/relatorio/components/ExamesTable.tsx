@@ -807,7 +807,7 @@ const ExamesTable: React.FC<{
         isOpen={alertModal.open}
         onClose={() => setAlertModal({ ...alertModal, open: false })}
       >
-        <ModalContent className="border border-[#104e35]/20">
+        <ModalContent className="border border-[#0698C2]/20">
           <ModalHeader
             className={
               alertModal.type === "success"
@@ -836,7 +836,7 @@ const ExamesTable: React.FC<{
                   Cancelar
                 </Button>
                 <Button
-                  className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white"
+                  className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white"
                   onPress={() => {
                     alertModal.onConfirm?.();
                     setAlertModal({ ...alertModal, open: false });
@@ -847,7 +847,7 @@ const ExamesTable: React.FC<{
               </>
             ) : (
               <Button
-                className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white"
+                className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white"
                 onPress={() => setAlertModal({ ...alertModal, open: false })}
               >
                 OK

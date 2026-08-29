@@ -134,7 +134,7 @@ const DetalhesModal: React.FC<{
     <Modal
       aria-label="Modal de detalhes do atendimento"
       classNames={{
-        base: "max-h-[90vh] border border-[#44735e]/20",
+        base: "max-h-[90vh] border border-[#0698C2]/20",
         wrapper: "z-[1000]",
       }}
       isOpen={isOpen}
@@ -384,7 +384,7 @@ const AgendamentosList: React.FC<AgendamentosListProps> = ({
     <>
       <Button
         aria-label="Iniciar atendimento do dia"
-        className="flex w-full items-center justify-center gap-2 py-2.5 rounded-xl font-medium bg-[#e8f4e3] text-[#104e35] border border-[#104e35]/30 hover:bg-[#d4e8d0] focus:ring-2 focus:ring-[#104e35]/20"
+        className="flex w-full items-center justify-center gap-2 py-2.5 rounded-xl font-medium bg-[#E6F5FA] text-[#0698C2] border border-[#0698C2]/30 hover:bg-[#C5EAF5] focus:ring-2 focus:ring-[#0698C2]/20"
         onPress={() => setIsOpen(true)}
       >
         <Calendar className="h-4 w-4" />

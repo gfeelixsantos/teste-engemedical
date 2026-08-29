@@ -107,7 +107,7 @@ export function AuditFilterForm({ onFilter, onClear, isLoading }: AuditFilterFor
           color="primary"
           onPress={handleSubmit}
           isLoading={isLoading}
-          style={{ backgroundColor: "#44735e" }}
+          style={{ backgroundColor: "#0698C2" }}
         >
           Pesquisar
         </Button>

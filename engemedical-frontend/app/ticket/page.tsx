@@ -1175,7 +1175,7 @@ export default function Home() {
     <div
       className="min-h-screen w-full flex flex-col items-center justify-center p-2 sm:p-4 md:p-6"
       style={{
-        background: `linear-gradient(135deg, ${COLOR_PALETTE.background} 0%, #e8f4e3 100%)`,
+        background: `linear-gradient(135deg, ${COLOR_PALETTE.background} 0%, #E6F5FA 100%)`,
       }}
     >
       <AnimatePresence mode="wait">

@@ -156,7 +156,7 @@ function ArrayField({ label, value }: { label: string; value: unknown[] }) {
           {value.slice(0, 10).map((item, i) => (
             <span
               key={i}
-              className="inline-block rounded bg-[#44735E]/10 px-2 py-0.5 text-xs font-medium text-[#44735E]"
+              className="inline-block rounded bg-[#0698C2]/10 px-2 py-0.5 text-xs font-medium text-[#0698C2]"
             >
               {formatValue(item)}
             </span>
@@ -175,7 +175,7 @@ function ArrayField({ label, value }: { label: string; value: unknown[] }) {
     <div className="flex flex-col">
       <button
         type="button"
-        className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-gray-400 hover:text-[#44735E]"
+        className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-gray-400 hover:text-[#0698C2]"
         onClick={() => setExpanded(!expanded)}
       >
         {expanded ? (
@@ -235,7 +235,7 @@ function ObjectField({
     <div className="flex flex-col">
       <button
         type="button"
-        className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-gray-400 hover:text-[#44735E]"
+        className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-gray-400 hover:text-[#0698C2]"
         onClick={() => setExpanded(!expanded)}
       >
         {expanded ? (
@@ -279,7 +279,7 @@ function JsonToggle({ payload }: { payload: Record<string, unknown> }) {
     <div className="mt-3">
       <button
         type="button"
-        className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-[#44735E]/30 hover:bg-[#44735E]/5 hover:text-[#44735E]"
+        className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-[#0698C2]/30 hover:bg-[#0698C2]/5 hover:text-[#0698C2]"
         onClick={() => setExpanded(!expanded)}
       >
         <Braces className="h-3.5 w-3.5" />
@@ -442,7 +442,7 @@ function RequeueModal({
           <textarea
             value={editedJson}
             onChange={(e) => setEditedJson(e.target.value)}
-            className="h-64 w-full rounded-lg border border-gray-200 bg-gray-900 p-3 font-mono text-xs leading-relaxed text-green-400 focus:border-[#44735E] focus:outline-none focus:ring-1 focus:ring-[#44735E]"
+            className="h-64 w-full rounded-lg border border-gray-200 bg-gray-900 p-3 font-mono text-xs leading-relaxed text-green-400 focus:border-[#0698C2] focus:outline-none focus:ring-1 focus:ring-[#0698C2]"
             spellCheck={false}
           />
 
@@ -506,9 +506,9 @@ export function QueueDetailPanel({
       transition={{ duration: 0.3 }}
       className="overflow-hidden"
     >
-      <div className="rounded-xl border border-[#44735E]/20 bg-white shadow-lg">
+      <div className="rounded-xl border border-[#0698C2]/20 bg-white shadow-lg">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#44735E]/15 bg-gradient-to-r from-[#44735E] to-[#2a4d3d] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-[#0698C2]/15 bg-gradient-to-r from-[#0698C2] to-[#005C7A] px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 text-white">
               {getQueueIcon(queueName)}
@@ -542,7 +542,7 @@ export function QueueDetailPanel({
                     Mensagens
                   </span>
                 </div>
-                <p className="mt-1 text-xl font-bold text-[#44735E]">
+                <p className="mt-1 text-xl font-bold text-[#0698C2]">
                   {messageCount}
                 </p>
               </div>

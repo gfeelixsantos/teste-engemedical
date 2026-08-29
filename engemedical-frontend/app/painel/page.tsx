@@ -141,13 +141,13 @@ const { playNativeSpeechFallback, playPreparedAudioWithFallback } =
   painelAudioFallback;
 
 const COLOR_PALETTE = {
-  primary: "#44735e",
-  accent: "#5a8c7a",
+  primary: "#0698C2",
+  accent: "#0AABD4",
   light: "#f8fcf9",
   white: "#ffffff",
   lightGray: "#f0f5f2",
   border: "#e1e9e4",
-  text: "#2a4a3a",
+  text: "#005C7A",
   textLight: "#6b7f76",
   dark: "#1a2a1f",
 };
@@ -283,7 +283,7 @@ const AudioActivationModal = ({ onActivate }: { onActivate: () => void }) => {
             style={{
               backgroundColor: COLOR_PALETTE.primary,
               backgroundImage:
-                "linear-gradient(135deg, #44735e 0%, #5a8c7a 100%)",
+                "linear-gradient(135deg, #0698C2 0%, #0AABD4 100%)",
             }}
           >
             <Maximize2 className="text-white" size={20} />

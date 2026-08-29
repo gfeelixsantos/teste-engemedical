@@ -30,7 +30,7 @@ const StatButton: React.FC<{
 }> = ({ icon, value, label, color, onClick, ...rest }) => (
   <button
     aria-label={label}
-    className="flex gap-2 items-center justify-center p-2 rounded-lg transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#104e35] min-w-[50px] cursor-pointer"
+    className="flex gap-2 items-center justify-center p-2 rounded-lg transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#0698C2] min-w-[50px] cursor-pointer"
     onClick={onClick}
     type="button"
     {...rest}
@@ -68,11 +68,11 @@ export const StatsModal: React.FC<{
       {isOpen && (
         <>
           <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl w-full h-full max-h-screen overflow-hidden flex flex-col max-w-6xl border border-[#44735e]/15">
+            <div className="bg-white rounded-xl w-full h-full max-h-screen overflow-hidden flex flex-col max-w-6xl border border-[#0698C2]/15">
               {/* Cabeçalho do modal */}
-              <div className="p-4 border-b border-[#44735e]/15 flex justify-between items-center bg-[#f5f9f7]">
+              <div className="p-4 border-b border-[#0698C2]/15 flex justify-between items-center bg-[#F2F9FC]">
                 <div>
-                  <h2 className="text-xl font-bold text-[#2a4a3a]">
+                  <h2 className="text-xl font-bold text-[#005C7A]">
                     Estatísticas de Atendimentos
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">
@@ -82,7 +82,7 @@ export const StatsModal: React.FC<{
                 <div className="flex items-center gap-2">
                   <button
                     aria-label="Fechar"
-                    className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-1 focus:ring-[#104e35]"
+                    className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-1 focus:ring-[#0698C2]"
                     onClick={onClose}
                   >
                     <X size={16} />
@@ -116,14 +116,14 @@ const RECEPCAO_CARDS: CardConfig[] = [
   { key: "aguardando", label: "Aguardando", tooltip: "Aguardando atendimento", icon: <Clock size={12} />, color: "bg-amber-100 text-amber-600" },
   { key: "preparacao", label: "Preparo", tooltip: "Em preparação da documentação", icon: <Pause size={12} />, color: "bg-blue-100 text-blue-600" },
   { key: "raiox", label: "Raio-X", tooltip: "Encaminhados para Raio-X", icon: <Eye size={12} />, color: "bg-purple-100 text-purple-600" },
-  { key: "total", label: "Totais", tooltip: "Total de senhas", icon: <Users size={12} />, color: "bg-gradient-to-r from-[#104e35] to-[#a6ce39] text-white" },
+  { key: "total", label: "Totais", tooltip: "Total de senhas", icon: <Users size={12} />, color: "bg-gradient-to-r from-[#0698C2] to-[#a6ce39] text-white" },
 ];
 
 const ATENDIMENTO_CARDS: CardConfig[] = [
   { key: "pendentes", label: "Aguardando", tooltip: "Aguardando atendimento", icon: <Clock size={12} />, color: "bg-amber-100 text-amber-600" },
   { key: "finalizados", label: "Finalizados", tooltip: "Atendidos", icon: <CheckCircle size={12} />, color: "bg-green-100 text-green-600" },
   { key: "aguardandoRecepcao", label: "Recepção", tooltip: "Senhas aguardando atendimento na recepção", icon: <FilePlus size={12} />, color: "bg-red-100 text-red-600" },
-  { key: "total", label: "Total", tooltip: "Total de atendidos (aguardando + finalizados)", icon: <Users size={12} />, color: "bg-gradient-to-r from-[#104e35] to-[#a6ce39] text-white" },
+  { key: "total", label: "Total", tooltip: "Total de atendidos (aguardando + finalizados)", icon: <Users size={12} />, color: "bg-gradient-to-r from-[#0698C2] to-[#a6ce39] text-white" },
 ];
 
 export interface SenhasEstatisticasProps {
@@ -158,10 +158,10 @@ export default function SenhasEstatisticas({
       <div className="lg:hidden">
         <button
           aria-label="Ver estatísticas"
-          className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#104e35]"
+          className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-1 focus:ring-[#0698C2]"
           onClick={() => onSetStatsModalOpen(true)}
         >
-          <BarChart3 className="text-[#104e35]" size={16} />
+          <BarChart3 className="text-[#0698C2]" size={16} />
         </button>
       </div>
     </>

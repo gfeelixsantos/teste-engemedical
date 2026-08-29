@@ -205,7 +205,7 @@ export function MetricsDashboard({ events, vehicles }: MetricsDashboardProps) {
       {nextEvents.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3">
-            <Clock className="h-5 w-5 text-[#44735E]" />
+            <Clock className="h-5 w-5 text-[#0698C2]" />
             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Próximos Compromissos</h3>
           </div>
           <div className="overflow-x-auto">

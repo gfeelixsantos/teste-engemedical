@@ -11,7 +11,7 @@ export function AssinaturaAtendimentoSection() {
           <ClipboardSignature
             size={28}
             aria-hidden="true"
-            style={{ color: "#44735e" }}
+            style={{ color: "#0698C2" }}
           />
           <h2 className="text-xl font-semibold text-gray-800">
             Assinatura Atendimento

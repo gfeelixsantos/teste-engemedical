@@ -2172,7 +2172,7 @@ const AtendimentoModal: React.FC<AtendimentoModalProps> = ({
 
           {/* Barra de progresso sutil */}
           {/* <div className="w-32 h-1 bg-gray-200 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-[#104e35] to-[#a6ce39] rounded-full animate-pulse"></div>
+          <div className="h-full bg-gradient-to-r from-[#0698C2] to-[#a6ce39] rounded-full animate-pulse"></div>
         </div> */}
         </div>
       </div>
