@@ -162,67 +162,12 @@ const LoginTitle = ({ title }: { title: string }) => {
 };
 
 const TypewriterTitle = ({ text }: { text: string }) => {
-  const [displayed, setDisplayed] = useState("");
-  const [showCursor, setShowCursor] = useState(false);
-
-  useEffect(() => {
-    const shouldReduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    if (shouldReduceMotion) {
-      setDisplayed(text);
-      setShowCursor(true);
-      return;
-    }
-
-    setDisplayed("");
-    let cancelled = false;
-
-    // Espera o fade-in do BrandPanel terminar (800ms)
-    const startId = setTimeout(() => {
-      if (cancelled) return;
-      setShowCursor(true);
-
-      let index = 0;
-      // setTimeout recursivo - padrão mais robusto que setInterval
-      const typeNext = () => {
-        if (cancelled) return;
-        index += 1;
-        setDisplayed(text.slice(0, index));
-        if (index < text.length) {
-          setTimeout(typeNext, 45);
-        }
-      };
-
-      setTimeout(typeNext, 45);
-    }, 800);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(startId);
-    };
-  }, [text]);
-
   return (
     <div
       aria-label={text}
-      className="relative inline-block min-h-[4.1rem] max-w-[28rem] text-center text-2xl font-semibold leading-tight text-white drop-shadow-[0_16px_38px_rgba(22,217,245,0.3)] sm:min-h-[4.9rem] sm:text-3xl"
+      className="typewriter-text min-h-[4.1rem] max-w-[28rem] text-center text-2xl font-semibold leading-tight text-white drop-shadow-[0_16px_38px_rgba(22,217,245,0.3)] sm:min-h-[4.9rem] sm:text-3xl"
     >
-      <span aria-hidden>{displayed || ""}</span>
-      {showCursor && (
-        <motion.span
-          animate={{ opacity: [0, 1, 1, 0] }}
-          className="ml-0.5 inline-block h-6 w-[3px] translate-y-1 rounded-full bg-brand-lime shadow-[0_0_18px_rgba(94,225,122,0.7)]"
-          transition={{
-            duration: 0.9,
-            ease: "easeInOut",
-            repeat: Infinity,
-          }}
-        >
-          &nbsp;
-        </motion.span>
-      )}
+      {text}
     </div>
   );
 };

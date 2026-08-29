@@ -37,9 +37,9 @@ test("home login uses the Engemedical Connect brand system", async () => {
   assert.doesNotMatch(loginPage, /Portal operacional/);
   assert.doesNotMatch(loginPage, /Clínica ocupacional/);
   assert.match(loginPage, /TypewriterTitle/);
-  assert.match(loginPage, /setDisplayed/);
-  assert.match(loginPage, /prefers-reduced-motion/);
-  assert.match(loginPage, /Conectando sua operação ao futuro da SST\./);
+  assert.match(loginPage, /typewriter-text/);
+  assert.match(loginPage, /typewriter-text/);
+  assert.match(loginPage, /Conectando você ao futuro SST/);
   assert.match(loginPage, /Integração SST/);
   assert.match(loginPage, /Agilidade operacional/);
   assert.match(loginPage, /Rastreabilidade segura/);

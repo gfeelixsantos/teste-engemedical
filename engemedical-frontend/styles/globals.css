@@ -1,4 +1,30 @@
 @import "tailwindcss";
 
-@config "../tailwind.config.js"
+@config "../tailwind.config.js";
+
+/* Typewriter animation (CSS-puro - não depende de JS) */
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink-caret {
+  50% {
+    border-color: transparent;
+  }
+}
+
+@layer utilities {
+  .typewriter-text {
+    overflow: hidden;
+    border-right: 0.15em solid #5ee17a;
+    white-space: nowrap;
+    width: 0;
+    animation: typewriter 2s steps(40, end) 0.8s 1 both, blink-caret 0.8s step-end infinite;
+  }
+}
 
