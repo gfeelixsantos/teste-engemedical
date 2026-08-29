@@ -17,6 +17,7 @@ import {
 
 import engemedicalIcon from "@/public/images/logo.png";
 import packageInfo from "@/package.json";
+import PremiumCyberLoading from "@/components/shared/PremiumCyberLoading";
 import { fetchBodyJson, formatCPF, setCurrentUser } from "@/lib/utils";
 import { IUserInfo } from "@/lib/user/interfaces/IUser";
 import { ApiResponse } from "@/shared/responses/ApiResponse";
@@ -142,8 +143,26 @@ const brandPillars = [
   },
 ];
 
+const LoginTitle = ({ title }: { title: string }) => {
+  if (!title.includes("Engemedical")) {
+    return <>{title}</>;
+  }
+
+  const [prefix, suffix] = title.split("Engemedical");
+
+  return (
+    <>
+      {prefix}
+      <span className="relative inline-block bg-gradient-to-r from-brand-blue via-brand-cyan to-brand-green bg-clip-text px-0.5 text-transparent drop-shadow-[0_14px_34px_rgba(6,152,194,0.18)]">
+        Engemedical
+      </span>
+      {suffix}
+    </>
+  );
+};
+
 const TypewriterTitle = ({ text }: { text: string }) => {
-  const [displayed, setDisplayed] = useState(text);
+  const [displayed, setDisplayed] = useState("");
 
   useEffect(() => {
     const shouldReduceMotion = window.matchMedia(
@@ -152,45 +171,76 @@ const TypewriterTitle = ({ text }: { text: string }) => {
 
     if (shouldReduceMotion) {
       setDisplayed(text);
-
       return;
     }
 
     setDisplayed("");
-
     let index = 0;
-    const intervalId = window.setInterval(() => {
-      index += 1;
-      setDisplayed(text.slice(0, index));
+    let intervalId: ReturnType<typeof setInterval> | undefined;
+    const timeoutId = setTimeout(() => {
+      intervalId = setInterval(() => {
+        index += 1;
+        setDisplayed(text.slice(0, index));
+        if (index >= text.length && intervalId) {
+          clearInterval(intervalId);
+        }
+      }, 45);
+    }, 800);
 
-      if (index >= text.length) {
-        window.clearInterval(intervalId);
+    return () => {
+      clearTimeout(timeoutId);
+      if (intervalId) {
+        clearInterval(intervalId);
       }
-    }, 42);
-
-    return () => window.clearInterval(intervalId);
+    };
   }, [text]);
 
   return (
-    <motion.p
-      animate={{ opacity: 1, y: 0 }}
+    <div
       aria-label={text}
       className="min-h-[4.1rem] max-w-[28rem] text-center text-2xl font-semibold leading-tight text-white drop-shadow-[0_16px_38px_rgba(22,217,245,0.3)] sm:min-h-[4.9rem] sm:text-3xl"
-      initial={{ opacity: 0, y: 10 }}
-      transition={{ duration: 0.7, delay: 0.35, ease: "easeOut" }}
     >
-      <span aria-hidden>{displayed}</span>
+      <span aria-hidden>{displayed || ""}</span>
       <motion.span
-        aria-hidden
         animate={{ opacity: [0, 1, 1, 0] }}
         className="ml-1 inline-block w-[3px] translate-y-1 rounded-full bg-brand-lime shadow-[0_0_18px_rgba(94,225,122,0.7)]"
-        transition={{ duration: 0.9, ease: "easeInOut", repeat: Infinity }}
+        transition={{
+          duration: 0.9,
+          ease: "easeInOut",
+          repeat: Infinity,
+        }}
       >
         &nbsp;
       </motion.span>
-    </motion.p>
+    </div>
   );
 };
+
+const ConnectSignal = () => (
+  <div aria-hidden className="absolute inset-0">
+    <div className="absolute inset-x-8 top-[66%] h-px bg-gradient-to-r from-transparent via-brand-lime/65 to-transparent shadow-[0_0_22px_rgba(94,225,122,0.38)]" />
+    <motion.div
+      animate={{ x: ["-18%", "118%"], opacity: [0, 1, 0] }}
+      className="absolute left-0 top-[66%] h-px w-32 bg-gradient-to-r from-transparent via-white/75 to-transparent"
+      transition={{ duration: 4.8, ease: "easeInOut", repeat: Infinity }}
+    />
+    <motion.div
+      animate={{ opacity: [0.24, 0.58, 0.24], scale: [0.98, 1.04, 0.98] }}
+      className="absolute left-[10%] top-[18%] h-[42%] w-[80%] rounded-full border border-brand-cyan/20"
+      transition={{ duration: 6.2, ease: "easeInOut", repeat: Infinity }}
+    />
+    <motion.div
+      animate={{ opacity: [0.2, 0.5, 0.2], scale: [1.02, 0.96, 1.02] }}
+      className="absolute left-[18%] top-[26%] h-[34%] w-[64%] rounded-full border border-brand-green/18"
+      transition={{ duration: 7.4, ease: "easeInOut", repeat: Infinity }}
+    />
+    <div className="absolute left-[21%] top-[66%] h-2 w-2 rounded-full bg-brand-lime shadow-[0_0_22px_rgba(94,225,122,0.72)]" />
+    <div className="absolute left-[49%] top-[66%] h-2 w-2 rounded-full bg-brand-cyan shadow-[0_0_22px_rgba(10,171,212,0.7)]" />
+    <div className="absolute right-[21%] top-[66%] h-2 w-2 rounded-full bg-brand-green shadow-[0_0_22px_rgba(48,209,88,0.72)]" />
+    <div className="absolute left-[21%] top-[66%] h-24 w-px origin-top rotate-[64deg] bg-gradient-to-b from-brand-lime/45 to-transparent" />
+    <div className="absolute right-[21%] top-[66%] h-24 w-px origin-top -rotate-[64deg] bg-gradient-to-b from-brand-green/45 to-transparent" />
+  </div>
+);
 
 const BrandPanel = () => (
   <motion.section
@@ -212,11 +262,6 @@ const BrandPanel = () => (
     />
     <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:72px_72px] opacity-35" />
     <motion.div
-      animate={{ x: ["-35%", "135%"] }}
-      className="absolute left-0 top-1/3 h-px w-2/3 bg-gradient-to-r from-transparent via-brand-cyan/70 to-transparent"
-      transition={{ duration: 6.5, ease: "easeInOut", repeat: Infinity }}
-    />
-    <motion.div
       animate={{ x: ["120%", "-35%"] }}
       className="absolute bottom-28 right-0 h-px w-3/5 bg-gradient-to-r from-transparent via-brand-green/60 to-transparent"
       transition={{
@@ -234,16 +279,7 @@ const BrandPanel = () => (
           className="absolute inset-x-8 inset-y-4 rounded-[44px] bg-brand-cyan/20 blur-3xl"
           transition={{ duration: 5.4, ease: "easeInOut", repeat: Infinity }}
         />
-        <motion.div
-          animate={{ rotate: 360 }}
-          className="absolute inset-x-4 inset-y-3 rounded-[56px] border border-dashed border-brand-cyan/22"
-          transition={{ duration: 28, ease: "linear", repeat: Infinity }}
-        />
-        <motion.div
-          animate={{ rotate: -360 }}
-          className="absolute inset-x-16 inset-y-10 rounded-[40px] border border-brand-green/20"
-          transition={{ duration: 22, ease: "linear", repeat: Infinity }}
-        />
+        <ConnectSignal />
         <motion.div
           animate={{ scale: [1, 1.025, 1], y: [0, -4, 0] }}
           className="absolute inset-0 grid place-items-center"
@@ -259,7 +295,7 @@ const BrandPanel = () => (
           />
         </motion.div>
       </div>
-      <TypewriterTitle text="Conectando sua operação ao futuro da SST." />
+      <TypewriterTitle text="Conectando você ao futuro SST" />
     </div>
 
     <div className="relative z-10 space-y-4">
@@ -323,6 +359,7 @@ export default function LoginPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [showPostLoginTransition, setShowPostLoginTransition] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -355,8 +392,7 @@ export default function LoginPage() {
       if (userLogged.data) {
         setCurrentUser(userLogged.data);
 
-        // Não resetar isLoading aqui - deixar o botão em loading até a navegação
-        router.push("/dashboard");
+        setShowPostLoginTransition(true);
 
         return;
       }
@@ -499,6 +535,10 @@ export default function LoginPage() {
     setConfirmPassword("");
   };
 
+  const handlePostLoginComplete = () => {
+    router.push("/dashboard");
+  };
+
   // -------------------------------------------------------------
   // RENDER
   // -------------------------------------------------------------
@@ -528,6 +568,13 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-brand-surface text-slate-900">
+      {showPostLoginTransition && (
+        <PremiumCyberLoading
+          duration={2600}
+          onComplete={handlePostLoginComplete}
+        />
+      )}
+
       <div className="grid min-h-screen lg:grid-cols-[minmax(0,1.05fr)_minmax(460px,0.95fr)]">
         <BrandPanel />
 
@@ -540,7 +587,7 @@ export default function LoginPage() {
             >
               <div className="mb-8">
                 <h2 className="text-3xl font-semibold tracking-tight text-brand-midnight sm:text-[2.35rem] sm:leading-[1.08]">
-                  {title}
+                  <LoginTitle title={title} />
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-500">
                   {subtitle}
