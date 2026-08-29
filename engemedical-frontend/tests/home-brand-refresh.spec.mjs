@@ -42,7 +42,7 @@ test("home login uses the Engemedical Connect brand system", async () => {
   assert.match(loginPage, /Conectando você ao futuro SST/);
   assert.match(loginPage, /Integração SST/);
   assert.match(loginPage, /Agilidade operacional/);
-  assert.match(loginPage, /Rastreabilidade segura/);
+  assert.match(loginPage, /Automação de processos/);
   assert.match(
     loginPage,
     /Rotinas, documentos e atendimentos ocupacionais conectados no mesmo fluxo/,
@@ -53,7 +53,7 @@ test("home login uses the Engemedical Connect brand system", async () => {
   );
   assert.match(
     loginPage,
-    /Evidências e prazos organizados para auditorias, ASO e conformidade/,
+    /Fluxos de ASO, PCMSO e exames automatizados do início ao fim/,
   );
   assert.doesNotMatch(loginPage, /Controle clínico ocupacional/);
   assert.doesNotMatch(loginPage, /ASO e documentação/);

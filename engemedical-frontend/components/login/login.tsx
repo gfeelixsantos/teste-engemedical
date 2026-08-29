@@ -137,9 +137,9 @@ const brandPillars = [
   },
   {
     icon: Network,
-    title: "Rastreabilidade segura",
+    title: "Automação de processos",
     description:
-      "Evidências e prazos organizados para auditorias, ASO e conformidade.",
+      "Fluxos de ASO, PCMSO e exames automatizados do início ao fim.",
   },
 ];
 
@@ -166,7 +166,7 @@ const TypewriterTitle = ({ text }: { text: string }) => {
     <div className="text-center">
       <span
         aria-label={text}
-        className="typewriter-text min-h-[4.1rem] text-2xl font-semibold leading-tight text-white drop-shadow-[0_16px_38px_rgba(22,217,245,0.3)] sm:min-h-[4.9rem] sm:text-3xl"
+        className="typewriter-text min-h-[4.1rem] text-lg font-medium leading-tight text-brand-cyan/70 drop-shadow-[0_8px_24px_rgba(10,171,212,0.25)] sm:min-h-[4.9rem] sm:text-xl"
       >
         {text}
       </span>
@@ -283,7 +283,7 @@ const BrandPanel = () => (
                 <p className="text-[13px] font-semibold leading-5 text-white">
                   {title}
                 </p>
-                <p className="mt-1 line-clamp-2 text-xs leading-4 text-white/54">
+                <p className="mt-1 whitespace-nowrap text-xs leading-4 text-white/54">
                   {description}
                 </p>
               </div>
