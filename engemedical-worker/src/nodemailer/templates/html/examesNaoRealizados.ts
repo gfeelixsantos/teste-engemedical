@@ -1,0 +1,173 @@
+// examesNaoRealizados.ts
+
+const logoUrl = 'https://cmsocupacional.com.br/images/logo.png';
+const primaryColor = '#1EAD60';
+const secondaryColor = '#0D6E36';
+const accentColor = '#FF6B6B';
+const textColor = '#2C3E50';
+const lightGray = '#F8F9FA';
+const borderColor = '#E9ECEF';
+
+export function examesNaoRealizadosHtml(data: {
+  reportDate: string;
+  totalAttendances: number;
+  attendances: Array<{
+    nomeFuncionario: string;
+    nomeEmpresa: string;
+    tipoExame: string;
+    dataAgendamento: string;
+    unfinishedExams: Array<{
+      nomeExame: string;
+      status: string;
+    }>;
+  }>;
+}) {
+  const escapeHtml = (value?: string | number | null) =>
+    String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
+  const unfinishedExamsRows = data.attendances
+    .map((attendance, index) => {
+      const examsList = attendance.unfinishedExams
+        .map((exam) => `
+          <div style="display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid ${borderColor};">
+            <span style="color: ${accentColor}; font-size: 16px; margin-right: 8px;">●</span>
+            <span style="color: ${textColor}; font-weight: 500;">${escapeHtml(exam.nomeExame)}</span>
+            <span style="margin-left: auto; background-color: ${accentColor}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">${escapeHtml(exam.status)}</span>
+          </div>
+        `)
+        .join('');
+
+      const rowStyle = index % 2 === 0
+        ? 'background-color: #ffffff;'
+        : 'background-color: #F8F9FA;';
+
+      return `
+        <tr style="${rowStyle}">
+          <td style="padding: 16px; border-bottom: 1px solid ${borderColor}; vertical-align: top;">
+            <div style="font-weight: 600; color: ${textColor}; font-size: 14px;">${escapeHtml(attendance.nomeFuncionario)}</div>
+          </td>
+          <td style="padding: 16px; border-bottom: 1px solid ${borderColor}; vertical-align: top;">
+            <div style="color: ${textColor}; font-size: 14px;">${escapeHtml(attendance.nomeEmpresa)}</div>
+          </td>
+          <td style="padding: 16px; border-bottom: 1px solid ${borderColor}; vertical-align: top;">
+            <div style="color: ${textColor}; font-size: 14px;">${escapeHtml(attendance.tipoExame)}</div>
+          </td>
+          <td style="padding: 16px; border-bottom: 1px solid ${borderColor}; vertical-align: top;">
+            <div style="color: ${textColor}; font-size: 14px;">${escapeHtml(attendance.dataAgendamento)}</div>
+          </td>
+          <td style="padding: 16px; border-bottom: 1px solid ${borderColor}; vertical-align: top;">
+            <div style="background-color: #FFF5F5; border: 1px solid #FED7D7; border-radius: 6px; padding: 8px;">
+              ${examsList}
+            </div>
+          </td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  return `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Relatório de Exames Não Realizados</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+      </style>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Inter', Arial, sans-serif; background-color: #F0F2F5; -webkit-font-smoothing: antialiased;">
+      <div style="max-width: 900px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08); overflow: hidden;">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 40px; text-align: center; position: relative;">
+          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.1; background-image: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"40\" fill=\"white\"/></svg>'); background-size: 200px; background-position: center;"></div>
+          <div style="position: relative; z-index: 1;">
+            <img src="${logoUrl}" alt="CMSO Logo" style="max-width: 180px; height: auto; margin-bottom: 20px; filter: brightness(0) invert(1);">
+            <h1 style="color: #ffffff; margin: 0 0 12px 0; font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">
+              Relatório de Exames Não Realizados
+            </h1>
+            <div style="display: inline-block; background-color: rgba(255, 255, 255, 0.2); padding: 8px 20px; border-radius: 20px; backdrop-filter: blur(10px);">
+              <p style="color: #ffffff; margin: 0; font-size: 15px; font-weight: 500;">
+                Data do Relatório: ${escapeHtml(data.reportDate)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div style="padding: 32px 40px; background-color: #ffffff;">
+          <div style="display: flex; gap: 20px; margin-bottom: 32px;">
+            <div style="flex: 1; background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 24px; border-radius: 8px; box-shadow: 0 2px 12px rgba(30, 173, 96, 0.2);">
+              <div style="color: rgba(255, 255, 255, 0.9); font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                Total de Atendimentos
+              </div>
+              <div style="color: #ffffff; font-size: 36px; font-weight: 700; line-height: 1;">
+                ${escapeHtml(data.totalAttendances.toString())}
+              </div>
+            </div>
+            <div style="flex: 1; background-color: ${lightGray}; padding: 24px; border-radius: 8px; border: 1px solid ${borderColor};">
+              <div style="color: #6C757D; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                Status
+              </div>
+              <div style="color: ${textColor}; font-size: 20px; font-weight: 600; line-height: 1.8;">
+                Pendente de Ação
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div style="background-color: #ffffff; border: 1px solid ${borderColor}; border-radius: 8px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: ${lightGray}; border-bottom: 2px solid ${borderColor};">
+                  <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6C757D;">
+                    Funcionário
+                  </th>
+                  <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6C757D;">
+                    Empresa
+                  </th>
+                  <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6C757D;">
+                    Tipo de Exame
+                  </th>
+                  <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6C757D;">
+                    Data Agendamento
+                  </th>
+                  <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6C757D;">
+                    Exames Pendentes
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                ${unfinishedExamsRows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding: 32px 40px; background-color: ${lightGray}; border-top: 1px solid ${borderColor}; text-align: center;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <p style="color: ${textColor}; margin: 0; font-size: 13px; font-weight: 500;">
+              Este relatório foi gerado automaticamente pelo sistema CMSO360
+            </p>
+          </div>
+          <p style="color: #6C757D; margin: 0; font-size: 12px;">
+            Para mais informações, entre em contato com a equipe de tecnologia
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}

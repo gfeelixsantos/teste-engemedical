@@ -1,0 +1,104 @@
+export type AudiometriaExportaDados = {
+  CNPJ_UNIDADE: string;
+  NOME_UNIDADE: string;
+  NIT: string;
+  CPF: string;
+  MATRICULA: string;
+  RG: string;
+  NOME: string;
+  DT_NASCIMENTO: string;
+  SEXO: string;
+  ESTADO_CIVIL: string;
+  SETOR: string;
+  CARGO: string;
+  FUNCAO: string;
+  MUNICIPIO: string;
+  NUMERO_GUIA: string;
+
+  OD_250_VIA_AEREA: string;
+  OD_500_VIA_AEREA: string;
+  OD_1000_VIA_AEREA: string;
+  OD_2000_VIA_AEREA: string;
+  OD_3000_VIA_AEREA: string;
+  OD_4000_VIA_AEREA: string;
+  OD_6000_VIA_AEREA: string;
+  OD_8000_VIA_AEREA: string;
+
+  OD_500_VIA_OSSEA: string;
+  OD_1000_VIA_OSSEA: string;
+  OD_2000_VIA_OSSEA: string;
+  OD_3000_VIA_OSSEA: string;
+  OD_4000_VIA_OSSEA: string;
+
+  OE_250_VIA_AEREA: string;
+  OE_500_VIA_AEREA: string;
+  OE_1000_VIA_AEREA: string;
+  OE_2000_VIA_AEREA: string;
+  OE_3000_VIA_AEREA: string;
+  OE_4000_VIA_AEREA: string;
+  OE_6000_VIA_AEREA: string;
+  OE_8000_VIA_AEREA: string;
+
+  OE_500_VIA_OSSEA: string;
+  OE_1000_VIA_OSSEA: string;
+  OE_2000_VIA_OSSEA: string;
+  OE_3000_VIA_OSSEA: string;
+  OE_4000_VIA_OSSEA: string;
+
+  REPOUSO_AUDITIVO: string;
+  OTOSCOPIA_OD: string;
+  OTOSCOPIA_OE: string;
+  DATA_REALIZACAO: string;
+  RESULTADO: string;
+
+  CPF_FONO: string;
+  CPF_FONO2: string;
+  PARECER: string;
+
+  APARELHO: string;
+  TIPO_MASCARAMENTO: string;
+
+  MASCARAMENTO_OD_250_VIA_AEREA: string;
+  MASCARAMENTO_OD_500_VIA_AEREA: string;
+  MASCARAMENTO_OD_1000_VIA_AEREA: string;
+  MASCARAMENTO_OD_2000_VIA_AEREA: string;
+  MASCARAMENTO_OD_3000_VIA_AEREA: string;
+  MASCARAMENTO_OD_4000_VIA_AEREA: string;
+  MASCARAMENTO_OD_6000_VIA_AEREA: string;
+  MASCARAMENTO_OD_8000_VIA_AEREA: string;
+
+  MASCARAMENTO_OD_500_VIA_OSSEA: string;
+  MASCARAMENTO_OD_1000_VIA_OSSEA: string;
+  MASCARAMENTO_OD_2000_VIA_OSSEA: string;
+  MASCARAMENTO_OD_3000_VIA_OSSEA: string;
+  MASCARAMENTO_OD_4000_VIA_OSSEA: string;
+
+  OBSERVACAO_OD: string;
+
+  MASCARAMENTO_OE_250_VIA_AEREA: string;
+  MASCARAMENTO_OE_500_VIA_AEREA: string;
+  MASCARAMENTO_OE_1000_VIA_AEREA: string;
+  MASCARAMENTO_OE_2000_VIA_AEREA: string;
+  MASCARAMENTO_OE_3000_VIA_AEREA: string;
+  MASCARAMENTO_OE_4000_VIA_AEREA: string;
+  MASCARAMENTO_OE_6000_VIA_AEREA: string;
+  MASCARAMENTO_OE_8000_VIA_AEREA: string;
+
+  MASCARAMENTO_OE_500_VIA_OSSEA: string;
+  MASCARAMENTO_OE_1000_VIA_OSSEA: string;
+  MASCARAMENTO_OE_2000_VIA_OSSEA: string;
+  MASCARAMENTO_OE_3000_VIA_OSSEA: string;
+  MASCARAMENTO_OE_4000_VIA_OSSEA: string;
+
+  OBSERVACAO_OE: string;
+
+  OD_IRF: string;
+  OD_SRT: string;
+  OE_IRF: string;
+  OE_SRT: string;
+
+  NUM_CONSELHO_CLASSE_EXAMINADOR1: string;
+  CONSELHO_CLASSE_EXAMINADOR1: string;
+  NUM_CONSELHO_CLASSE_EXAMINADOR2: string;
+  CONSELHO_CLASSE_EXAMINADOR2: string;
+};

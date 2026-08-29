@@ -1,0 +1,69 @@
+Ícone
+ 1280256167_edit-select-all.png
+
+Variáveis Possíveis:<br> empresa = código da empresa <br> código = código do exporta dados <br> chave = chave gerada <br> tipoSaida = txt,xml,html ou json <br> usuário = codigo usuário <br> identificação  = Id da senha do Login do usuário <br> senha = senha cadastrada <br> separador = separador de campos para arquivo texto padrão ';' <br> quebra = quebra linha para arquivo texto (0 ou 1) <br> cabeçalho = Se mostra a primeira linha com nome dos campos (0 ou 1) <br> empresaTrabalho = Usado para informar codigo de empresa SOCNET ou não atual <br> atualizaOrigem:'Sim' , Atualiza o exporta dados com o Origem da copia se houverString teste
+{"empresa":'16459',"codigo":"161440","chave":"3d0851191bdd7e498167","tipoSaida":"html","paramSequencial":"","sequenciaFicha":"","funcionarioInicio":"","funcionarioFim":"","paramData":"","dataInicio":"","dataFim":"","paramFunc":"","cpffuncionario":"","nomefuncionario":"","codpresta":"","nomepresta":"","paramPresta":"","codunidade":"","nomeunidade":"","paramUnidade":""}
+
+{"empresa":"16459","codigo":"161440","chave":"3d0851191bdd7e498167","tipoSaida":"","paramSequencial":"","sequenciaFicha":"","funcionarioInicio":"","funcionarioFim":"","paramData":"","dataInicio":"","dataFim":"","paramFunc":"","cpffuncionario":"","nomefuncionario":"","codpresta":"","nomepresta":"","paramPresta":"","codunidade":"","nomeunidade":"","paramUnidade":""}
+
+Observação:*
+Descrição: Neste Exporta Dados, serão listadas todas as informações relacionadas ao pedido de exame, incluindo dados do funcionário e da hierarquia.
+Tipo de Saída: HTML, TXT, CSV, XML, Json
+Campos: CODIGOEMPRESA, NOMEEMPRESA, CNPJEMPRESA, CPFEMPRESA, CEIEMPRESA, SUBGRUPOEMPRESA, SEQUENCIAFICHA, CODIGOFUNCIONARIO, NOMEFUNCIONARIO, CPFFUNCIONARIO, MATRICULAFUNCIONARIO, RGFUNCIONARIO, CODIGOCENTROCUSTO, NOMECENTROCUSTO, CODIGOUNIDADE, CNPJUNIDADE, CPFUNIDADE, CEIUNIDADE, NOMEUNIDADE, CODIGOSETOR, NOMESETOR, CODIGOCARGO, NOMECARGO, DATACRIACAOPEDIDOEXAMES, CODIGOPRESTADOR, NOMEPRESTADOR, CODIGOTIPOEXAME, DATAFICHA, CODIGOTUSSEXAME, CODIGOEXAMEAMB, CODIGOINTERNOEXAME, NOMEEXAME, DATAEXAME, RISCOSFUNCIONARIO, MEDICOCOORDENADOR, UFMEDICO, CRM, RESPONSAVELPEDIDOEXAME, RISCOSASO, DATA NASCIMENTO, NOMEDAMAEDOFUNCIONARIO, CPFMEDICOEXAMINADOR, CODIGORH
+
+Filtros:
+
+- Nr. Sequencial Ficha: Preencha neste campo o código sequencial da Ficha Clínica.
+
+- Utiliza Filtro Sequencia Ficha: Habilite este campo para que seja utilizado como busca o número sequencial da Ficha Clínica.
+Observação: Caso seja emitido via post, adote "0" para não utilizar o modo de busca de dados por código sequencial de uma Ficha específica ou "1" para ser exibido uma Ficha com o código sequencial específico.
+
+- Func. Início/Func. Fim: Preencha neste campo os códigos dos funcionários desejados para que sejam visualizados no relatório, Exemplo:
+Func.Incio = 0
+Func.Fim = 10
+O sistema exibira os funcionários de código 0 até o 10.
+
+- Data Inicial/Data Final: Inclua o período desejado para visualizar os Pedidos de Exames.
+Observações:
+1. O limite de período para busca de dados é de um mês.
+2. Este campo de preenchimento obrigatório
+
+- Utiliza Filtro de Datas: Habilite este campo para que seja utilizado como busca o período preenchido.
+Observações:
+1. Ao emitir este Exporta Dados via post, adote o código "0" para não utilizar o modo de busca de dados por período específico ou "1" para ser exibido os dados referentes a um período específico.
+2. Ao utilizar o filtro de datas, o sistema irá ignorar os campos "Func. Inicio" e "Func. Fim".
+
+- CPF funcionário: Preencha neste campo o CPF do funcionário que deseja localizar
+Observação: Não é necessário o preenchimento de pontos e traços neste campo.
+
+- Nome funcionário: Preencha neste campo o nome do funcionário que deseja localizar.
+
+- Utiliza Filtro de Funcionários: Habilite este campo para que seja utilizado como busca o nome ou CPF do funcionário.
+Observação: Caso seja utilizado a emissão via post, adote o valor "0" caso não queira utilizar a busca de dados por funcionário específico ou digite "1" para utilizar o filtro de funcionários.
+
+- Código Prestador: Preencha neste campo o código do prestador que deseja localizar.
+
+- Nome Prestador: Preencha neste campo o nome do prestador que deseja localizar.
+
+- Utiliza Filtro de Prestadores: Habilite este campo para que seja utilizado como busca o nome ou código do prestador.
+
+Observação: Caso seja utilizado a emissão via post, adote o valor "0" caso não queira utilizar a busca de dados por Prestador específico ou digite "1" para utilizar o Filtro de Prestadores.
+
+- Código unidade: Preencha neste campo o código da unidade que deseja localizar.
+
+- Nome unidade: Preencha neste campo o nome da unidade que deseja localizar.
+
+- Utiliza Filtro de Unidade: Caso seja utilizado a emissão via post, adote o valor "0" caso não queira utilizar a busca de dados por Unidade específica ou digite "1" para utilizar o Filtro de Unidade.
+
+Observações:
+
+- O campo "CODIGOTIPOEXAME" exibirá os seguintes valores:
+1 - Admissional
+2 - Periódico
+3 - Retorno ao trabalho
+4 - Mudança de função
+5 - Demissional
+
+- O campo "CODIGORH" exibirá o código RH preenchido no cadastro do exame (203 - Exame)
+
+Obs.: Exporta Dados não copiável, disponível somente à pedido ou necessidade do Cliente.

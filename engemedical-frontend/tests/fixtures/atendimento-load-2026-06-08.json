@@ -1,0 +1,158 @@
+{
+  "unit": "RIO CLARO",
+  "dataAgendamento": "08/06/2026",
+  "initialSchedules": [
+    {
+      "_id": "6a208219a83c33409dac8892",
+      "ATENDIMENTOSTATUS": "ATENDIMENTO",
+      "DATAAGENDAMENTO": "08/06/2026",
+      "NOME": "MARCELO FREITAS RODRIGUES",
+      "NOMEEMPRESA": "SAUDE DIGITAL TECNOLOGIA, CONSULTORIA E CORRETAGEM DE SEGUROS LTDA. - SALU",
+      "UNIDADEATENDIMENTO": "RIO CLARO",
+      "CODIGOPRONTUARIO": "1246478-128-1-08062026",
+      "TIPOEXAME": "1",
+      "TIPOEXAMENOME": "ADMISSIONAL",
+      "EXAMES": [
+        {
+          "codigoExame": "clinico",
+          "nomeExame": "Avaliação Clínica Ocupacional (Anamnese e Exame físico) (Cód. eSocial - 0295)",
+          "status": "PENDENTE",
+          "dataExame": "2026-06-08T03:00:00.000Z",
+          "profissional": "",
+          "sala": "",
+          "url": "",
+          "grupo": "Exame Clínico"
+        }
+      ],
+      "TICKET": {
+        "id": 5519,
+        "status": "AGUARDANDO",
+        "unidade": "RIO CLARO",
+        "sala": "",
+        "emissao": "2026-06-08T12:08:15.088448+00:00"
+      }
+    },
+    {
+      "_id": "outra-unidade",
+      "ATENDIMENTOSTATUS": "ATENDIMENTO",
+      "DATAAGENDAMENTO": "08/06/2026",
+      "NOME": "FUNCIONARIO OUTRA UNIDADE",
+      "NOMEEMPRESA": "EMPRESA TESTE",
+      "UNIDADEATENDIMENTO": "ARARAS",
+      "CODIGOPRONTUARIO": "999999-001-08062026",
+      "TIPOEXAME": "1",
+      "TIPOEXAMENOME": "ADMISSIONAL",
+      "EXAMES": [
+        {
+          "codigoExame": "22010017",
+          "nomeExame": "EEG",
+          "status": "PENDENTE",
+          "dataExame": "2026-06-08T03:00:00.000Z",
+          "profissional": "",
+          "sala": "",
+          "url": "",
+          "grupo": "EEG"
+        }
+      ],
+      "TICKET": {
+        "id": 5520,
+        "status": "AGUARDANDO",
+        "unidade": "ARARAS",
+        "sala": "",
+        "emissao": "2026-06-08T12:10:00.000+00:00"
+      }
+    },
+    {
+      "_id": "outra-data",
+      "ATENDIMENTOSTATUS": "ATENDIMENTO",
+      "DATAAGENDAMENTO": "09/06/2026",
+      "NOME": "FUNCIONARIO OUTRA DATA",
+      "NOMEEMPRESA": "EMPRESA TESTE",
+      "UNIDADEATENDIMENTO": "RIO CLARO",
+      "CODIGOPRONTUARIO": "888888-001-09062026",
+      "TIPOEXAME": "1",
+      "TIPOEXAMENOME": "ADMISSIONAL",
+      "EXAMES": [
+        {
+          "codigoExame": "225588",
+          "nomeExame": "Psicossocial",
+          "status": "PENDENTE",
+          "dataExame": "2026-06-09T03:00:00.000Z",
+          "profissional": "",
+          "sala": "",
+          "url": "",
+          "grupo": "Psicossocial"
+        }
+      ],
+      "TICKET": {
+        "id": 5521,
+        "status": "AGUARDANDO",
+        "unidade": "RIO CLARO",
+        "sala": "",
+        "emissao": "2026-06-09T12:10:00.000+00:00"
+      }
+    }
+  ],
+  "connectionRequestSchedules": [
+    {
+      "_id": "6a208219a83c33409dac8892",
+      "ATENDIMENTOSTATUS": "ATENDIMENTO",
+      "DATAAGENDAMENTO": "08/06/2026",
+      "NOME": "MARCELO FREITAS RODRIGUES",
+      "NOMEEMPRESA": "SAUDE DIGITAL TECNOLOGIA, CONSULTORIA E CORRETAGEM DE SEGUROS LTDA. - SALU",
+      "UNIDADEATENDIMENTO": "RIO CLARO",
+      "CODIGOPRONTUARIO": "1246478-128-1-08062026",
+      "TIPOEXAME": "1",
+      "TIPOEXAMENOME": "ADMISSIONAL",
+      "EXAMES": [
+        {
+          "codigoExame": "clinico",
+          "nomeExame": "Avaliação Clínica Ocupacional (Anamnese e Exame físico) (Cód. eSocial - 0295)",
+          "status": "PENDENTE",
+          "dataExame": "2026-06-08T03:00:00.000Z",
+          "profissional": "",
+          "sala": "",
+          "url": "",
+          "grupo": "Exame Clínico"
+        }
+      ],
+      "TICKET": {
+        "id": 5519,
+        "status": "AGUARDANDO",
+        "unidade": "RIO CLARO",
+        "sala": "SALA 1",
+        "emissao": "2026-06-08T12:08:15.088448+00:00"
+      }
+    },
+    {
+      "_id": "sem-unidade",
+      "ATENDIMENTOSTATUS": "ATENDIMENTO",
+      "DATAAGENDAMENTO": "08/06/2026",
+      "NOME": "SEM UNIDADE DEFINIDA",
+      "NOMEEMPRESA": "EMPRESA TESTE",
+      "UNIDADEATENDIMENTO": "",
+      "CODIGOPRONTUARIO": "000000-001-08062026",
+      "TIPOEXAME": "1",
+      "TIPOEXAMENOME": "ADMISSIONAL",
+      "EXAMES": [
+        {
+          "codigoExame": "triagem",
+          "nomeExame": "Triagem",
+          "status": "PENDENTE",
+          "dataExame": "2026-06-08T03:00:00.000Z",
+          "profissional": "",
+          "sala": "",
+          "url": "",
+          "grupo": "Triagem"
+        }
+      ],
+      "TICKET": {
+        "id": 5522,
+        "status": "AGUARDANDO",
+        "unidade": "",
+        "sala": "",
+        "emissao": "2026-06-08T12:12:00.000+00:00"
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+  100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+.slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+/* Estilos para diferentes tipos de exames */
+.exame-urgente {
+  background: linear-gradient(45deg, #ef4444, #f87171) !important;
+}
+
+.exame-consulta {
+  background: linear-gradient(45deg, #10b981, #34d399) !important;
+}
+
+.exame-laboratorio {
+  background: linear-gradient(45deg, #f59e0b, #fbbf24) !important;
+}
+
+.exame-imagem {
+  background: linear-gradient(45deg, #8b5cf6, #a78bfa) !important;
+}

@@ -1,0 +1,41 @@
+# fly.toml app configuration file generated for cmso360-worker on 2026-07-15T23:38:05Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "cmso360-worker"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  AZURE_QUEUE_EMAIL_MAX_CONCURRENT_MESSAGES = "2"
+  AZURE_QUEUE_EMAIL_RECEIVE_BATCH_SIZE = "2"
+  AZURE_QUEUE_RESULTADOS_MAX_CONCURRENT_MESSAGES = "1"
+  AZURE_QUEUE_RESULTADOS_RECEIVE_BATCH_SIZE = "1"
+
+[http_service]
+  internal_port = 3334
+  force_https = true
+  auto_start_machines = true
+  auto_stop_machines = false
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "10s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/"
+
+[deploy]
+  strategy = "bluegreen"
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory = '512mb'
+  memory_mb = 512
+  processes = ['app']
+  size = 'shared-cpu-1x'

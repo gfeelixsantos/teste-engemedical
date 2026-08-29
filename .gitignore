@@ -1,0 +1,73 @@
+# ==============================================================
+# ENGEMEDICAL — Monorepo Git Ignore
+# ==============================================================
+
+# ======================== DEPENDENCIES ========================
+node_modules/
+.pnp
+.pnp.js
+
+# ======================== BUILD OUTPUT ========================
+dist/
+build/
+out/
+.next/
+.next-prod/
+
+# ======================== LOCK FILES ==========================
+# Usamos pnpm — ignorar outros lock files
+package-lock.json
+yarn.lock
+bun.lockb
+
+# ======================== ENV / SECRETS =======================
+.env
+.env.*
+!.env.example
+
+# ======================== LOGS ================================
+*.log
+*.log.*
+logs/
+logs.txt
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ======================== TEMP / DEBUG ========================
+temp/
+temp_*/
+tmp/
+.tmp
+debug/
+scratch/
+deletions_*.txt
+deletions_*.json
+workspace-files.txt
+test_output.txt
+*.tsbuildinfo
+next-env.d.ts
+
+# ======================== OS / IDE ============================
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+*.sw?
+*.suo
+*.sln
+
+# ======================== TESTS / COVERAGE ====================
+coverage/
+.nyc_output/
+.jest-cache/
+
+# ======================== PUPPETEER / BROWSER ================
+.puppeteer-profile/
+.wwebjs_auth/
+.wwebjs_cache/
+
+# ======================== CREDENTIALS =========================
+bry-credencial.txt

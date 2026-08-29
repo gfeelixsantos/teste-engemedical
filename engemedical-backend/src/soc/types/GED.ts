@@ -1,0 +1,24 @@
+export type DocumentoGED = {
+  CD_EMPRESA: string;
+  CD_UNIDADE: string;
+  CD_GED: string;
+  NM_GED: string;
+  DT_VALIDADE: string;
+  DT_EMISSAO: string;
+  IC_CRIADO_SOCNET: string;
+  CD_FUNCIONARIO: string;
+  DATAFICHA: string;
+  TIPOFICHA: string;
+  CD_ARQUIVO_GED: string;
+  NM_ARQUIVOS_GED: string;
+  ASSINADO_DIGITALMENTE: string;
+  CD_TIPO_GED: string;
+  SEQUENCIAL_FICHA: string;
+  NOME_FUNCIONARIO: string;
+  CPF_FUNCIONARIO: string;
+  MATRICULA_FUNCIONARIO: string;
+  UNIDADE: string;
+  DT_UPLOAD_ARQUIVO: string;
+  OBSERVACAO: string;
+  HR_UPLOAD_ARQUIVO: string;
+};

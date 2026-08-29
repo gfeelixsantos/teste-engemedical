@@ -1,0 +1,23 @@
+export type ExameSocnet = {
+  CODIGOEMPRESAREPASSE: string;
+  NOMEEMPRESAREPASSE: string;
+  CODIGOEMPRESA: string;
+  NOMEEMPRESA: string;
+  CODIGOFUNCIONARIO: string;
+  CPF: string;
+  NOME: string;
+  SEXO: string;
+  DT_NASC: string;
+  CODIGOEXAME: string;
+  NOMEEXAME: string;
+  AMB: string;
+  TUSS: string;
+  DATAFICHA: string;
+  TIPOEXAME: string;
+  SEQUENCIALFICHA: string;
+  MEDICOFICHA: string;
+  DATARESULTADO: string;
+  SEQUENCIARESULTADOEXAME: string;
+  CODIGOPRESTADORREFERENCIA: string;
+  NOMEPRESTADORREFERENCIA: string;
+};

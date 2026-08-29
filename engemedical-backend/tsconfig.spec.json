@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "isolatedModules": true,
+    "sourceMap": false,
+    "inlineSourceMap": false,
+    "declaration": false,
+    "removeComments": false,
+    "incremental": false,
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.spec.tsbuildinfo"
+  }
+}

@@ -1,0 +1,42 @@
+export enum TicketGroups {
+  RECEPCAO = 'RECEPCAO',
+  EXAME = 'EXAME',
+}
+
+export enum TicketStatus {
+  AGUARDANDO = 'AGUARDANDO',
+  EM_CHAMADA = 'EM CHAMADA',
+  EM_ATENDIMENTO = 'EM ATENDIMENTO',
+  FINALIZADO = 'FINALIZADO',
+  EM_PREPRACAO = 'EM PREPARAÇÃO',
+  PREPARO_OK = 'PREPARO OK',
+  ENCAMINHADO_RX = 'ENCAMINHADO RAIO-X',
+}
+
+export enum TicketTypes {
+  NORMAL = '',
+  PREFERENCIAL = 'P',
+  WHIRLPOOL = 'W',
+  RETIRADA_EXAMES = 'R',
+}
+
+export enum TicketActionType {
+  CHAMAR = 'CHAMAR',
+  ATENDER = 'ATENDER',
+  AGUARDAR = 'AGUARDAR',
+  RETORNAR = 'RETORNAR',
+  FINALIZAR = 'FINALIZAR',
+  EM_PREPRACAO = 'EM PREPARAÇÃO',
+  PREPARO_OK = 'PREPARO OK',
+  ENCAMINHADO_RX = 'ENCAMINHADO RAIO-X',
+  EXAME = 'EXAME',
+}
+
+export enum PreferentialTypes {
+  GESTANTE = 'GESTANTE',
+  CRIANCA_COLO = 'CRIANÇA DE COLO',
+  IDOSO = 'IDOSO',
+  PCD = 'PCD',
+  OUTROS = 'OUTROS',
+  NULL = '',
+}

@@ -1,0 +1,75 @@
+export enum ExamStatus {
+  PENDENTE = 'PENDENTE',
+  NAO_REALIZADO = 'NAO_REALIZADO',
+  AGUARDANDO_RESULTADO = 'AGUARDANDO_RESULTADO',
+  FINALIZADO = 'FINALIZADO',
+}
+
+export enum AtendimentoStatus {
+  AGENDADO = 'AGENDADO',
+  EM_ATENDIMENTO = 'ATENDIMENTO',
+  AGUARDANDO_RESULTADOS = 'AGUARDANDO_RESULTADOS',
+  AVALIACAO_MEDICA = 'AVALIACAO_MEDICA',
+  FINALIZADO = 'FINALIZADO',
+  PENDENTE = 'PENDENTE',
+}
+
+export enum AsoStatus {
+  NAO_GERADO = 'NAO_GERADO',
+  GERADO = 'GERADO',
+  KIT_CREDENCIADA = 'KIT_CREDENCIADA',
+  APROVADO = 'APROVADO',
+  REPROVADO = 'REPROVADO',
+  ENVIADO = 'ENVIADO',
+}
+
+export enum TipoExame {
+  ADMISSIONAL = '1',
+  PERIODICO = '2',
+  RETORNO_TRABALHO = '3',
+  MUDANCA_FUNCAO = '4',
+  DEMISSIONAL = '5',
+  MONITORACAO_PONTUAL = '6',
+}
+
+export const TipoExameMap: Record<string, string> = {
+  '1': 'ADMISSIONAL',
+  '2': 'PERIODICO',
+  '3': 'RETORNO TRABALHO',
+  '4': 'MUDANCA FUNCAO',
+  '5': 'DEMISSIONAL',
+  '6': 'MONITORACAO PONTUAL',
+};
+
+export enum MongoOperationTypes {
+  INSERT = 'insert',
+  REPLACE = 'replace',
+  UPDATE = 'update',
+  DELETE = 'delete',
+}
+
+export enum ParecerMedico {
+  APTO = 'APTO',
+  APTO_COM_ORIENTACAO = 'APTO_COM_ORIENTACAO',
+  APTO_COM_RESTRICAO = 'APTO_COM_RESTRICAO',
+  INAPTO = 'INAPTO',
+  INAPTO_TEMPORARIAMENTE = 'INAPTO_TEMPORARIAMENTE',
+}
+
+export enum ParecerTrabalhoAltura {
+  APTO_ALTURA = 'APTO PARA TRABALHO EM ALTURA',
+  APTO_ALTURA_CINTO_100KG = 'APTO PARA TRABALHO EM ALTURA COM CINTO ACIMA DE 100 KG',
+  INAPTO_ALTURA = 'INAPTO PARA TRABALHO EM ALTURA',
+}
+
+export enum ParecerEspaçoConfinado {
+  APTO_CONFINADO = 'APTO PARA ESPAÇO CONFINADO',
+  INAPTO_CONFINADO = 'INAPTO PARA ESPAÇO CONFINADO',
+}
+
+export enum CertificateStatus {
+  'Pendente',
+  'Liberado',
+  'Erro',
+  'Sem biometria',
+}

@@ -1,0 +1,41 @@
+# ==============================================================================
+# CMSO360 ASO Generate - Git Ignore Configuration
+# ==============================================================================
+
+# Dependencies
+node_modules/
+
+# Production Build
+dist/
+*.tsbuildinfo
+
+# Environment/Secrets
+.env
+.env.*
+! .env.example
+googleDriveApi.json
+
+# Temporary & Log Files
+temp/
+logs.txt
+log.txt
+*.log
+temp_intercept.ts
+temp_network_log.json
+
+# Browser & Puppeteer Cache
+.puppeteer-profile/
+.wwebjs_auth/
+.wwebjs_cache/
+
+# IDEs, Editors & System Files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+Thumbs.db
+Desktop.ini
+.DS_Store

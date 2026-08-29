@@ -1,0 +1,8 @@
+packages:
+  - "."
+
+allowBuilds:
+  "@nestjs/core": false
+  "@swc/core": true
+  bcrypt: true
+  canvas: true

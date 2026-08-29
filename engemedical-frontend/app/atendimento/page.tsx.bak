@@ -1,0 +1,789 @@
+"use client";
+import { useRouter } from "next/navigation";
+import { io, Socket } from "socket.io-client";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { motion } from "framer-motion";
+import {
+  addToast,
+  Button,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Spinner,
+} from "@heroui/react";
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import { UserLock } from "lucide-react";
+import dynamic from "next/dynamic";
+
+import { PscProviderStatus } from "./components/PscProviderStatus";
+import { PscProviderSelector } from "./components/PscProviderSelector";
+
+import { IUserInfo, IUserWebsocket } from "@/lib/user/interfaces/IUser";
+import { usePscAuthStatus } from "@/hooks/usePscAuthStatus";
+import {
+  CustomEventMap,
+  emitEvent,
+  EventType,
+  TicketActionSuccessPayload,
+  BiometriaCapturaResultPayload,
+  BiometriaCapturaStatusPayload,
+  BiometriaAgentUnavailablePayload,
+  BiometriaRequestStatePayload,
+  BiometriaAgentSnapshotPayload,
+} from "@/lib/websocket/events/events";
+import { WebsocketType } from "@/lib/websocket/enums/websocket.enum";
+import { useEntityManager } from "@/hooks/useEntityManager";
+import { getCurrentUser, logout } from "@/lib/utils";
+import EmptyState from "@/app/recepcao/components/EmptyState";
+import { SidebarRecepcao } from "@/components/shared/Sidebar";
+import { HeaderApp } from "@/components/shared/HeaderApp";
+import { CadastroEmpresa } from "@/lib/soc/interfaces/CadastroEmpresa";
+import {
+  PreparationRequest,
+  Ticket,
+  TicketGroups,
+  TicketStatus,
+} from "@/lib/ticket/ticket";
+import { IndexDb } from "@/lib/indexDb/indexdb";
+import {
+  Scheduling,
+  SchedulingChange,
+} from "@/lib/scheduling/interface/scheduling";
+import {
+  EXAMES_LIST,
+  NEST_SOC_COMPANIES,
+  NEST_SCHEDULINGS_TODAY,
+  NEST_TICKET_QUERY,
+  NEST_URL,
+} from "@/config/constants";
+import {
+  AtendimentoStatus,
+  ExamStatus,
+  MongoOperationTypes,
+} from "@/lib/scheduling/enum/scheduling.enum";
+import { StatsModal } from "@/app/recepcao/components/SenhasEstatisticas";
+
+import AtendimentoContent from "@/app/atendimento/components/AtendimentoContent";
+import AtendimentoModalExames from "@/app/atendimento/components/AtendimentoModalExames";
+import CmsoLoading from "@/components/shared/CmsoLoading";
+import { usePushNotification } from "@/hooks/usePushNotification";
+
+const SenhasEstatisticas = dynamic<import("@/app/recepcao/components/SenhasEstatisticas").SenhasEstatisticasProps>(
+  () => import("@/app/recepcao/components/SenhasEstatisticas"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-16 w-full animate-pulse bg-gray-200/40 rounded-lg" />
+    ),
+  },
+);
+
+// =================================================================================
+// Socket singleton & helpers
+// =================================================================================
+
+type PendingActionInfo = {
+  action: string;
+  startedAt: number;
+  phase: "pending" | "acknowledged" | "resync";
+};
+
+let SINGLETON_SOCKET: Socket | null = null;
+let registeredOnce = false;
+
+type ConnectOptions = {
+  auth: IUserWebsocket;
+  onConnect?: (socket: Socket) => void;
+  onDisconnect?: (reason: string) => void;
+  onConnectError?: (err: any) => void;
+};
+
+function createSocketIfNeeded(opts: ConnectOptions): Socket {
+  if (SINGLETON_SOCKET?.connected) {
+    return SINGLETON_SOCKET;
+  }
+
+  if (SINGLETON_SOCKET) {
+    try {
+      SINGLETON_SOCKET.removeAllListeners();
+      SINGLETON_SOCKET.disconnect();
+    } catch {}
+    SINGLETON_SOCKET = null;
+  }
+
+  const { auth, onConnect, onDisconnect, onConnectError } = opts;
+
+  const s = io(NEST_URL, {
+    auth,
+    transports: ["websocket"],
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    timeout: 20000,
+    forceNew: false,
+    upgrade: false,
+    rememberUpgrade: true,
+  });
+
+  SINGLETON_SOCKET = s;
+
+  if (!registeredOnce) {
+    s.on("connect", () => {
+      onConnect?.(s);
+    });
+
+    s.on("disconnect", (reason: string) => {
+      if (reason === "io server disconnect") {
+        s.connect();
+      }
+      onDisconnect?.(reason);
+    });
+
+    s.on("connect_error", (err: any) => {
+      onConnectError?.(err);
+    });
+
+    registeredOnce = true;
+  }
+
+  return s;
+}
+
+function closeSocket() {
+  if (SINGLETON_SOCKET) {
+    try {
+      SINGLETON_SOCKET.removeAllListeners();
+      SINGLETON_SOCKET.disconnect();
+    } catch {}
+  }
+  SINGLETON_SOCKET = null;
+  registeredOnce = false;
+}
+
+function registerHandlers(
+  s: Socket,
+  handlers: { [K in keyof CustomEventMap]?: (...args: any[]) => void },
+) {
+  Object.entries(handlers).forEach(([event, fn]) => {
+    if (!fn) return;
+    s.off(event as any);
+    s.on(event as any, fn as any);
+  });
+
+  return () => {
+    Object.entries(handlers).forEach(([event, fn]) => {
+      if (!fn) return;
+      try {
+        s.off(event as any, fn as any);
+      } catch {}
+    });
+  };
+}
+
+const AtendimentoPage: React.FC = () => {
+  const [user, setUser] = useState<IUserInfo | null>(() => getCurrentUser());
+  const [conectado, setConectado] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const [isReconnecting, setIsReconnecting] = useState(false);
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState("");
+  const [statusSelecionado, setStatusSelecionado] = useState("");
+  const [salaSelecionada, setSalaSelecionada] = useState("");
+  const [exameSelecionado, setExameSelecionado] = useState("");
+  const [codigosDeAtendimento, setCodigosDeAtendimento] = useState<Set<string>>(
+    new Set(),
+  );
+  const [agendamentos, setAgendamentos] = useState<Scheduling[]>([]);
+  const [agendamentosGeral, setAgendamentosGeral] = useState<Scheduling[]>([]);
+  const [empreparacao, setEmPreparacao] = useState<PreparationRequest[]>([]);
+  const [modalAtendimentoAberto, setModalAtendimentoAberto] = useState(false);
+  const [modalAlert, setModalAlert] = useState<boolean>(false);
+  const [modalText, setModalText] = useState<React.ReactNode>("");
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [pendingActions, setPendingActions] = useState<
+    Record<number, PendingActionInfo>
+  >({});
+  const [funcionarioSelecionado, setFuncionarioSelecionado] =
+    useState<Scheduling | null>(null);
+  const router = useRouter();
+  const {
+    entities: tickets,
+    setAll,
+    getAll,
+    clear,
+    addOrUpdate,
+    remove,
+  } = useEntityManager<Ticket>([]);
+  const [estatisticas, setEstatisticas] = useState<Record<string, number>>({
+    pendentes: 0,
+    finalizados: 0,
+    aguardandoRecepcao: 0,
+    total: 0,
+    aguardando: 0,
+    preparacao: 0,
+    raiox: 0,
+    recepcaoAguardando: 0,
+    examesAguardando: 0,
+    emAtendimento: 0,
+  });
+
+  const {
+    settings,
+    pscAuthStatus,
+    isLoading: isPscLoading,
+    refetch: refetchPscStatus,
+  } = usePscAuthStatus();
+  const assinaDigitalmente = settings?.assinaDigitalmente ?? false;
+  const [isProviderSelectorOpen, setIsProviderSelectorOpen] = useState(false);
+
+  const [isPscAuthenticating, setIsPscAuthenticating] = useState(false);
+  const [modalPscAvisoOpen, setModalPscAvisoOpen] = useState(false);
+  const [isWaitingForAuthToConnect, setIsWaitingForAuthToConnect] =
+    useState(false);
+  const [pscAuthWindowUrl, setPscAuthWindowUrl] = useState<string>("");
+  const pscWindowRef = useRef<Window | null>(null);
+  const pscPollingRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingTimeoutsRef = useRef<Record<number, NodeJS.Timeout>>({});
+  const previousPscStatusRef = useRef(pscAuthStatus.status);
+
+  usePushNotification({
+    enabled: conectado,
+    unidade: unidadeSelecionada,
+    contexto: { sala: salaSelecionada, exame: exameSelecionado, tipo: "atendimento" },
+  });
+
+  useEffect(() => {
+    return () => {
+      if (pscPollingRef.current) clearInterval(pscPollingRef.current);
+      Object.values(pendingTimeoutsRef.current).forEach((timer) =>
+        clearTimeout(timer),
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isPscAuthenticating) {
+      pscPollingRef.current = setInterval(async () => {
+        if (pscWindowRef.current && pscWindowRef.current.closed) {
+          if (pscPollingRef.current) clearInterval(pscPollingRef.current);
+          setIsPscAuthenticating(false);
+          addToast({
+            title: "Autenticação Não Concluída",
+            description: "A janela de autenticação foi fechada antes de concluir.",
+            severity: "warning",
+            color: "foreground",
+            variant: "flat",
+          });
+          return;
+        }
+        try {
+          await refetchPscStatus();
+        } catch {}
+      }, 3000);
+    } else {
+      if (pscPollingRef.current) clearInterval(pscPollingRef.current);
+    }
+    return () => {
+      if (pscPollingRef.current) clearInterval(pscPollingRef.current);
+    };
+  }, [isPscAuthenticating, refetchPscStatus]);
+
+  useEffect(() => {
+    if (isPscAuthenticating && pscAuthStatus.isActive) {
+      setIsPscAuthenticating(false);
+      if (pscWindowRef.current && !pscWindowRef.current.closed) {
+        pscWindowRef.current.close();
+      }
+      addToast({
+        title: "Autenticação Realizada",
+        description: "Assinatura digital habilitada com sucesso.",
+        severity: "success",
+        color: "foreground",
+        variant: "flat",
+      });
+      if (isWaitingForAuthToConnect) {
+        setIsWaitingForAuthToConnect(false);
+        executeConnection();
+      }
+    }
+  }, [pscAuthStatus.isActive, isPscAuthenticating, isWaitingForAuthToConnect]);
+
+  useEffect(() => {
+    const previousStatus = previousPscStatusRef.current;
+    const currentStatus = pscAuthStatus.status;
+    if (previousStatus !== currentStatus && currentStatus === "EXPIRED") {
+      addToast({
+        title: "Sessão PSC expirada",
+        description: "Sua autenticação de assinatura expirou. Reautentique-se para continuar assinando digitalmente.",
+        severity: "warning",
+        color: "foreground",
+        variant: "flat",
+      });
+    }
+    previousPscStatusRef.current = currentStatus;
+  }, [pscAuthStatus.status]);
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      router.push("/");
+    } else {
+      setUser(currentUser);
+    }
+  }, [router]);
+
+  const handlePscAuth = async (provider?: string) => {
+    try {
+      const response = await fetch("/api/psc/auth/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider }),
+      });
+      if (!response.ok) throw new Error(await response.text() || "Falha ao iniciar autenticação");
+      const data = await response.json();
+      if (data.url) {
+        setPscAuthWindowUrl(data.url);
+        setIsPscAuthenticating(true);
+        const width = 800;
+        const height = 700;
+        const left = window.screen.width ? (window.screen.width - width) / 2 : 0;
+        const top = window.screen.height ? (window.screen.height - height) / 2 : 0;
+        const newWindow = window.open(data.url, "psc_auth", `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`);
+        if (newWindow) {
+          pscWindowRef.current = newWindow;
+          newWindow.focus();
+        }
+      }
+    } catch (error: any) {
+      addToast({
+        title: "Erro de Autenticação",
+        description: `Falha ao conectar com provedor: ${error.message || "Erro desconhecido"}`,
+        severity: "danger",
+        color: "foreground",
+        variant: "flat",
+      });
+    }
+  };
+
+  const handlePscClick = () => {
+    if (pscAuthStatus.status === "ACTIVE") {
+      addToast({ title: "Sessão Ativa", description: "Sua sessão com o provedor de assinatura está ativa.", severity: "success", color: "foreground", variant: "flat" });
+      return;
+    }
+    if (settings?.assinaturaProvider === "BRYKMS") {
+      if (settings?.uuidCert && settings?.uuidCert.trim() !== "") {
+        addToast({ title: "BRy Cloud Configurado", description: "Seu provedor BRy Cloud está configurado e pronto para uso.", severity: "success", color: "foreground", variant: "flat" });
+        return;
+      }
+    }
+    const defaultPscProvider = settings?.pscPadrao ?? settings?.provedorPadrao;
+    if (defaultPscProvider) handlePscAuth(defaultPscProvider);
+    else setIsProviderSelectorOpen(true);
+  };
+
+  const loadInitialTickets = async () => {
+    try {
+      if (!unidadeSelecionada) return;
+      const response = await fetch(`${NEST_TICKET_QUERY}${encodeURIComponent(unidadeSelecionada)}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      if (Array.isArray(data.tickets)) setAll(data.tickets);
+      if (Array.isArray(data.preparationRequests)) setEmPreparacao(data.preparationRequests);
+    } catch {}
+  };
+
+  const loadSocCompanies = useCallback(async () => {
+    try {
+      const response = await fetch(NEST_SOC_COMPANIES);
+      if (!response.ok) return await IndexDb.getCompanies();
+      const data = await response.json();
+      if (Array.isArray(data)) await IndexDb.saveCompanies(data);
+      return [];
+    } catch {
+      return await IndexDb.getCompanies();
+    }
+  }, []);
+
+  const clearPendingAction = useCallback((ticketId?: number | null) => {
+    if (!ticketId || Number.isNaN(Number(ticketId))) return;
+    const numericTicketId = Number(ticketId);
+    const timer = pendingTimeoutsRef.current[numericTicketId];
+    if (timer) {
+      clearTimeout(timer);
+      delete pendingTimeoutsRef.current[numericTicketId];
+    }
+    setPendingActions((prev) => {
+      if (!(numericTicketId in prev)) return prev;
+      const updated = { ...prev };
+      delete updated[numericTicketId];
+      return updated;
+    });
+  }, []);
+
+  const resyncAttendimentos = useCallback(
+    async (reason: string, targetTicketId?: number) => {
+      if (!unidadeSelecionada) return;
+      try {
+        const response = await fetch(NEST_SCHEDULINGS_TODAY, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Falha ao recarregar atendimentos (${response.status})`);
+        const schedules: Scheduling[] = await response.json();
+        const unidadeNormalizada = unidadeSelecionada.trim().toUpperCase();
+        const filtered = Array.isArray(schedules)
+          ? schedules.filter((s) => s.UNIDADEATENDIMENTO?.trim().toUpperCase() === unidadeNormalizada || s.UNIDADEATENDIMENTO === "")
+          : [];
+        setAgendamentosGeral(filtered);
+        if (targetTicketId) clearPendingAction(targetTicketId);
+      } catch {
+        if (targetTicketId) clearPendingAction(targetTicketId);
+      }
+    },
+    [clearPendingAction, unidadeSelecionada],
+  );
+
+  const startPendingAction = useCallback(
+    (ticketId: number, action: string) => {
+      clearPendingAction(ticketId);
+      setPendingActions((prev) => ({
+        ...prev,
+        [ticketId]: { action, startedAt: Date.now(), phase: "pending" },
+      }));
+      pendingTimeoutsRef.current[ticketId] = setTimeout(() => {
+        setPendingActions((prev) => {
+          const current = prev[ticketId];
+          if (!current) return prev;
+          return { ...prev, [ticketId]: { ...current, phase: "resync" } };
+        });
+        addToast({ title: "Verificando atualização", description: "A ação demorou para refletir na tela. Vamos recarregar o atendimento.", severity: "warning", color: "foreground", variant: "flat" });
+        void resyncAttendimentos("timeout", ticketId);
+      }, 4000);
+    },
+    [clearPendingAction, resyncAttendimentos],
+  );
+
+  const acknowledgePendingAction = useCallback(
+    (payload: TicketActionSuccessPayload) => {
+      const ticketId = Number(payload.ticketId);
+      const timer = pendingTimeoutsRef.current[ticketId];
+      if (timer) {
+        clearTimeout(timer);
+        delete pendingTimeoutsRef.current[ticketId];
+      }
+      setPendingActions((prev) => {
+        if (!(ticketId in prev)) return prev;
+        return { ...prev, [ticketId]: { ...prev[ticketId], phase: "acknowledged" } };
+      });
+      pendingTimeoutsRef.current[ticketId] = setTimeout(() => {
+        setPendingActions((prev) => {
+          const current = prev[ticketId];
+          if (!current || current.phase !== "acknowledged") return prev;
+          return { ...prev, [ticketId]: { ...current, phase: "resync" } };
+        });
+        void resyncAttendimentos("acknowledged_without_update", ticketId);
+      }, 2500);
+    },
+    [resyncAttendimentos],
+  );
+
+  const findSchedulingIndex = useCallback((list: Scheduling[], schedule: Scheduling) =>
+    list.findIndex((item) => (item._id && schedule._id && item._id === schedule._id) || (item.CODIGOPRONTUARIO && schedule.CODIGOPRONTUARIO && item.CODIGOPRONTUARIO === schedule.CODIGOPRONTUARIO)),
+  []);
+
+  useEffect(() => {
+    if (!codigosDeAtendimento || codigosDeAtendimento.size === 0 || !agendamentosGeral || agendamentosGeral.length === 0) {
+      setAgendamentos([]);
+      return;
+    }
+    const emAtendimento = agendamentosGeral.filter((a) => a.ATENDIMENTOSTATUS === AtendimentoStatus.EM_ATENDIMENTO);
+    const meusAtendimentos = emAtendimento.filter((atend) =>
+      atend.TICKET?.emissao != null && Array.isArray(atend.EXAMES) && atend.EXAMES.some((exame) => codigosDeAtendimento.has(exame.codigoExame) && exame.status === ExamStatus.PENDENTE)
+    );
+    setAgendamentos(meusAtendimentos);
+  }, [agendamentosGeral, codigosDeAtendimento]);
+
+  useEffect(() => {
+    if (!unidadeSelecionada || !salaSelecionada || !exameSelecionado) return;
+    if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+    if (conectado) {
+      reconnectTimeoutRef.current = setTimeout(() => {
+        closeSocket();
+        setConectado(false);
+        setTimeout(() => setConectado(true), 300);
+      }, 500);
+    }
+    return () => { if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current); };
+  }, [unidadeSelecionada, salaSelecionada, exameSelecionado]);
+
+  const executeConnection = () => {
+    setIsLoading(true);
+    setConectado(true);
+  };
+
+  const handleConectar = () => {
+    if (conectado) {
+      closeSocket();
+      socketRef.current = null;
+      setConectado(false);
+      clear();
+      setAgendamentos([]);
+      setAgendamentosGeral([]);
+      addToast({ title: "Desconectado", description: "Você se desconectou do servidor.", severity: "warning", color: "foreground", variant: "flat" });
+      return;
+    }
+    if (!unidadeSelecionada || !salaSelecionada || !exameSelecionado) {
+      setModalText(<p>Selecione uma <strong>UNIDADE</strong>, <strong>SALA</strong> e <strong>EXAME</strong> antes de conectar.</p>);
+      setModalAlert(true);
+      return;
+    }
+    let requiresPscAuth = false;
+    if (assinaDigitalmente) {
+      if (settings?.assinaturaProvider === "BRYKMS") {
+        requiresPscAuth = !(settings?.uuidCert && settings?.uuidCert.trim() !== "");
+      } else {
+        requiresPscAuth = !pscAuthStatus.isActive;
+      }
+    }
+    if (requiresPscAuth && settings?.assinaturaProvider !== "BRYKMS") {
+      executeConnection();
+      setModalPscAvisoOpen(true);
+      return;
+    }
+    if (requiresPscAuth && settings?.assinaturaProvider === "BRYKMS") {
+      setModalText(<p>Para usar o provedor <strong>BRy Cloud</strong>, configure o <strong>ID Cert (UUID)</strong> e <strong>PIN</strong> nas configurações de assinatura digital.</p>);
+      setModalAlert(true);
+      return;
+    }
+    executeConnection();
+  };
+
+  const handleTicketError = (payload: { error?: string; message?: string }) => {
+    addToast({
+      title: "Erro no Ticket",
+      description: payload.message || payload.error || "Ocorreu um erro.",
+      variant: "flat",
+      color: "danger",
+    });
+  };
+
+  useEffect(() => {
+    if (!conectado) return;
+    const auth: IUserWebsocket = {
+      nome: getCurrentUser()?.nome!,
+      sala: salaSelecionada,
+      type: WebsocketType.USER_ATENDIMENTO,
+      unidade: unidadeSelecionada,
+    };
+    const s = createSocketIfNeeded({
+      auth,
+      onConnect: async (socket) => {
+        socketRef.current = socket;
+        setIsReconnecting(false);
+        try {
+          await Promise.all([loadSocCompanies(), loadInitialTickets()]);
+          emitEvent(socket, EventType.TICKET_INFO, unidadeSelecionada);
+          addToast({ title: "Conectado", description: `Conexão com servidor estabelecida.`, severity: "success", color: "foreground", variant: "flat" });
+        } catch {} finally { setIsLoading(false); }
+      },
+      onDisconnect: (reason) => {
+        if (reason !== "io client disconnect") {
+          setIsReconnecting(true);
+          setTimeout(() => { if (isReconnecting) addToast({ title: "Reconectando...", description: "Tentando restabelecer conexão", severity: "warning", color: "foreground", variant: "flat" }); }, 2000);
+        } else setConectado(false);
+        setIsLoading(false);
+      },
+      onConnectError: () => {
+        setIsLoading(false);
+        setIsReconnecting(false);
+        addToast({ title: "Erro de conexão", description: "Não foi possível conectar ao servidor", severity: "danger", color: "foreground", variant: "flat" });
+      },
+    });
+
+    const unregister = registerHandlers(s, {
+      [EventType.CONNECTION_REQUEST]: (schedules?: Scheduling[]) => {
+        if (schedules && Array.isArray(schedules)) {
+          schedules.forEach((s) => clearPendingAction(s.TICKET?.id));
+          setAgendamentosGeral((prev) => {
+            const map = new Map(prev.map((s) => [s._id, s]));
+            schedules.forEach((s) => map.set(s._id, s));
+            return Array.from(map.values());
+          });
+        }
+      },
+      [EventType.TICKET_EMITED]: (ticket: Ticket) => addOrUpdate(ticket),
+      [EventType.TICKET_UPDATED]: (ticket: Ticket) => addOrUpdate(ticket),
+      [EventType.TICKET_DELETE]: (id: number) => remove(id),
+      [EventType.TICKET_ACTION_SUCCESS]: acknowledgePendingAction,
+      [EventType.UPDATE_SCHEDULE]: ({ operation, schedule }: SchedulingChange) => {
+        clearPendingAction(schedule.TICKET?.id);
+        if (operation === MongoOperationTypes.DELETE) {
+          setAgendamentosGeral((prev) => prev.filter((ag) => ag._id !== schedule._id && ag.CODIGOPRONTUARIO !== schedule.CODIGOPRONTUARIO));
+        } else {
+          setAgendamentosGeral((prev) => {
+            const idx = findSchedulingIndex(prev, schedule);
+            if (idx !== -1) { const updated = [...prev]; updated[idx] = schedule; return updated; }
+            return [...prev, schedule];
+          });
+        }
+      },
+      [EventType.TICKET_ERROR]: handleTicketError,
+    });
+
+    return () => unregister();
+  }, [acknowledgePendingAction, conectado, clearPendingAction, unidadeSelecionada, salaSelecionada, exameSelecionado, findSchedulingIndex, resyncAttendimentos, addOrUpdate, remove]);
+
+  useEffect(() => {
+    return () => { if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current); closeSocket(); };
+  }, []);
+
+  const handleHandleModal = useCallback((atendimento: Scheduling, modalType: "exams" | "ticket") => {
+    setFuncionarioSelecionado(atendimento);
+    if (modalType === "exams") {
+      setModalAtendimentoAberto(true);
+    }
+  }, []);
+
+  const calcularEstatisticas = () => {
+    if (codigosDeAtendimento.size === 0) {
+      setEstatisticas({ pendentes: 0, finalizados: 0, aguardandoRecepcao: getAll().filter((s) => s.status === TicketStatus.AGUARDANDO && s.grupo === TicketGroups.RECEPCAO).length, total: 0, aguardando: 0, preparacao: 0, raiox: 0, recepcaoAguardando: 0, examesAguardando: 0, emAtendimento: 0 });
+      return;
+    }
+    const temExameComStatus = (ag: Scheduling, status: ExamStatus) => ag.EXAMES?.some((ex) => codigosDeAtendimento.has(ex.codigoExame) && ex.status === status);
+    const agendamentosFluxo = agendamentosGeral.filter(
+      (a) =>
+        a.ATENDIMENTOSTATUS === AtendimentoStatus.EM_ATENDIMENTO &&
+        a.TICKET?.emissao != null,
+    );
+    setEstatisticas({
+      pendentes: agendamentosFluxo.filter((a) =>
+        temExameComStatus(a, ExamStatus.PENDENTE),
+      ).length,
+      finalizados: agendamentosFluxo.filter((a) =>
+        temExameComStatus(a, ExamStatus.FINALIZADO),
+      ).length,
+      aguardandoRecepcao: getAll().filter(
+        (s) =>
+          s.status === TicketStatus.AGUARDANDO &&
+          s.grupo === TicketGroups.RECEPCAO,
+      ).length,
+      total: agendamentosFluxo.length,
+      aguardando: 0,
+      preparacao: 0,
+      raiox: 0,
+      recepcaoAguardando: 0,
+      examesAguardando: 0,
+      emAtendimento: 0,
+    });
+  };
+
+  useEffect(() => { calcularEstatisticas(); }, [agendamentosGeral, codigosDeAtendimento]);
+
+  return (
+    <div className="flex flex-col h-screen overflow-hidden bg-white">
+      <HeaderApp onLogout={() => { logout(); router.push('/'); }} children={null} />
+      <div className="flex flex-1 overflow-hidden">
+        <SidebarRecepcao
+          agendadosFiltrados={agendamentos}
+          conectado={conectado}
+          exameSelecionado={exameSelecionado}
+          handleConectar={handleConectar}
+          onHandleExameSelecionado={setExameSelecionado}
+          onHandleModal={() => {}}
+          onLoading={isLoading}
+          salaSelecionada={salaSelecionada}
+          setSalaSelecionada={setSalaSelecionada}
+          setTicketSelecionado={() => {}}
+          unidadeSelecionada={unidadeSelecionada}
+          setUnidadeSelecionada={setUnidadeSelecionada}
+          statusSelecionado={statusSelecionado}
+          setStatusSelecionado={setStatusSelecionado}
+          isReconnecting={isReconnecting}
+          pscStatusElement={null}
+        />
+        <main className="flex-1 overflow-auto bg-[#f8fbfa] p-6 lg:p-10">
+          <AtendimentoContent
+            agendamentos={agendamentos}
+            codigosDeAtendimento={codigosDeAtendimento}
+            conectado={conectado}
+            exameSelecionado={exameSelecionado}
+            onHandleModal={handleHandleModal}
+            pendingActions={pendingActions}
+            salaSelecionada={salaSelecionada}
+            setFuncionarioSelecionado={setFuncionarioSelecionado}
+            socket={socketRef.current!}
+            startPendingAction={startPendingAction}
+            unidadeSelecionada={unidadeSelecionada}
+          />
+        </main>
+      </div>
+
+      <StatsModal
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+        estatisticasSenhas={estatisticas}
+        tickets={getAll()}
+        agendamentos={agendamentosGeral}
+        preparationRequests={empreparacao}
+      />
+      <AtendimentoModalExames
+        isOpen={modalAtendimentoAberto}
+        funcionarioSelecionado={funcionarioSelecionado}
+        onClose={() => setModalAtendimentoAberto(false)}
+        exame={exameSelecionado}
+        sala={salaSelecionada}
+        unidade={unidadeSelecionada}
+        codigosAtendimento={codigosDeAtendimento}
+        socket={socketRef.current!}
+        operationalUser={user}
+        assinaDigitalmente={assinaDigitalmente}
+        pscAuthStatus={pscAuthStatus}
+        onPscAuth={handlePscAuth}
+      />
+
+      <Modal disableAnimation={true} isDismissable={false} isOpen={modalAlert}>
+        <ModalContent className="border border-[#44735e]/20">
+          <ModalHeader className="text-[#2a4a3a]"><ExclamationCircleIcon className="h-6 w-6 text-[#44735e]" /> Atenção</ModalHeader>
+          <ModalBody>{modalText}</ModalBody>
+          <ModalFooter><Button className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white" size="sm" onPress={() => setModalAlert(false)}>Confirmar</Button></ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal hideCloseButton disableAnimation={true} isDismissable={false} isOpen={isPscAuthenticating}>
+        <ModalContent className="border border-[#44735e]/20">
+          <ModalHeader className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white">Autenticação Necessária</ModalHeader>
+          <ModalBody className="py-6 flex flex-col items-center justify-center text-center">
+            <Spinner className="mb-4" color="primary" size="lg" />
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Aguardando provedor...</h3>
+            <p className="text-gray-600 mb-4 text-sm">Conclua a autenticação na janela que foi aberta.</p>
+            {pscAuthWindowUrl && (
+              <div className="bg-[#e8f4e3] border border-[#b8d864] p-3 rounded-lg w-full mb-4">
+                <a className="text-[#44735e] hover:underline text-xs break-all" href={pscAuthWindowUrl} rel="noopener noreferrer" target="_blank">Clique aqui se a janela não abrir</a>
+              </div>
+            )}
+          </ModalBody>
+          <ModalFooter className="flex justify-center border-t border-gray-100">
+            <Button color="danger" variant="light" onPress={() => { if (pscPollingRef.current) clearInterval(pscPollingRef.current); setIsPscAuthenticating(false); if (pscWindowRef.current && !pscWindowRef.current.closed) pscWindowRef.current.close(); }}>Cancelar Autenticação</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal disableAnimation={true} isDismissable={false} isOpen={modalPscAvisoOpen} onClose={() => setModalPscAvisoOpen(false)}>
+        <ModalContent className="border border-[#44735e]/20">
+          <ModalHeader className="bg-gradient-to-r from-[#44735e] to-[#5a8c7a] text-white"><div className="flex items-center gap-2"><UserLock className="h-8 w-8" /><span>Autenticação Necessária</span></div></ModalHeader>
+          <ModalBody className="py-6 px-6">
+            <p className="font-semibold text-lg text-gray-800">Você possui assinatura digital habilitada.</p>
+            <p className="text-gray-600 mt-2">Deseja autenticar agora para assinar os exames automaticamente?</p>
+          </ModalBody>
+          <ModalFooter className="px-6 pb-4">
+            <Button className="font-medium" color="default" variant="flat" onPress={() => { setModalPscAvisoOpen(false); executeConnection(); }}>Não agora</Button>
+            <Button className="bg-[#44735e] text-white" onPress={() => { setModalPscAvisoOpen(false); setIsWaitingForAuthToConnect(true); handlePscClick(); }}>Autenticar agora</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </div>
+  );
+};
+
+export default AtendimentoPage;

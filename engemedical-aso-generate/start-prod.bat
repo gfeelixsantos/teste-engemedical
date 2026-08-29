@@ -1,0 +1,5 @@
+@echo off
+set "NODE_ENV=production"
+call npm run build
+if %errorlevel% neq 0 exit /b %errorlevel%
+node dist\index.js
