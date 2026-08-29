@@ -17,7 +17,7 @@ import {
   User,
 } from "lucide-react";
 
-import engemedicalIcon from "@/public/images/engemedical_icone.png";
+import engemedicalIcon from "@/public/images/logo-vertical.png";
 import packageInfo from "@/package.json";
 
 import { fetchBodyJson, formatCPF, setCurrentUser } from "@/lib/utils";
@@ -126,22 +126,22 @@ const brandPillars = [
   {
     icon: HeartPulse,
     title: "Exames ocupacionais",
-    description: "Atendimento clínico com agilidade.",
+    description: "Fluxo ágil para admissional, periódico e demissional.",
   },
   {
     icon: FileCheck2,
-    title: "ASO digital",
-    description: "Documentação pronta para a rotina.",
+    title: "ASO e documentos",
+    description: "Emissão e organização para rotinas de RH e SST.",
   },
   {
     icon: ClipboardCheck,
-    title: "PCMSO",
-    description: "Gestão ocupacional conforme a NR-7.",
+    title: "PCMSO e conformidade",
+    description: "Acompanhamento ocupacional alinhado às exigências legais.",
   },
   {
     icon: Network,
-    title: "Rede credenciada",
-    description: "Capilaridade para empresas e colaboradores.",
+    title: "Rede de atendimento",
+    description: "Estrutura para empresas, unidades e colaboradores.",
   },
 ];
 
@@ -152,10 +152,10 @@ const BrandPanel = () => (
     initial={{ opacity: 0 }}
     transition={{ duration: 0.8, ease: "easeOut" }}
   >
-    <div className="absolute inset-0 bg-[linear-gradient(135deg,#06172f_0%,#082a4c_46%,#051326_100%)]" />
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_34%,rgba(22,217,245,0.22),transparent_28%),linear-gradient(135deg,#06172f_0%,#082a4c_48%,#051326_100%)]" />
     <motion.div
       animate={{ opacity: [0.34, 0.62, 0.34], x: ["-8%", "4%", "-8%"] }}
-      className="absolute inset-x-[-16%] top-[-20%] h-[56%] bg-[linear-gradient(100deg,transparent_10%,rgba(0,109,255,0.38)_34%,rgba(22,217,245,0.24)_55%,rgba(25,232,90,0.28)_76%,transparent_92%)] blur-2xl"
+      className="absolute inset-x-[-16%] top-[-20%] h-[56%] bg-[linear-gradient(100deg,transparent_10%,rgba(0,109,255,0.34)_34%,rgba(22,217,245,0.22)_55%,rgba(25,232,90,0.24)_76%,transparent_92%)] blur-2xl"
       transition={{ duration: 9, ease: "easeInOut", repeat: Infinity }}
     />
     <motion.div
@@ -189,12 +189,12 @@ const BrandPanel = () => (
         />
         <motion.div
           animate={{ rotate: 360 }}
-          className="absolute inset-3 rounded-[56px] border border-dashed border-brand-cyan/28"
+          className="absolute inset-3 rounded-[56px] border border-dashed border-brand-cyan/22"
           transition={{ duration: 28, ease: "linear", repeat: Infinity }}
         />
         <motion.div
           animate={{ rotate: -360 }}
-          className="absolute inset-10 rounded-[40px] border border-brand-green/24"
+          className="absolute inset-10 rounded-[40px] border border-brand-green/20"
           transition={{ duration: 22, ease: "linear", repeat: Infinity }}
         />
         <motion.div
@@ -205,7 +205,7 @@ const BrandPanel = () => (
           <Image
             priority
             alt="Engemedical"
-            className="h-56 w-56 object-contain drop-shadow-[0_30px_70px_rgba(22,217,245,0.36)] md:h-72 md:w-72"
+            className="h-56 w-56 object-contain drop-shadow-[0_30px_70px_rgba(22,217,245,0.34)] md:h-72 md:w-72"
             height={320}
             src={engemedicalIcon}
             width={320}
@@ -215,31 +215,33 @@ const BrandPanel = () => (
     </div>
 
     <div className="relative z-10 space-y-4">
-      <div className="grid gap-2.5 border-t border-white/10 pt-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 border-t border-white/10 pt-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
         {brandPillars.map(({ icon: Icon, title, description }) => (
           <motion.div
             key={title}
-            className="brand-card-shine group relative overflow-hidden rounded-lg bg-brand-green/75 p-px shadow-[0_16px_40px_rgba(0,0,0,0.16)]"
-            whileHover={{ y: -6, scale: 1.025 }}
-            transition={{ type: "spring", stiffness: 260, damping: 22 }}
+            className="brand-card-shine group relative overflow-hidden rounded-lg bg-brand-green/60 p-px shadow-[0_18px_42px_rgba(0,0,0,0.18)]"
+            whileHover={{ y: -4, scale: 1.018 }}
+            transition={{ type: "spring", stiffness: 240, damping: 24 }}
           >
             <motion.span
               aria-hidden
               animate={{ rotate: 360 }}
-              className="absolute left-1/2 top-1/2 h-[220%] w-[220%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,transparent_0deg,transparent_95deg,rgba(139,255,51,0.95)_130deg,rgba(25,232,90,0.92)_156deg,transparent_202deg,transparent_360deg)]"
+              className="absolute left-1/2 top-1/2 h-[240%] w-[240%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,transparent_0deg,transparent_88deg,rgba(139,255,51,0.94)_122deg,rgba(25,232,90,0.86)_150deg,rgba(22,217,245,0.58)_176deg,transparent_216deg,transparent_360deg)]"
               transition={{
-                duration: 4.8,
+                duration: 5.8,
                 ease: "linear",
                 repeat: Infinity,
               }}
             />
-            <div className="relative flex h-full items-center gap-2.5 rounded-[7px] border border-brand-green/25 bg-brand-midnight/86 p-3 backdrop-blur-xl transition-all duration-300 group-hover:border-brand-lime/50 group-hover:bg-brand-deep/92 group-hover:shadow-[0_0_32px_rgba(25,232,90,0.22)]">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-brand-green/24 bg-brand-green/10 text-brand-green shadow-[0_0_22px_rgba(25,232,90,0.14)] transition-all duration-300 group-hover:border-brand-lime/40 group-hover:bg-brand-lime/12 group-hover:text-brand-lime">
-                <Icon className="h-4 w-4" />
+            <div className="relative flex h-full min-h-[92px] items-start gap-3 rounded-[7px] border border-brand-green/22 bg-brand-midnight/88 p-3.5 backdrop-blur-xl transition-all duration-300 group-hover:border-brand-lime/48 group-hover:bg-brand-deep/94 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_34px_rgba(25,232,90,0.2)]">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-brand-green/24 bg-brand-green/10 text-brand-green shadow-[0_0_22px_rgba(25,232,90,0.14)] transition-all duration-300 group-hover:border-brand-lime/44 group-hover:bg-brand-lime/12 group-hover:text-brand-lime group-hover:shadow-[0_0_26px_rgba(139,255,51,0.2)]">
+                <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
               </span>
               <div className="min-w-0">
-                <p className="truncate font-semibold text-white">{title}</p>
-                <p className="mt-0.5 line-clamp-1 text-xs leading-4 text-white/48">
+                <p className="text-[13px] font-semibold leading-5 text-white">
+                  {title}
+                </p>
+                <p className="mt-1 line-clamp-2 text-xs leading-4 text-white/54">
                   {description}
                 </p>
               </div>

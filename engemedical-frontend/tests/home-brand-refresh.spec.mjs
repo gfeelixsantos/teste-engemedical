@@ -29,14 +29,18 @@ test("home login uses the Engemedical Connect brand system", async () => {
     );
   }
 
-  assert.match(loginPage, /engemedicalIcon from "@\/public\/images\/engemedical_icone\.png"/);
+  assert.match(loginPage, /engemedicalIcon from "@\/public\/images\/logo-vertical\.png"/);
   assert.doesNotMatch(loginPage, /Engemedical Connect/);
   assert.doesNotMatch(loginPage, /Portal operacional/);
   assert.doesNotMatch(loginPage, /Clínica ocupacional/);
   assert.match(loginPage, /Exames ocupacionais/);
-  assert.match(loginPage, /ASO digital/);
-  assert.match(loginPage, /PCMSO/);
-  assert.match(loginPage, /Rede credenciada/);
+  assert.match(loginPage, /ASO e documentos/);
+  assert.match(loginPage, /PCMSO e conformidade/);
+  assert.match(loginPage, /Rede de atendimento/);
+  assert.match(loginPage, /Fluxo ágil para admissional, periódico e demissional/);
+  assert.match(loginPage, /Emissão e organização para rotinas de RH e SST/);
+  assert.match(loginPage, /Acompanhamento ocupacional alinhado às exigências legais/);
+  assert.match(loginPage, /Estrutura para empresas, unidades e colaboradores/);
   assert.doesNotMatch(
     loginPage,
     /Cuidado ocupacional com tecnologia, presença clínica e gestão integrada/,
@@ -51,7 +55,7 @@ test("home login uses the Engemedical Connect brand system", async () => {
   );
   assert.match(loginPage, /cyber-grid/);
   assert.match(loginPage, /brand-card-shine/);
-  assert.match(loginPage, /whileHover=\{\{ y: -6, scale: 1\.025 \}\}/);
+  assert.match(loginPage, /whileHover=\{\{ y: -4, scale: 1\.018 \}\}/);
   assert.match(loginPage, /motion\.section/);
   assert.match(loginPage, /motion\.div/);
   assert.match(loginPage, /repeat:\s*Infinity/);
