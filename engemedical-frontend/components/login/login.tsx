@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -163,11 +163,13 @@ const LoginTitle = ({ title }: { title: string }) => {
 
 const TypewriterTitle = ({ text }: { text: string }) => {
   return (
-    <div
-      aria-label={text}
-      className="typewriter-text min-h-[4.1rem] max-w-[28rem] text-center text-2xl font-semibold leading-tight text-white drop-shadow-[0_16px_38px_rgba(22,217,245,0.3)] sm:min-h-[4.9rem] sm:text-3xl"
-    >
-      {text}
+    <div className="text-center">
+      <span
+        aria-label={text}
+        className="typewriter-text min-h-[4.1rem] text-2xl font-semibold leading-tight text-white drop-shadow-[0_16px_38px_rgba(22,217,245,0.3)] sm:min-h-[4.9rem] sm:text-3xl"
+      >
+        {text}
+      </span>
     </div>
   );
 };

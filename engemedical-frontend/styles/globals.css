@@ -2,29 +2,22 @@
 
 @config "../tailwind.config.js";
 
-/* Typewriter animation (CSS-puro - não depende de JS) */
-@keyframes typewriter {
-  from {
-    width: 0;
-  }
-  to {
-    width: 100%;
-  }
+/* ── Typewriter (CSS puro) ───────────────────────────── */
+@keyframes tw-reveal {
+  from { max-width: 0 }
+  to   { max-width: 100% }
 }
-
-@keyframes blink-caret {
-  50% {
-    border-color: transparent;
-  }
+@keyframes tw-blink {
+  50% { border-color: transparent }
 }
-
-@layer utilities {
-  .typewriter-text {
-    overflow: hidden;
-    border-right: 0.15em solid #5ee17a;
-    white-space: nowrap;
-    width: 0;
-    animation: typewriter 2s steps(40, end) 0.8s 1 both, blink-caret 0.8s step-end infinite;
-  }
+.typewriter-text {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid #5ee17a;
+  max-width: 0;
+  text-align: left;
+  animation:
+    tw-reveal  2.5s steps(30, end) 0.8s forwards,
+    tw-blink    0.75s step-end 0.8s infinite;
 }
-
