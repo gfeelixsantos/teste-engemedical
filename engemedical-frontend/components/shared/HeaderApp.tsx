@@ -130,7 +130,7 @@ const getNotificationIconBadge = (type: AppNotification["type"]) => {
       );
     default:
       return (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-50 text-sky-600 border border-sky-100 shadow-2xs">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E6F5FA] text-[#0698C2] border border-[#0698C2]/20 shadow-2xs">
           <Bell className="h-4 w-4" />
         </div>
       );
@@ -169,7 +169,7 @@ const NotificationsList: React.FC<{
             <div
               key={notification.id}
               className={`group relative flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50/80 ${
-                notification.read ? "bg-white" : "bg-sky-50/30"
+                notification.read ? "bg-white" : "bg-[#E6F5FA]/30"
               }`}
             >
               {getNotificationIconBadge(notification.type)}
@@ -206,7 +206,7 @@ const NotificationsList: React.FC<{
 
                   {!notification.read ? (
                     <button
-                      className="text-[11px] font-medium text-sky-600 hover:text-sky-800 transition-colors"
+                      className="text-[11px] font-medium text-[#0698C2] hover:text-[#005C7A] transition-colors"
                       onClick={() => onMarkAsRead(notification.id)}
                     >
                       Marcar como lida
@@ -329,7 +329,7 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
         <div className="flex h-16 items-center justify-between">
           <Link
             aria-label="Ir para o dashboard"
-            className="flex items-center gap-2 rounded-lg p-1 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center gap-2 rounded-lg p-1 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#0698C2]"
             href="/dashboard"
           >
             <Image
@@ -350,7 +350,7 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
                 aria-expanded={isMenuOpen}
                 aria-haspopup="true"
                 aria-label="Abrir menu do usuário"
-                className="flex cursor-pointer items-center gap-2 rounded-xl p-2 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex cursor-pointer items-center gap-2 rounded-xl p-2 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0698C2]"
                 onClick={() => setIsMenuOpen((current) => !current)}
               >
                 <Badge

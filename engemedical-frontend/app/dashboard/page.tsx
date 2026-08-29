@@ -78,11 +78,11 @@ const MessageModal: React.FC<{
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-sm">
       <motion.div
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-[#44735e]/15"
+        className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-[#0698C2]/15"
         exit={{ opacity: 0, scale: 0.95 }}
         initial={{ opacity: 0, scale: 0.95 }}
       >
-        <div className="p-6 border-b border-[#44735e]/15 bg-[#f5f9f7]">
+        <div className="p-6 border-b border-[#0698C2]/15 bg-[#F2F9FC]">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <video
@@ -94,7 +94,7 @@ const MessageModal: React.FC<{
                 src="/images/gifs/Notification.webm"
               />
               <div>
-                <h2 className="text-xl font-bold text-[#2a4a3a]">
+                <h2 className="text-xl font-bold text-[#005C7A]">
                   {message.title}
                 </h2>
                 <p className="text-md text-gray-500">{message.date}</p>
@@ -102,7 +102,7 @@ const MessageModal: React.FC<{
             </div>
             <button
               aria-label="Fechar"
-              className="p-2 hover:bg-[#e8f4e3] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#44735e]/40"
+              className="p-2 hover:bg-[#E6F5FA] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0698C2]/40"
               onClick={onClose}
             >
               <X className="h-5 w-5 text-gray-500" />
@@ -117,7 +117,7 @@ const MessageModal: React.FC<{
                 dangerouslySetInnerHTML={{
                   __html: sanitizeMessageHtml(message.content),
                 }}
-                className="text-gray-700 leading-relaxed [&_p]:my-3 [&_strong]:text-[#2a4a3a] [&_a]:text-[#44735e] [&_a:hover]:text-[#2a4a3a] [&_a]:underline [&_img]:rounded-2xl [&_img]:max-h-56 [&_img]:w-auto [&_img]:mx-auto [&_img]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-3 [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-6 [&_h3]:text-[#2a4a3a] [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-2 [&_blockquote]:mt-5 [&_blockquote]:rounded-xl [&_blockquote]:border-l-4 [&_blockquote]:border-[#44735e] [&_blockquote]:bg-[#f5f9f7] [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:text-[#2a4a3a]"
+                dangerouslySetInnerHTML={{ __html: sanitizeMessageHtml(message.content) }} className="text-gray-700 leading-relaxed [&_p]:my-3 [&_strong]:text-[#005C7A] [&_a]:text-[#0698C2] [&_a:hover]:text-[#005C7A] [&_a]:underline [&_img]:rounded-2xl [&_img]:max-h-56 [&_img]:w-auto [&_img]:mx-auto [&_img]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-3 [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-6 [&_h3]:text-[#005C7A] [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-2 [&_blockquote]:mt-5 [&_blockquote]:rounded-xl [&_blockquote]:border-l-4 [&_blockquote]:border-[#0698C2] [&_blockquote]:bg-[#F2F9FC] [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:text-[#005C7A]"
               />
             ) : (
               <div className="whitespace-pre-line text-gray-700">
@@ -127,10 +127,10 @@ const MessageModal: React.FC<{
           </div>
         </div>
 
-        <div className="p-6 border-t border-[#44735e]/15 bg-[#f5f9f7]">
+        <div className="p-6 border-t border-[#0698C2]/15 bg-[#F2F9FC]">
           <div className="flex justify-end">
             <Button
-              className="px-6 py-2 text-[#2a4a3a] hover:bg-[#e8f4e3]"
+              className="px-6 py-2 text-[#005C7A] hover:bg-[#E6F5FA]"
               color="default"
               variant="flat"
               onPress={onClose}
@@ -151,7 +151,7 @@ const MessageFloatingButton: React.FC<{
 }> = ({ onClick, hasMessage }) => (
   <button
     aria-label="Visualizar mensagem atual"
-    className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-[#44735E] rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center group"
+    className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-[#0698C2] rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center group"
     disabled={true}
     onClick={onClick}
   >
@@ -256,7 +256,7 @@ const MenuCard: React.FC<MenuCardProps> = ({
       <div
         className="mx-auto w-16 h-16 rounded-full flex items-center justify-center bg-gray-50 mb-4 transition-all duration-300"
       >
-        <div className="group-hover:scale-110 group-hover:text-[#B8D864] transition-transform duration-300">
+        <div className="group-hover:scale-110 group-hover:text-[#30D158] transition-transform duration-300">
           {icon}
         </div>
       </div>
@@ -279,7 +279,7 @@ const MenuCard: React.FC<MenuCardProps> = ({
       </div>
       <button
         aria-label={`Acessar ${title}`}
-        className="w-full px-4 py-2 bg-[#44735E] text-white rounded-md group-hover:bg-[#B8D864] focus:outline-none focus:ring-2 focus:ring-[#3dbdb9] focus:ring-offset-2 transition-colors cursor-pointer"
+        className="w-full px-4 py-2 bg-[#0698C2] text-white rounded-md group-hover:bg-[#047A9E] focus:outline-none focus:ring-2 focus:ring-[#0698C2] focus:ring-offset-2 transition-colors cursor-pointer"
       >
         Acessar
       </button>
@@ -314,7 +314,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
             <p className="text-xs text-gray-500 mt-1">{description}</p>
           )}
         </div>
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#44735E] text-white shadow-lg">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#0698C2] text-white shadow-lg">
           {icon}
         </div>
       </div>
@@ -633,7 +633,7 @@ export default function DashboardPage() {
         >
           <p className="text-sm text-gray-600">
             Centro Médico de Saúde Ocupacional • {new Date().getFullYear()} •{" "}
-            <a href="/privacidade" className="text-blue-600 hover:underline">
+            <a href="/privacidade" className="text-[#0698C2] hover:underline">
               Política de Privacidade
             </a>
           </p>
@@ -646,7 +646,7 @@ export default function DashboardPage() {
       {/* Modal de re-autenticação PSC */}
       <Modal isOpen={showReauthModal} onClose={() => setShowReauthModal(false)} placement="center" size="sm">
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-1 text-[#2a4a3a]">
+          <ModalHeader className="flex flex-col gap-1 text-[#005C7A]">
             Sessão de Assinatura Expirada
           </ModalHeader>
           <ModalBody>
@@ -658,7 +658,7 @@ export default function DashboardPage() {
             <Button variant="flat" color="default" onPress={() => setShowReauthModal(false)}>
               Agora não
             </Button>
-            <Button className="bg-[#44735E] text-white" onPress={attemptPscReauth}>
+            <Button className="bg-[#0698C2] text-white hover:bg-[#047A9E]" onPress={attemptPscReauth}>
               Autenticar
             </Button>
           </ModalFooter>

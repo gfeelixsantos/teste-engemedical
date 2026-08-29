@@ -58,7 +58,7 @@ const SlaChart = ({ data, totalAgendamentos }: Props) => {
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       {/* Header */}
       <div className="flex items-center gap-2 mb-1">
-        <Target className="h-5 w-5 text-[#44735E]" />
+        <Target className="h-5 w-5 text-[#0698C2]" />
         <h4 className="text-sm font-semibold text-gray-900">SLA de Atendimento</h4>
       </div>
       <p className="text-xs text-gray-500 mb-5">

@@ -308,7 +308,7 @@ export const ScraperMonitor: React.FC = () => {
       className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
       initial={{ opacity: 0, y: 20 }}
     >
-      <div className="flex items-center justify-between border-b border-[#44735E]/20 bg-gradient-to-br from-[#44735E] to-[#2a4d3d] px-5 py-4">
+      <div className="flex items-center justify-between border-b border-[#0698C2]/20 bg-gradient-to-br from-[#0698C2] to-[#005C7A] px-5 py-4">
         <div>
           <h3 className="text-lg font-semibold text-white">
             Monitoramento
@@ -359,7 +359,7 @@ export const ScraperMonitor: React.FC = () => {
                       <p className="text-[9px] font-semibold uppercase tracking-wide text-gray-400">
                         Recebidos
                       </p>
-                      <p className="text-lg font-semibold text-[#44735E]">
+                      <p className="text-lg font-semibold text-[#0698C2]">
                         {row.receivedToday || 0}
                       </p>
                     </div>

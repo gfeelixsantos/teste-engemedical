@@ -49,13 +49,16 @@ import {
 
 // 🎨 Constantes de design
 const COLORS = {
-  primary: "#44735E",
-  primaryLight: "#5a8a74",
-  primaryDark: "#2a4d3d",
+  primary: "#0698C2",
+  primaryLight: "#0AABD4",
+  primaryDark: "#005C7A",
+  secondary: "#30D158",
+  secondaryLight: "#5EE17A",
+  accent: "#006B94",
   success: "#10b981",
   warning: "#f59e0b",
   danger: "#ef4444",
-  info: "#3b82f6",
+  info: "#0698C2",
   purple: "#8b5cf6",
 };
 
@@ -92,7 +95,7 @@ const KpiCard = ({
     animate={{ opacity: 1, scale: 1 }}
     className={`rounded-xl shadow-lg p-5 ${
       gradient
-        ? "bg-gradient-to-br from-[#44735E] to-[#2a4d3d] text-white"
+        ? "bg-gradient-to-br from-[#0698C2] to-[#005C7A] text-white"
         : "bg-white border border-gray-200"
     }`}
     initial={{ opacity: 0, scale: 0.95 }}
@@ -114,9 +117,9 @@ const KpiCard = ({
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
         gradient
           ? "bg-white/10 backdrop-blur-sm"
-          : "bg-[#B8D864]/20 border border-[#B8D864]/30"
+          : "bg-[#E6F5FA] border border-[#0698C2]/30"
       }`}>
-        <Icon className={`h-6 w-6 ${gradient ? "text-white" : "text-[#9BC24E]"}`} />
+        <Icon className={`h-6 w-6 ${gradient ? "text-white" : "text-[#0698C2]"}`} />
       </div>
     </div>
   </motion.div>
@@ -154,7 +157,7 @@ const MetricCard = ({
           className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm"
           style={{
             backgroundColor: iconBgColor || "rgba(184, 216, 100, 0.2)",
-            color: iconColor || "#9BC24E",
+            color: iconColor || "#0698C2",
             border: `1px solid ${iconColor ? iconColor + "30" : "rgba(184, 216, 100, 0.3)"}`,
           }}
         >
@@ -492,7 +495,7 @@ const TempoPermanenciaChart = ({
     pessoas: d.quantidade,
   }));
 
-  const cores = ["#44735E", "#5a8a74", "#70a18a", "#86b8a0", "#9ccfb6"];
+  const cores = ["#0698C2", "#0AABD4", "#006B94", "#30D158", "#005C7A"];
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -595,7 +598,7 @@ const GlobalSlaCard = ({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
         <div className="flex items-center gap-3">
-          <Target className="h-5 w-5 text-[#44735E]" />
+          <Target className="h-5 w-5 text-[#0698C2]" />
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
               SLA Global de Atendimento
@@ -692,7 +695,7 @@ const GlobalSlaCard = ({
         <div className="mt-5 pt-4 border-t border-gray-100">
           <details className="group">
             <summary className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer hover:text-gray-700 select-none">
-              <Info className="h-3.5 w-3.5 text-[#44735E]" />
+              <Info className="h-3.5 w-3.5 text-[#0698C2]" />
               <span className="font-medium">O que é este gráfico?</span>
               <ChevronDown className="h-3 w-3 ml-auto transition-transform group-open:rotate-180" />
             </summary>
@@ -1063,7 +1066,7 @@ export function StatisticsSection() {
             >
               <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
                 <div className="flex items-center gap-3">
-                  <Activity className="h-5 w-5 text-[#44735E]" />
+                  <Activity className="h-5 w-5 text-[#0698C2]" />
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">
                         Status dos Atendimentos
@@ -1212,7 +1215,7 @@ export function StatisticsSection() {
             >
               <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
                 <div className="flex items-center gap-3">
-                  <Layers className="h-5 w-5 text-[#44735E]" />
+                  <Layers className="h-5 w-5 text-[#0698C2]" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
                       Tipos de Exame
@@ -1250,7 +1253,7 @@ export function StatisticsSection() {
                             </div>
                           </div>
                           <ProgressBar
-                            color="#B8D864"
+                            color="#30D158"
                             max={totais.totalAgendamentos}
                             size="sm"
                             value={count as number}
@@ -1303,7 +1306,7 @@ export function StatisticsSection() {
                         <div className="flex items-center gap-4 mt-1">
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4 text-gray-500" />
-                            <span className="text-lg font-bold text-[#44735E]">
+                            <span className="text-lg font-bold text-[#0698C2]">
                               {unidade.totalAgendamentos}
                             </span>
                             <span className="text-sm text-gray-600">
@@ -1609,8 +1612,8 @@ export function StatisticsSection() {
                     <div className="border-t border-gray-200 pt-6">
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-[#44735E]/12 border border-[#44735E]/20">
-                            <FlaskConical className="h-5 w-5 text-[#44735E]" />
+                          <div className="p-2 rounded-lg bg-[#0698C2]/12 border border-[#0698C2]/20">
+                            <FlaskConical className="h-5 w-5 text-[#0698C2]" />
                           </div>
                           <div>
                             <h3 className="text-lg font-semibold text-gray-900">
@@ -1661,7 +1664,7 @@ export function StatisticsSection() {
 
                           {unidade.exames.length > 8 && (
                             <Button
-                              className="text-[#44735E]"
+                              className="text-[#0698C2]"
                               size="sm"
                               variant="light"
                               onClick={(e) => {
@@ -1705,7 +1708,7 @@ export function StatisticsSection() {
                       {!showAllForUnit && unidade.exames.length > 8 && (
                         <div className="mt-6 text-center">
                           <Button
-                            className="text-[#44735E] font-medium"
+                            className="text-[#0698C2] font-medium"
                             size="sm"
                             variant="light"
                             onClick={() => toggleShowAllExams(unidade.unidade)}
@@ -1773,7 +1776,7 @@ export function StatisticsSection() {
                         {/* Guia explicativo do SLA */}
                         <div className="bg-gradient-to-br from-[#f8faf8] to-white rounded-xl border border-gray-200 p-5 flex flex-col justify-center">
                           <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                            <span className="w-5 h-5 rounded-full bg-[#44735E]/10 flex items-center justify-center text-[11px] font-bold text-[#44735E]">?</span>
+                            <span className="w-5 h-5 rounded-full bg-[#0698C2]/10 flex items-center justify-center text-[11px] font-bold text-[#0698C2]">?</span>
                             Como funciona este SLA?
                           </h4>
                           <div className="space-y-3 text-xs text-gray-600 leading-relaxed">
