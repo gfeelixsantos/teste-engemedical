@@ -29,16 +29,29 @@ test("home login uses the Engemedical Connect brand system", async () => {
     );
   }
 
-  assert.match(loginPage, /cmso_icone\.png/);
-  assert.match(loginPage, /Engemedical Connect/);
-  assert.match(loginPage, /Portal operacional/);
-  assert.match(loginPage, /Clínica ocupacional/);
+  assert.match(loginPage, /engemedicalIcon from "@\/public\/images\/engemedical_icone\.png"/);
+  assert.doesNotMatch(loginPage, /Engemedical Connect/);
+  assert.doesNotMatch(loginPage, /Portal operacional/);
+  assert.doesNotMatch(loginPage, /Clínica ocupacional/);
   assert.match(loginPage, /Exames ocupacionais/);
   assert.match(loginPage, /ASO digital/);
   assert.match(loginPage, /PCMSO/);
   assert.match(loginPage, /Rede credenciada/);
-  assert.match(loginPage, /Cuidado ocupacional com tecnologia, presença clínica e gestão integrada/);
+  assert.doesNotMatch(
+    loginPage,
+    /Cuidado ocupacional com tecnologia, presença clínica e gestão integrada/,
+  );
+  assert.doesNotMatch(
+    loginPage,
+    /Exames, ASO, PCMSO e rede credenciada em uma jornada mais simples/,
+  );
+  assert.doesNotMatch(
+    loginPage,
+    /Atendimento clínico, documentação ocupacional e conformidade/,
+  );
   assert.match(loginPage, /cyber-grid/);
+  assert.match(loginPage, /brand-card-shine/);
+  assert.match(loginPage, /whileHover=\{\{ y: -6, scale: 1\.025 \}\}/);
   assert.match(loginPage, /motion\.section/);
   assert.match(loginPage, /motion\.div/);
   assert.match(loginPage, /repeat:\s*Infinity/);

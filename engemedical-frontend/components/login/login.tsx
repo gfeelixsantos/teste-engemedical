@@ -14,11 +14,10 @@ import {
   HeartPulse,
   Lock,
   Network,
-  ShieldCheck,
-  Sparkles,
   User,
 } from "lucide-react";
 
+import engemedicalIcon from "@/public/images/engemedical_icone.png";
 import packageInfo from "@/package.json";
 
 import { fetchBodyJson, formatCPF, setCurrentUser } from "@/lib/utils";
@@ -181,19 +180,7 @@ const BrandPanel = () => (
       }}
     />
 
-    <div className="relative z-10 flex items-center gap-3">
-      <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/15 bg-white/10 shadow-lg shadow-brand-cyan/10">
-        <ShieldCheck className="h-5 w-5 text-brand-cyan" />
-      </span>
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-cyan">
-          Engemedical Connect
-        </p>
-        <p className="text-sm text-white/62">Portal operacional</p>
-      </div>
-    </div>
-
-    <div className="relative z-10 my-7 grid place-items-center md:my-6">
+    <div className="relative z-10 my-4 grid flex-1 place-items-center md:my-6">
       <div className="relative h-64 w-64 md:h-80 md:w-80">
         <motion.div
           animate={{ opacity: [0.16, 0.42, 0.16], scale: [0.96, 1.06, 0.96] }}
@@ -217,62 +204,42 @@ const BrandPanel = () => (
         >
           <Image
             priority
-            alt="Engemedical Connect"
+            alt="Engemedical"
             className="h-56 w-56 object-contain drop-shadow-[0_30px_70px_rgba(22,217,245,0.36)] md:h-72 md:w-72"
             height={320}
-            src="/images/engemedical_icone.png"
+            src={engemedicalIcon}
             width={320}
           />
         </motion.div>
       </div>
     </div>
 
-    <div className="relative z-10 space-y-5">
-      <div className="max-w-xl space-y-3">
-        <p className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand-lime">
-          <Sparkles className="h-3.5 w-3.5" />
-          Clínica ocupacional
-        </p>
-        <h1 className="text-3xl font-semibold leading-tight text-white md:text-4xl">
-          Cuidado ocupacional com tecnologia, presença clínica e gestão integrada.
-        </h1>
-        <p className="max-w-lg text-sm leading-6 text-white/68 md:text-base">
-          Exames, ASO, PCMSO e rede credenciada em uma jornada mais simples para
-          empresas e colaboradores.
-        </p>
-      </div>
-
+    <div className="relative z-10 space-y-4">
       <div className="grid gap-2.5 border-t border-white/10 pt-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
         {brandPillars.map(({ icon: Icon, title, description }) => (
           <motion.div
             key={title}
-            animate={{ opacity: [0.86, 1, 0.86], y: [0, -4, 0] }}
-            className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/[0.075] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.14)] backdrop-blur transition-colors duration-300 hover:border-brand-cyan/40 hover:bg-white/[0.11]"
-            transition={{
-              delay: title.length * 0.03,
-              duration: 5.8,
-              ease: "easeInOut",
-              repeat: Infinity,
-            }}
+            className="brand-card-shine group relative overflow-hidden rounded-lg bg-brand-green/75 p-px shadow-[0_16px_40px_rgba(0,0,0,0.16)]"
+            whileHover={{ y: -6, scale: 1.025 }}
+            transition={{ type: "spring", stiffness: 260, damping: 22 }}
           >
             <motion.span
               aria-hidden
-              animate={{ x: ["-120%", "140%"] }}
-              className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/14 to-transparent"
+              animate={{ rotate: 360 }}
+              className="absolute left-1/2 top-1/2 h-[220%] w-[220%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,transparent_0deg,transparent_95deg,rgba(139,255,51,0.95)_130deg,rgba(25,232,90,0.92)_156deg,transparent_202deg,transparent_360deg)]"
               transition={{
-                delay: title.length * 0.05,
-                duration: 3.8,
-                ease: "easeInOut",
+                duration: 4.8,
+                ease: "linear",
                 repeat: Infinity,
               }}
             />
-            <div className="relative flex items-center gap-2.5">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-brand-cyan/18 bg-brand-cyan/10 text-brand-cyan shadow-[0_0_22px_rgba(22,217,245,0.12)] transition-colors group-hover:border-brand-green/30 group-hover:text-brand-green">
+            <div className="relative flex h-full items-center gap-2.5 rounded-[7px] border border-brand-green/25 bg-brand-midnight/86 p-3 backdrop-blur-xl transition-all duration-300 group-hover:border-brand-lime/50 group-hover:bg-brand-deep/92 group-hover:shadow-[0_0_32px_rgba(25,232,90,0.22)]">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-brand-green/24 bg-brand-green/10 text-brand-green shadow-[0_0_22px_rgba(25,232,90,0.14)] transition-all duration-300 group-hover:border-brand-lime/40 group-hover:bg-brand-lime/12 group-hover:text-brand-lime">
                 <Icon className="h-4 w-4" />
               </span>
               <div className="min-w-0">
                 <p className="truncate font-semibold text-white">{title}</p>
-                <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-white/52">
+                <p className="mt-0.5 line-clamp-1 text-xs leading-4 text-white/48">
                   {description}
                 </p>
               </div>
@@ -281,13 +248,6 @@ const BrandPanel = () => (
         ))}
       </div>
 
-      <div className="flex items-center gap-3 rounded-lg border border-brand-cyan/18 bg-brand-deep/46 p-3 text-sm text-white/68 backdrop-blur">
-        <ShieldCheck className="h-5 w-5 shrink-0 text-brand-green" />
-        <p>
-          Atendimento clínico, documentação ocupacional e conformidade em uma
-          única experiência.
-        </p>
-      </div>
     </div>
   </motion.section>
 );
@@ -823,4 +783,3 @@ export default function LoginPage() {
     </main>
   );
 }
-
