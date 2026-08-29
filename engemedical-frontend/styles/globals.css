@@ -7,17 +7,12 @@
   from { max-width: 0 }
   to   { max-width: 100% }
 }
-@keyframes tw-blink {
-  50% { border-color: transparent }
-}
+
 .typewriter-text {
   display: inline-block;
   overflow: hidden;
   white-space: nowrap;
-  border-right: 2px solid #5ee17a;
   max-width: 0;
   text-align: left;
-  animation:
-    tw-reveal  2.5s steps(30, end) 0.8s forwards,
-    tw-blink    0.75s step-end 0.8s infinite;
+  animation: tw-reveal 2.5s steps(30, end) 0.8s forwards;
 }

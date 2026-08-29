@@ -166,7 +166,7 @@ const TypewriterTitle = ({ text }: { text: string }) => {
     <div className="text-center">
       <span
         aria-label={text}
-        className="typewriter-text min-h-[4.1rem] text-lg font-medium leading-tight text-brand-cyan/70 drop-shadow-[0_8px_24px_rgba(10,171,212,0.25)] sm:min-h-[4.9rem] sm:text-xl"
+        className="typewriter-text min-h-[4.1rem] text-lg font-light tracking-wide leading-tight text-white/65 drop-shadow-[0_6px_20px_rgba(255,255,255,0.08)] sm:min-h-[4.9rem] sm:text-xl"
       >
         {text}
       </span>
@@ -282,9 +282,6 @@ const BrandPanel = () => (
               <div className="min-w-0">
                 <p className="text-[13px] font-semibold leading-5 text-white">
                   {title}
-                </p>
-                <p className="mt-1 whitespace-nowrap text-xs leading-4 text-white/54">
-                  {description}
                 </p>
               </div>
             </div>
