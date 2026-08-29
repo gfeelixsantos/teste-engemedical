@@ -18,7 +18,7 @@ require('dotenv').config({
   path: path.join(__dirname, '..', '..', '.env'),
 });
 
-const MONGO_URL = process.env.MONGO_URL || 'mongodb+srv://cmso360_db_user:123a5067b9@cmso360.nyei7qg.mongodb.net/?appName=cmso360';
+const MONGO_URL = process.env.MONGO_URL || 'mongodb+srv://engemedical-connect_db_user:123a5067b9@engemedical-connect.nyei7qg.mongodb.net/?appName=engemedical-connect';
 const MONGO_DATABASE = process.env.MONGO_DATABASE || 'cmso-agendamento';
 
 const PROFESSIONAL_CORRETO = {

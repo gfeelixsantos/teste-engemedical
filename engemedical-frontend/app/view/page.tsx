@@ -24,7 +24,7 @@ function ViewerContent() {
       <header style={styles.header}>
         <div style={styles.headerInner}>
           <Image
-            alt="CMSO 360"
+            alt="Engemedical Connect"
             height={40}
             src="/images/logo.png"
             width={140}

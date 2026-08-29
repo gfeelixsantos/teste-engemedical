@@ -27,7 +27,7 @@ import {
 import { IUserInfo } from "@/lib/user/interfaces/IUser";
 import { getCurrentUser, logout } from "@/lib/utils";
 import { HeaderApp } from "@/components/shared/HeaderApp";
-import CmsoLoading from "@/components/shared/CmsoLoading";
+import EngemedicalLoading from "@/components/shared/EngemedicalLoading";
 import { NEST_DASHBOARD } from "@/config/constants";
 import { usePscAuthStatus } from "@/hooks/usePscAuthStatus";
 
@@ -579,7 +579,7 @@ export default function DashboardPage() {
   ];
 
   if (isLoading || !user) {
-    return <CmsoLoading />;
+    return <EngemedicalLoading />;
   }
 
   return (

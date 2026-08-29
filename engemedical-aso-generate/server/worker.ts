@@ -224,7 +224,7 @@ async function sendBackendCallback(payload: any) {
     ...payload,
     schemaVersion: '1.0',
     eventType,
-    producer: 'cmso360-aso-generate',
+    producer: 'engemedical-connect-aso-generate',
     producedAt: new Date().toISOString(),
     payload: {
       ...payload,

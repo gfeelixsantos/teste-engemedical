@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for cmso360-worker on 2026-07-15T23:38:05Z
+# fly.toml app configuration file generated for engemedical-connect-worker on 2026-07-15T23:38:05Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "cmso360-worker"
+app = "engemedical-connect-worker"
 primary_region = "gru"
 
 [build]

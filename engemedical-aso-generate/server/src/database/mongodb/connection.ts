@@ -2,7 +2,7 @@
 import { MongoClient, Db, ServerApiVersion } from 'mongodb';
 
 const uri = process.env.DATABASE_URI;
-const dbName = process.env.DATABASE_CLUSTER || 'cmso-agendamento';
+const dbName = process.env.DATABASE_CLUSTER || 'engemedical-agendamento';
 
 const mongo = new MongoClient(uri!, {
   serverApi: ServerApiVersion.v1,

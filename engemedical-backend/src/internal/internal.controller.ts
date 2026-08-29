@@ -471,7 +471,7 @@ export class InternalController {
     return {
       schemaVersion: '1.0',
       eventType: 'SIGNATURE_PENDING_LIST',
-      producer: 'cmso360-backend',
+      producer: 'engemedical-connect-backend',
       producedAt: new Date().toISOString(),
       payload: {
         items,
@@ -513,7 +513,7 @@ export class InternalController {
 
         if (!isSocOrigin(doc as unknown as SchedulingDocument)) {
           this.logger.log(
-            `[ASO_REQUEUE_SKIP] schedulingId=${doc._id} origem=${(doc as any).AUTENTICACAOATENDIMENTO?.metodo} — não enviado para cmso360-aso-generate`,
+            `[ASO_REQUEUE_SKIP] schedulingId=${doc._id} origem=${(doc as any).AUTENTICACAOATENDIMENTO?.metodo} — não enviado para engemedical-connect-aso-generate`,
           );
           continue;
         }
@@ -560,7 +560,7 @@ export class InternalController {
     return {
       schemaVersion: '1.0',
       eventType: 'ASO_REQUEUE',
-      producer: 'cmso360-backend',
+      producer: 'engemedical-connect-backend',
       producedAt: new Date().toISOString(),
       payload: { enqueued, errors },
     };
@@ -597,7 +597,7 @@ export class InternalController {
     return {
       schemaVersion: '1.0',
       eventType: 'SIGNATURE_PENDING_BY_PROFESSIONAL',
-      producer: 'cmso360-backend',
+      producer: 'engemedical-connect-backend',
       producedAt: new Date().toISOString(),
       payload: {
         professionalCode,
@@ -639,7 +639,7 @@ export class InternalController {
           if (doc && this.isAsoEligibleForRequeue(doc)) {
             if (!isSocOrigin(doc as unknown as SchedulingDocument)) {
               this.logger.log(
-                `[PSC_LOGIN_AUTO_SKIP] schedulingId=${item.schedulingId} origem=${(doc as any).AUTENTICACAOATENDIMENTO?.metodo} — não enviado para cmso360-aso-generate`,
+                `[PSC_LOGIN_AUTO_SKIP] schedulingId=${item.schedulingId} origem=${(doc as any).AUTENTICACAOATENDIMENTO?.metodo} — não enviado para engemedical-connect-aso-generate`,
               );
               continue;
             }
@@ -670,7 +670,7 @@ export class InternalController {
     return {
       schemaVersion: '1.0',
       eventType: 'PROFESSIONAL_LOGIN_DETECTED',
-      producer: 'cmso360-backend',
+      producer: 'engemedical-connect-backend',
       producedAt: new Date().toISOString(),
       payload: {
         professionalCode,
@@ -716,7 +716,7 @@ export class InternalController {
     } catch {}
 
     return {
-      cmso360Worker: {
+      engemedical-connectWorker: {
         status: workerStatus,
         url: workerUrl,
         latencyMs: workerLatencyMs,

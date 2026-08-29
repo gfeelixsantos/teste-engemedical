@@ -48,7 +48,7 @@ import { getExamsCatalog } from "@/lib/exames/utils/exames-catalog-cache";
 import EmptyState from "@/app/recepcao/components/EmptyState";
 import { SidebarRecepcao } from "@/components/shared/Sidebar";
 import { HeaderApp } from "@/components/shared/HeaderApp";
-import CmsoCircularLoading from "@/components/shared/CmsoCircularLoading";
+import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 import { CadastroEmpresa } from "@/lib/soc/interfaces/CadastroEmpresa";
 import {
   PreparationRequest,
@@ -1036,7 +1036,7 @@ const AtendimentoPage: React.FC = () => {
           />
         <main className="flex-1 overflow-y-auto bg-gray-50 p-6 lg:p-8">
           {isLoading ? (
-            <CmsoCircularLoading />
+            <EngemedicalCircularLoading />
           ) : conectado && socket ? (
             <AtendimentoContent
               agendamentos={agendamentos}

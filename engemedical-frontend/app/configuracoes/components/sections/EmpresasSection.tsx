@@ -48,7 +48,7 @@ import {
   Tooltip,
 } from "@heroui/react";
 
-import CmsoCircularLoading from "@/components/shared/CmsoCircularLoading";
+import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 import { NEST_URL } from "@/config/constants";
 function getCookie(name: string): string | undefined {
   if (typeof document === "undefined") return undefined;
@@ -1069,7 +1069,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
   };
 
   if (loading) {
-    return <CmsoCircularLoading fullHeight={false} />;
+    return <EngemedicalCircularLoading fullHeight={false} />;
   }
 
   return (

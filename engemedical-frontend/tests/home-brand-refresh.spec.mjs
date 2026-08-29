@@ -32,4 +32,14 @@ test("home login uses the Engemedical Connect brand system", async () => {
   assert.match(loginPage, /cmso_icone\.png/);
   assert.match(loginPage, /Engemedical Connect/);
   assert.match(loginPage, /Portal operacional/);
+  assert.match(loginPage, /Clínica ocupacional/);
+  assert.match(loginPage, /Exames ocupacionais/);
+  assert.match(loginPage, /ASO digital/);
+  assert.match(loginPage, /PCMSO/);
+  assert.match(loginPage, /Rede credenciada/);
+  assert.match(loginPage, /Cuidado ocupacional com tecnologia, presença clínica e gestão integrada/);
+  assert.match(loginPage, /cyber-grid/);
+  assert.match(loginPage, /motion\.section/);
+  assert.match(loginPage, /motion\.div/);
+  assert.match(loginPage, /repeat:\s*Infinity/);
 });

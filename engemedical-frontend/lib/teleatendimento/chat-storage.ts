@@ -9,7 +9,7 @@ export interface TeleatendimentoChatMessage {
   sentAt: string;
 }
 
-const DB_NAME = "cmso360-teleatendimento";
+const DB_NAME = "engemedical-connect-teleatendimento";
 const STORE_NAME = "chat_messages";
 
 async function getDb() {

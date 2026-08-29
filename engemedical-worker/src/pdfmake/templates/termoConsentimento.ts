@@ -205,7 +205,7 @@ export async function gerarTermoConsentimento(
       { text: '1. Objeto e finalidade', style: 'sectionTitle' },
       {
         text:
-          `Este termo registra a ciencia do trabalhador e o aceite operacional do uso de autenticacao ${metodo} no atendimento ocupacional realizado no CMSO360, com a finalidade de reforcar a validacao de identidade, a seguranca, a rastreabilidade e a integridade dos registros vinculados ao atendimento.`,
+          `Este termo registra a ciencia do trabalhador e o aceite operacional do uso de autenticacao ${metodo} no atendimento ocupacional realizado no Engemedical Connect, com a finalidade de reforcar a validacao de identidade, a seguranca, a rastreabilidade e a integridade dos registros vinculados ao atendimento.`,
         style: 'bodyText',
       },
       {
@@ -263,7 +263,7 @@ export async function gerarTermoConsentimento(
             },
             {
               text:
-                `O CMSO360 nao mantem a imagem bruta da captura como registro permanente. A representacao biometrica e armazenada em formato criptografado (AES-256-GCM). A imagem derivada serve exclusivamente como evidencia documental.`,
+                `O Engemedical Connect nao mantem a imagem bruta da captura como registro permanente. A representacao biometrica e armazenada em formato criptografado (AES-256-GCM). A imagem derivada serve exclusivamente como evidencia documental.`,
               style: 'bodyText',
             },
           ]),

@@ -17,7 +17,7 @@ describe('BiometriaLgpdTermoService', () => {
   const baseArgs = {
     biometriaId: '682e0d6f53d5c153584c0d11',
     schedulingId: '64f000000000000000000001',
-    requestId: 'cmso360_1748330000000_ef45gh6',
+    requestId: 'engemedical-connect_1748330000000_ef45gh6',
     funcionario: {
       id: 'func-001',
       nome: 'Paciente Teste',
@@ -167,7 +167,7 @@ describe('BiometriaLgpdTermoService', () => {
       expect.objectContaining({
         metodo: 'BIOMETRIA',
         status: 'VALIDADO',
-        requestId: 'cmso360_1748330000000_ef45gh6',
+        requestId: 'engemedical-connect_1748330000000_ef45gh6',
         validadoEm: '2026-05-27T11:30:00.000Z',
         validadoPor: 'Operador Teste',
         evidencias: {
@@ -188,13 +188,13 @@ describe('BiometriaLgpdTermoService', () => {
     expect(auditLogService.logUserAction).toHaveBeenCalledWith(
       expect.objectContaining({
         acao: 'BIOMETRIA_CIENCIA_REGISTRADA',
-        requestId: 'cmso360_1748330000000_ef45gh6',
+        requestId: 'engemedical-connect_1748330000000_ef45gh6',
       }),
     );
     expect(auditLogService.logUserAction).toHaveBeenCalledWith(
       expect.objectContaining({
         acao: 'BIOMETRIA_TERMO_GERADO',
-        requestId: 'cmso360_1748330000000_ef45gh6',
+        requestId: 'engemedical-connect_1748330000000_ef45gh6',
       }),
     );
   });

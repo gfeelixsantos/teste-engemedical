@@ -53,8 +53,8 @@ import SenhasEstatisticas, {
 } from "@/app/recepcao/components/SenhasEstatisticas";
 import TicketGroupFloatingBar from "@/app/recepcao/components/TicketGroupFloatingBar";
 import { useStatistics, StatisticsResponseDto } from "@/hooks/useStatictics";
-import CmsoLoading from "@/components/shared/CmsoLoading";
-import CmsoCircularLoading from "@/components/shared/CmsoCircularLoading";
+import EngemedicalLoading from "@/components/shared/EngemedicalLoading";
+import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 
 // Componente principal
 const RecepcaoPage: React.FC = () => {
@@ -493,7 +493,7 @@ const RecepcaoPage: React.FC = () => {
   }, [tickets, empreparacao, calcularEstatisticas]);
 
   if (!user) {
-    return <CmsoLoading />;
+    return <EngemedicalLoading />;
   }
 
   return (
@@ -545,7 +545,7 @@ const RecepcaoPage: React.FC = () => {
         >
           {conectado && socket ? (
             isLoading ? (
-              <CmsoCircularLoading />
+              <EngemedicalCircularLoading />
             ) : salaSelecionada.includes("PREPARO") ? (
               <PreparationGrid requests={empreparacao} socket={socket} />
             ) : (

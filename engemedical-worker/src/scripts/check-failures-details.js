@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 
 async function run() {
-  const mongoUrl = "mongodb+srv://cmso360_db_user:123a5067b9@cmso360.nyei7qg.mongodb.net/?appName=cmso360";
+  const mongoUrl = "mongodb+srv://engemedical-connect_db_user:123a5067b9@engemedical-connect.nyei7qg.mongodb.net/?appName=engemedical-connect";
   const client = new MongoClient(mongoUrl);
   await client.connect();
   const db = client.db("cmso-agendamento");

@@ -90,7 +90,7 @@ describe('MongoController critical deletes', () => {
       headers: {
         'x-auth-user': authHeader,
         'x-reauthenticated': 'true',
-        'x-request-id': 'cmso360_123_abc1234',
+        'x-request-id': 'engemedical-connect_123_abc1234',
       },
     };
 
@@ -111,7 +111,7 @@ describe('MongoController critical deletes', () => {
     );
     expect(req.auditLogContext).toEqual(
       expect.objectContaining({
-        requestId: 'cmso360_123_abc1234',
+        requestId: 'engemedical-connect_123_abc1234',
         detalhes: expect.objectContaining({
           motivo: 'cadastro duplicado',
           reautenticado: true,
@@ -123,7 +123,7 @@ describe('MongoController critical deletes', () => {
     expect(result).toEqual(
       expect.objectContaining({
         success: true,
-        requestId: 'cmso360_123_abc1234',
+        requestId: 'engemedical-connect_123_abc1234',
       }),
     );
   });
@@ -141,7 +141,7 @@ describe('MongoController critical deletes', () => {
       headers: {
         'x-auth-user': authHeader,
         'x-reauthenticated': 'true',
-        'x-request-id': 'cmso360_456_abc1234',
+        'x-request-id': 'engemedical-connect_456_abc1234',
       },
     };
 
@@ -160,7 +160,7 @@ describe('MongoController critical deletes', () => {
     expect(result).toEqual(
       expect.objectContaining({
         success: true,
-        requestId: 'cmso360_456_abc1234',
+        requestId: 'engemedical-connect_456_abc1234',
       }),
     );
   });
@@ -178,7 +178,7 @@ describe('MongoController critical deletes', () => {
       headers: {
         'x-auth-user': authHeader,
         'x-reauthenticated': 'true',
-        'x-request-id': 'cmso360_789_abc1234',
+        'x-request-id': 'engemedical-connect_789_abc1234',
       },
     };
 
@@ -193,7 +193,7 @@ describe('MongoController critical deletes', () => {
 
     expect(result).toEqual(
       expect.objectContaining({
-        requestId: 'cmso360_789_abc1234',
+        requestId: 'engemedical-connect_789_abc1234',
         snapshotId: expect.stringMatching(/^snapshot_\d+_[a-z0-9]{7}$/),
       }),
     );

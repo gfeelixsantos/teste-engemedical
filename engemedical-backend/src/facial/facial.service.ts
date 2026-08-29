@@ -294,7 +294,7 @@ export class FacialService {
 
       return {
         name: 'Assinatura Facial do Funcionario',
-        clientName: 'CMSO360',
+        clientName: 'Engemedical Connect',
         signersData: [
           {
             signerNonce: 'funcionario-01',
@@ -545,7 +545,7 @@ export class FacialService {
     drawRectOutline(24, 68, width - 48, 96, 2, border);
     fillRect(24, 170, width - 48, 26, panelStrong);
 
-    drawText('CMSO360', 40, 34, 2, white, 0);
+    drawText('Engemedical Connect', 40, 34, 2, white, 0);
     drawText('ASSINATURA ELETRONICA VINCULADA', 188, 34, 2, darkGreen, 0);
     drawText('TITULAR DO REGISTRO', 40, 82, 2, mutedText, 0);
 

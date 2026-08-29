@@ -7,7 +7,7 @@ import {
   Card, CardBody, Chip, Switch, Divider, Tabs, Tab,
   Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
 } from "@heroui/react";
-import CmsoCircularLoading from "@/components/shared/CmsoCircularLoading";
+import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 import { getCurrentUser } from "@/lib/utils";
 import {
   fetchRiscosConfig, createRiscoConfig, updateRiscoConfig, deleteRiscoConfig,
@@ -446,7 +446,7 @@ export function RiscosConfigSection() {
   }
 
   if (loading) {
-    return <CmsoCircularLoading fullHeight={false} />;
+    return <EngemedicalCircularLoading fullHeight={false} />;
   }
 
   return (

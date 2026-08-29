@@ -30,7 +30,7 @@ import {
   Tab,
   Switch,
 } from "@heroui/react";
-import CmsoCircularLoading from "@/components/shared/CmsoCircularLoading";
+import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 
 import { useUnits, Unit } from "@/lib/config/useUnits";
 import { NEST_URL } from "@/config/constants";
@@ -181,7 +181,7 @@ export function UnidadesSection() {
   }
 
   if (loading) {
-    return <CmsoCircularLoading fullHeight={false} />;
+    return <EngemedicalCircularLoading fullHeight={false} />;
   }
 
   return (

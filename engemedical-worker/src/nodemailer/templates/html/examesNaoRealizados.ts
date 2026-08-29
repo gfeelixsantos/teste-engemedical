@@ -159,7 +159,7 @@ export function examesNaoRealizadosHtml(data: {
               <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
             <p style="color: ${textColor}; margin: 0; font-size: 13px; font-weight: 500;">
-              Este relatório foi gerado automaticamente pelo sistema CMSO360
+              Este relatório foi gerado automaticamente pelo sistema Engemedical Connect
             </p>
           </div>
           <p style="color: #6C757D; margin: 0; font-size: 12px;">

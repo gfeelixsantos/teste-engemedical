@@ -7,9 +7,13 @@ import { motion } from "framer-motion";
 import {
   Activity,
   ArrowRight,
+  ClipboardCheck,
   Eye,
   EyeOff,
+  FileCheck2,
+  HeartPulse,
   Lock,
+  Network,
   ShieldCheck,
   Sparkles,
   User,
@@ -119,11 +123,63 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({ isLoading, disabled }) => (
   </button>
 );
 
+const brandPillars = [
+  {
+    icon: HeartPulse,
+    title: "Exames ocupacionais",
+    description: "Atendimento clínico com agilidade.",
+  },
+  {
+    icon: FileCheck2,
+    title: "ASO digital",
+    description: "Documentação pronta para a rotina.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "PCMSO",
+    description: "Gestão ocupacional conforme a NR-7.",
+  },
+  {
+    icon: Network,
+    title: "Rede credenciada",
+    description: "Capilaridade para empresas e colaboradores.",
+  },
+];
+
 const BrandPanel = () => (
-  <section className="relative flex min-h-[360px] flex-col justify-between overflow-hidden bg-brand-midnight p-6 text-white md:min-h-[680px] md:p-9">
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(0,109,255,0.42),transparent_30%),radial-gradient(circle_at_86%_16%,rgba(25,232,90,0.34),transparent_34%),linear-gradient(145deg,#06172f_0%,#082a4c_48%,#051326_100%)]" />
-    <div className="absolute -left-24 bottom-8 h-72 w-72 rounded-full border border-brand-cyan/20" />
-    <div className="absolute right-[-120px] top-10 h-80 w-80 rounded-full border border-brand-green/25" />
+  <motion.section
+    animate={{ opacity: 1 }}
+    className="cyber-grid relative flex min-h-[420px] flex-col justify-between overflow-hidden bg-brand-midnight p-6 text-white md:min-h-[680px] md:p-9"
+    initial={{ opacity: 0 }}
+    transition={{ duration: 0.8, ease: "easeOut" }}
+  >
+    <div className="absolute inset-0 bg-[linear-gradient(135deg,#06172f_0%,#082a4c_46%,#051326_100%)]" />
+    <motion.div
+      animate={{ opacity: [0.34, 0.62, 0.34], x: ["-8%", "4%", "-8%"] }}
+      className="absolute inset-x-[-16%] top-[-20%] h-[56%] bg-[linear-gradient(100deg,transparent_10%,rgba(0,109,255,0.38)_34%,rgba(22,217,245,0.24)_55%,rgba(25,232,90,0.28)_76%,transparent_92%)] blur-2xl"
+      transition={{ duration: 9, ease: "easeInOut", repeat: Infinity }}
+    />
+    <motion.div
+      animate={{ opacity: [0.18, 0.32, 0.18], y: ["0%", "8%", "0%"] }}
+      className="absolute inset-x-[-10%] bottom-[-24%] h-[48%] bg-[linear-gradient(100deg,transparent_5%,rgba(22,217,245,0.22)_28%,rgba(139,255,51,0.22)_64%,transparent_94%)] blur-3xl"
+      transition={{ duration: 11, ease: "easeInOut", repeat: Infinity }}
+    />
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:72px_72px] opacity-35" />
+    <motion.div
+      animate={{ x: ["-35%", "135%"] }}
+      className="absolute left-0 top-1/3 h-px w-2/3 bg-gradient-to-r from-transparent via-brand-cyan/70 to-transparent"
+      transition={{ duration: 6.5, ease: "easeInOut", repeat: Infinity }}
+    />
+    <motion.div
+      animate={{ x: ["120%", "-35%"] }}
+      className="absolute bottom-28 right-0 h-px w-3/5 bg-gradient-to-r from-transparent via-brand-green/60 to-transparent"
+      transition={{
+        delay: 1.2,
+        duration: 8,
+        ease: "easeInOut",
+        repeat: Infinity,
+      }}
+    />
 
     <div className="relative z-10 flex items-center gap-3">
       <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/15 bg-white/10 shadow-lg shadow-brand-cyan/10">
@@ -137,51 +193,103 @@ const BrandPanel = () => (
       </div>
     </div>
 
-    <div className="relative z-10 my-8 flex justify-center">
-      <div className="relative">
-        <div className="absolute inset-8 rounded-full bg-brand-cyan/25 blur-3xl" />
-        <Image
-          priority
-          alt="Engemedical Connect"
-          className="relative h-56 w-56 object-contain drop-shadow-[0_26px_60px_rgba(22,217,245,0.35)] md:h-72 md:w-72"
-          height={320}
-          src="/images/cmso_icone.png"
-          width={320}
+    <div className="relative z-10 my-7 grid place-items-center md:my-6">
+      <div className="relative h-64 w-64 md:h-80 md:w-80">
+        <motion.div
+          animate={{ opacity: [0.16, 0.42, 0.16], scale: [0.96, 1.06, 0.96] }}
+          className="absolute inset-6 rounded-[44px] bg-brand-cyan/20 blur-3xl"
+          transition={{ duration: 5.4, ease: "easeInOut", repeat: Infinity }}
         />
+        <motion.div
+          animate={{ rotate: 360 }}
+          className="absolute inset-3 rounded-[56px] border border-dashed border-brand-cyan/28"
+          transition={{ duration: 28, ease: "linear", repeat: Infinity }}
+        />
+        <motion.div
+          animate={{ rotate: -360 }}
+          className="absolute inset-10 rounded-[40px] border border-brand-green/24"
+          transition={{ duration: 22, ease: "linear", repeat: Infinity }}
+        />
+        <motion.div
+          animate={{ scale: [1, 1.025, 1], y: [0, -4, 0] }}
+          className="absolute inset-0 grid place-items-center"
+          transition={{ duration: 4.8, ease: "easeInOut", repeat: Infinity }}
+        >
+          <Image
+            priority
+            alt="Engemedical Connect"
+            className="h-56 w-56 object-contain drop-shadow-[0_30px_70px_rgba(22,217,245,0.36)] md:h-72 md:w-72"
+            height={320}
+            src="/images/engemedical_icone.png"
+            width={320}
+          />
+        </motion.div>
       </div>
     </div>
 
-    <div className="relative z-10 space-y-7">
-      <div className="max-w-md space-y-3">
+    <div className="relative z-10 space-y-5">
+      <div className="max-w-xl space-y-3">
         <p className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand-lime">
           <Sparkles className="h-3.5 w-3.5" />
-          Saúde ocupacional integrada
+          Clínica ocupacional
         </p>
-        <h1 className="text-3xl font-semibold leading-tight text-white md:text-5xl">
-          Operação médica conectada, segura e precisa.
+        <h1 className="text-3xl font-semibold leading-tight text-white md:text-4xl">
+          Cuidado ocupacional com tecnologia, presença clínica e gestão integrada.
         </h1>
-        <p className="text-sm leading-6 text-white/68 md:text-base">
-          Acesse os fluxos de atendimento, documentos, agenda e serviços em uma
-          experiência preparada para escala clínica.
+        <p className="max-w-lg text-sm leading-6 text-white/68 md:text-base">
+          Exames, ASO, PCMSO e rede credenciada em uma jornada mais simples para
+          empresas e colaboradores.
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 border-t border-white/10 pt-5 text-sm">
-        <div>
-          <p className="font-semibold text-white">SOC</p>
-          <p className="text-white/52">Integrações</p>
-        </div>
-        <div>
-          <p className="font-semibold text-white">GED</p>
-          <p className="text-white/52">Documentos</p>
-        </div>
-        <div>
-          <p className="font-semibold text-white">360</p>
-          <p className="text-white/52">Gestão</p>
-        </div>
+      <div className="grid gap-2.5 border-t border-white/10 pt-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
+        {brandPillars.map(({ icon: Icon, title, description }) => (
+          <motion.div
+            key={title}
+            animate={{ opacity: [0.86, 1, 0.86], y: [0, -4, 0] }}
+            className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/[0.075] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.14)] backdrop-blur transition-colors duration-300 hover:border-brand-cyan/40 hover:bg-white/[0.11]"
+            transition={{
+              delay: title.length * 0.03,
+              duration: 5.8,
+              ease: "easeInOut",
+              repeat: Infinity,
+            }}
+          >
+            <motion.span
+              aria-hidden
+              animate={{ x: ["-120%", "140%"] }}
+              className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/14 to-transparent"
+              transition={{
+                delay: title.length * 0.05,
+                duration: 3.8,
+                ease: "easeInOut",
+                repeat: Infinity,
+              }}
+            />
+            <div className="relative flex items-center gap-2.5">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-brand-cyan/18 bg-brand-cyan/10 text-brand-cyan shadow-[0_0_22px_rgba(22,217,245,0.12)] transition-colors group-hover:border-brand-green/30 group-hover:text-brand-green">
+                <Icon className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-white">{title}</p>
+                <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-white/52">
+                  {description}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3 rounded-lg border border-brand-cyan/18 bg-brand-deep/46 p-3 text-sm text-white/68 backdrop-blur">
+        <ShieldCheck className="h-5 w-5 shrink-0 text-brand-green" />
+        <p>
+          Atendimento clínico, documentação ocupacional e conformidade em uma
+          única experiência.
+        </p>
       </div>
     </div>
-  </section>
+  </motion.section>
 );
 
 // -------------------------------------------------------------

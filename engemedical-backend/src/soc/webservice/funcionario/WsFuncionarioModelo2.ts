@@ -91,7 +91,7 @@ export async function WsFuncionarioModelo2(
               <situacao>${situacaoFinal.toUpperCase()}</situacao>
               <tipoBuscaEmpresa>CODIGO_SOC</tipoBuscaEmpresa>
               <tipoContratacao>CLT</tipoContratacao>
-              <observacaoFuncionario>Inativado via automação CMSO360 em ${new Date().toLocaleString('pt-BR')}</observacaoFuncionario>
+              <observacaoFuncionario>Inativado via automação Engemedical Connect em ${new Date().toLocaleString('pt-BR')}</observacaoFuncionario>
               <codigoCategoriaESocial></codigoCategoriaESocial>
               <tipoVinculo>EMPREGATICIO</tipoVinculo>
               <tipoAdmissao>ADMISSAO</tipoAdmissao>

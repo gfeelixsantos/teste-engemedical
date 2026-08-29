@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-export default function CmsoLoading() {
+export default function EngemedicalLoading() {
   return (
     <main
       aria-label="Carregando conteúdo"
@@ -16,7 +16,7 @@ export default function CmsoLoading() {
       >
         <Image
           priority
-          alt="CMSO 360°"
+          alt="Engemedical Connect"
           className="h-16 w-auto mb-4"
           height={64}
           src="/images/logo.png"

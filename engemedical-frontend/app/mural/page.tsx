@@ -699,7 +699,7 @@ function MuralContent() {
               {/* Footer */}
               <div className="text-center pt-[1vw]">
                 <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-[0.8vw]" />
-                <span className="text-[0.7vw] text-white/20 font-medium">CMSO Ocupacional · Todos os direitos reservados</span>
+                <span className="text-[0.7vw] text-white/20 font-medium">Engemedical · Todos os direitos reservados</span>
               </div>
             </div>
           ) : (

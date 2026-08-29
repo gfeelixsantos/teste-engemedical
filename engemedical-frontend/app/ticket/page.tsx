@@ -224,7 +224,7 @@ const Header = ({
                   className="font-bold text-base md:text-lg lg:text-xl"
                   style={{ color: COLOR_PALETTE.light }}
                 >
-                  CMSO {unidade}
+                  Engemedical {unidade}
                 </span>
               </div>
             )}

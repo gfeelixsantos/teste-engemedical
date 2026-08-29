@@ -78,7 +78,7 @@ export class PscAuthController {
 
       const isProd = process.env.NODE_ENV === 'production';
       const frontendUrl = isProd
-        ? process.env.FRONTEND_URL_PROD || 'https://cmso360-frontend.vercel.app'
+        ? process.env.FRONTEND_URL_PROD || 'https://engemedical-connect-frontend.vercel.app'
         : process.env.FRONTEND_URL || 'http://localhost:3000';
 
       return res.redirect(`${frontendUrl}/configuracoes?psc_auth=success`);
@@ -86,7 +86,7 @@ export class PscAuthController {
       console.error('Error in PSC callback:', error);
       const isProd = process.env.NODE_ENV === 'production';
       const frontendUrl = isProd
-        ? process.env.FRONTEND_URL_PROD || 'https://cmso360-frontend.vercel.app'
+        ? process.env.FRONTEND_URL_PROD || 'https://engemedical-connect-frontend.vercel.app'
         : process.env.FRONTEND_URL || 'http://localhost:3000';
 
       return res.redirect(`${frontendUrl}/configuracoes?psc_auth=error`);

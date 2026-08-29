@@ -1,7 +1,7 @@
 /**
  * enfileirar-aso-real-backend-exact.js
  * 
- * Este script simula a chamada EXATA que a função `enqueueParecerMedicoToTeam` do `cmso360-backend` executa.
+ * Este script simula a chamada EXATA que a função `enqueueParecerMedicoToTeam` do `engemedical-connect-backend` executa.
  * Ele busca o atendimento real no MongoDB, pega ESTRITAMENTE o campo `ASOINFO.url` (ou `ASOINFO.signature.signedUrl`),
  * gera o Token SAS do Azure Blob exatamente como a função `generateReadOnlyEmailLink` faz no backend,
  * e posta o payload no formato EXATO do backend na fila 'email'.
@@ -16,7 +16,7 @@ require('dotenv').config({
   path: path.join(__dirname, '..', '..', '.env'),
 });
 
-const MONGO_URL = process.env.MONGO_URL || 'mongodb+srv://cmso360_db_user:123a5067b9@cmso360.nyei7qg.mongodb.net/?appName=cmso360';
+const MONGO_URL = process.env.MONGO_URL || 'mongodb+srv://engemedical-connect_db_user:123a5067b9@engemedical-connect.nyei7qg.mongodb.net/?appName=engemedical-connect';
 const MONGO_DATABASE = process.env.MONGO_DATABASE || 'cmso-agendamento';
 const MONGO_COLLECTION = process.env.MONGO_COLLECTION || 'schedulings';
 const AZURE_CONNECTION = process.env.AZURE_STORAGE_CONNECTION_STRING || process.env.AZURE_CONNECTION_STRING_BLOB;

@@ -39,7 +39,7 @@ const schedulingDocument: any = {
 describe('deletion-snapshot', () => {
   it('gera snapshot sanitizado para exclusao de atendimento sem payload sensivel', () => {
     const snapshot = buildSchedulingDeletionSnapshot({
-        requestId: 'cmso360_1_abc1234',
+        requestId: 'engemedical-connect_1_abc1234',
       motivo: 'cadastro duplicado',
       actor,
       document: schedulingDocument,
@@ -49,7 +49,7 @@ describe('deletion-snapshot', () => {
     expect(snapshot.snapshot.snapshotId).toMatch(/^snapshot_\d+_[a-z0-9]{7}$/);
     expect(snapshot.snapshot).toEqual(
       expect.objectContaining({
-      requestId: 'cmso360_1_abc1234',
+      requestId: 'engemedical-connect_1_abc1234',
         acao: 'EXCLUIR_ATENDIMENTO',
         recursoTipo: 'atendimento',
         recursoId: 'sched-123',
@@ -69,7 +69,7 @@ describe('deletion-snapshot', () => {
 
   it('gera snapshot sanitizado para remocao de anexo com hash e metadados seguros', () => {
     const snapshot = buildAttachmentDeletionSnapshot({
-      requestId: 'cmso360_2_abc1234',
+      requestId: 'engemedical-connect_2_abc1234',
       motivo: 'arquivo incorreto',
       actor,
       document: schedulingDocument,

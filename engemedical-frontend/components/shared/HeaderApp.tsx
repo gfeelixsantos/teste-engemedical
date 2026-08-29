@@ -334,7 +334,7 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
           >
             <Image
               priority
-              alt="CMSO 360"
+              alt="Engemedical Connect"
               className="h-12 w-auto"
               height={54}
               src="/images/logo.png"

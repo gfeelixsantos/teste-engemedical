@@ -3356,7 +3356,7 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
     if (asooProcessingPayload) {
       if (!isSocOrigin(finalDoc)) {
         this.logger.log(
-          `[ASO_SKIP_ORIGEM] schedulingId=${scheduledId} origem=${finalDoc.AUTENTICACAOATENDIMENTO?.metodo} — não enviado para cmso360-aso-generate`,
+          `[ASO_SKIP_ORIGEM] schedulingId=${scheduledId} origem=${finalDoc.AUTENTICACAOATENDIMENTO?.metodo} — não enviado para engemedical-connect-aso-generate`,
         );
       } else {
         await this.azureService.filaAsoProcessing(asooProcessingPayload);
@@ -3369,7 +3369,7 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
         );
 
         this.logger.log(
-          `[ASO_ENQUEUE] schedulingId=${scheduledId} enfileirado para geracao no cmso360-aso-generate`,
+          `[ASO_ENQUEUE] schedulingId=${scheduledId} enfileirado para geracao no engemedical-connect-aso-generate`,
         );
       }
     }
@@ -6780,14 +6780,14 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
 
     if (!isSocOrigin(claimedDoc as SchedulingDocument)) {
       this.logger.log(
-        `[ASO_SKIP_ORIGEM][AUTO] schedulingId=${schedulingId} origem=${claimedDoc.AUTENTICACAOATENDIMENTO?.metodo} — não enviado para cmso360-aso-generate`,
+        `[ASO_SKIP_ORIGEM][AUTO] schedulingId=${schedulingId} origem=${claimedDoc.AUTENTICACAOATENDIMENTO?.metodo} — não enviado para engemedical-connect-aso-generate`,
       );
       return;
     }
 
     await this.azureService.filaAsoProcessing(payload);
     this.logger.log(
-      `[ASO_ENQUEUE][AUTO] schedulingId=${schedulingId} origem=SOC enfileirado para cmso360-aso-generate`,
+      `[ASO_ENQUEUE][AUTO] schedulingId=${schedulingId} origem=SOC enfileirado para engemedical-connect-aso-generate`,
     );
   }
 
@@ -7817,7 +7817,7 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
         digitalDocumentalHash: doc.digitalDocumentalHash || null,
         finalidade: doc.digitalDocumentalFinalidade || 'COMPOSICAO_DOCUMENTAL',
         origem: doc.digitalDocumentalOrigem || 'IMAGEM_DERIVADA_NAO_RAW',
-        textoEvidencia: 'Evidência biométrica documental gerada a partir de captura local no agente CMSO360.',
+        textoEvidencia: 'Evidência biométrica documental gerada a partir de captura local no agente Engemedical Connect.',
       };
     } catch (error) {
       this.logger.error(`[BIOMETRIA] Falha ao gerar info documental: ${error.message}`, error);
@@ -7913,7 +7913,7 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
 
   /**
    * Envia relatório de exames não realizados para a equipe via email.
-   * O email é enfileirado para processamento pelo cmso360-worker.
+   * O email é enfileirado para processamento pelo engemedical-connect-worker.
    */
   async sendUnfinishedExamsReport(
     schedulings: SchedulingDocument[],

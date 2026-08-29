@@ -58,7 +58,7 @@ expect(logUserAction).toHaveBeenCalledWith(
              pacienteCodigo: 'PAC-001',
              pacienteNome: 'Paciente Teste',
              unidade: 'RIO CLARO',
-             requestId: expect.stringMatching(/^cmso360_\d+_[a-z0-9]{7}$/),
+             requestId: expect.stringMatching(/^engemedical-connect_\d+_[a-z0-9]{7}$/),
              detalhes: expect.objectContaining({
                resultado: 'SUCESSO',
              }),
@@ -169,7 +169,7 @@ expect(logUserAction).toHaveBeenCalledWith(
       route: { path: '/delete' },
       url: '/schedulings/delete',
       headers: {
-        'x-request-id': 'cmso360_123_abc1234',
+        'x-request-id': 'engemedical-connect_123_abc1234',
       },
       socket: { remoteAddress: '127.0.0.1' },
       user: {
@@ -188,7 +188,7 @@ expect(logUserAction).toHaveBeenCalledWith(
         pacienteCodigo: 'PAC-001',
         pacienteNome: 'Paciente Teste',
         unidade: 'RIO CLARO',
-        requestId: 'cmso360_123_abc1234',
+        requestId: 'engemedical-connect_123_abc1234',
         detalhes: {
           motivo: 'cadastro duplicado',
           reautenticado: true,
@@ -209,7 +209,7 @@ expect(logUserAction).toHaveBeenCalledWith(
 expect(logUserAction).toHaveBeenCalledWith(
            expect.objectContaining({
              acao: 'EXCLUIR_ATENDIMENTO',
-             requestId: 'cmso360_123_abc1234',
+             requestId: 'engemedical-connect_123_abc1234',
              pacienteCodigo: 'PAC-001',
              pacienteNome: 'Paciente Teste',
              unidade: 'RIO CLARO',

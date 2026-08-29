@@ -15,7 +15,7 @@ export interface ConsentStatus {
 const TERMS_CONTENT: Record<ConsentType, { title: string; text: string }> = {
   TERMOS_DE_USO: {
     title: "Termos de Uso",
-    text: `Ao acessar e utilizar o CMSO360, você declara estar ciente e de acordo com as seguintes condições:
+    text: `Ao acessar e utilizar o Engemedical Connect, você declara estar ciente e de acordo com as seguintes condições:
 
 1. Esta plataforma é destinada exclusivamente à gestão de saúde ocupacional (PCMSO / NR-7).
 2. Você é o único responsável pela veracidade dos dados informados.
@@ -25,7 +25,7 @@ const TERMS_CONTENT: Record<ConsentType, { title: string; text: string }> = {
   },
   POLITICA_PRIVACIDADE: {
     title: "Política de Privacidade",
-    text: `Ao aceitar, você confirma que leu e compreendeu a Política de Privacidade do CMSO360, disponível em /privacidade, e está ciente sobre:
+    text: `Ao aceitar, você confirma que leu e compreendeu a Política de Privacidade do Engemedical Connect, disponível em /privacidade, e está ciente sobre:
 
 1. Quais dados pessoais e de saúde são coletados e tratados.
 2. As finalidades do tratamento, incluindo obrigações legais (NR-7, CLT Art. 168).

@@ -172,7 +172,7 @@ export async function gerarEvidenciaBiometria(
           ]
         : []),
       {
-        text: 'Este relatorio de evidencias e gerado automaticamente pelo sistema CMSO360 e constitui registro documental da operacao de autenticacao biometrica realizada.',
+        text: 'Este relatorio de evidencias e gerado automaticamente pelo sistema Engemedical Connect e constitui registro documental da operacao de autenticacao biometrica realizada.',
         fontSize: 7.5,
         color: MUTED,
         italics: true,
@@ -190,7 +190,7 @@ export async function gerarEvidenciaBiometria(
     styles: {},
     info: {
       title: `Relatorio de Evidencias - ${input.requestId}`,
-      author: 'CMSO360',
+      author: 'Engemedical Connect',
       subject: `requestId: ${input.requestId} | hash: ${documentHash}`,
     },
     defaultStyle: {

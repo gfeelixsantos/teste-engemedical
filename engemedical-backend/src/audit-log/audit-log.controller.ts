@@ -44,7 +44,7 @@ export class AuditLogController {
       unidade: event.unidade,
       ip: event.ip,
       userAgent: event.userAgent,
-      requestId: event.requestId ?? `cmso360_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      requestId: event.requestId ?? `engemedical-connect_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
     });
 
     return { success: true };

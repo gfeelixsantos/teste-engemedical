@@ -1,7 +1,7 @@
 const { MongoClient, MongoServerSelectionError } = require('mongodb');
 
 async function test() {
-  const base = 'mongodb://cmso360_db_user:123a5067b9';
+  const base = 'mongodb://engemedical-connect_db_user:123a5067b9';
   
   const tests = [
     { name: 'ReplicaSet (original)', url: `${base}@159.41.50.1:27017,159.41.50.44:27017,159.41.50.59:27017/cmso-agendamento?appName=local-dev&directConnection=false&serverSelectionTimeoutMS=5000` },

@@ -11,7 +11,7 @@
  *   5. Se match: faz upload no Azure Blob Storage
  *   6. Atualiza MongoDB com status FINALIZADO e URL do_blob
  *
- * EXECUTAR (da pasta cmso360-backend):
+ * EXECUTAR (da pasta engemedical-connect-backend):
  *   chcp 65001; node -r ts-node/register -r tsconfig-paths/register scripts/production-veitieka-raiox.ts
  *   chcp 65001; node -r ts-node/register -r tsconfig-paths/register scripts/production-veitieka-raiox.ts --dry-run
  *   chcp 65001; node -r ts-node/register -r tsconfig-paths/register scripts/production-veitieka-raiox.ts --scheduling-id=XXX
@@ -59,7 +59,7 @@ const { schedulingId: ARG_SCHEDULING_ID, dryRun: DRY_RUN, max: ARG_MAX } = parse
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-const MONGO_URI = process.env.MONGO_URL || 'mongodb+srv://cmso360_db_user:123a5067b9@cmso360.nyei7qg.mongodb.net/';
+const MONGO_URI = process.env.MONGO_URL || 'mongodb+srv://engemedical-connect_db_user:123a5067b9@engemedical-connect.nyei7qg.mongodb.net/';
 const MONGO_DB = process.env.MONGO_DATABASE || 'cmso-agendamento';
 const MONGO_COLLECTION = process.env.MONGO_COLLECTION || 'schedulings';
 

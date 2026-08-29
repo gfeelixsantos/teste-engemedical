@@ -2,7 +2,7 @@
 
 import { AuditLogRecord } from "@/lib/audit-log/types";
 import { getAcaoLabel } from "@/lib/audit-log/action-labels";
-import CmsoCircularLoading from "@/components/shared/CmsoCircularLoading";
+import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 
 import { DetalhesColapsavel } from "./DetalhesColapsavel";
 import { AUDIT_PRIMARY_COLUMNS } from "./presentation.mjs";
@@ -39,7 +39,7 @@ export function AuditLogsTable({ records, isLoading }: AuditLogsTableProps) {
                 colSpan={AUDIT_PRIMARY_COLUMNS.length}
                 className="px-3 py-6"
               >
-                <CmsoCircularLoading
+                <EngemedicalCircularLoading
                   iconSize={40}
                   fullHeight={false}
                 />

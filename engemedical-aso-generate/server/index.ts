@@ -4,7 +4,7 @@ const { appLogs } = require('./src/utils/appLogs');
 appLogs.initializeFileLogging();
 
 console.log('='.repeat(50));
-console.log('CMSO360 ASO Generator - Worker');
+console.log('Engemedical Connect ASO Generator - Worker');
 console.log('='.repeat(50));
 console.log('Inicializando...');
 console.log('');

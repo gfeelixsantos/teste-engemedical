@@ -3,7 +3,7 @@ import { CertificateStatus } from "../CertificateStatus";
 
 /**
  * Tipo padronizado para mensagens de processamento de ASO
- * Corresponde ao AsoProcessingMessage do cmso360-backend
+ * Corresponde ao AsoProcessingMessage do engemedical-connect-backend
  */
 export type AsoProcessingMessage = {
   _id?: ObjectId;

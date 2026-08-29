@@ -213,7 +213,7 @@ export class UserSettingsService {
       settings.pin
     ) {
       this.logger.log(
-        `[UserSettingsService] Credenciais BRYKMS configuradas para ${settings.userCodigo}. O cmso360-worker absorverá as pendências na próxima rotina.`,
+        `[UserSettingsService] Credenciais BRYKMS configuradas para ${settings.userCodigo}. O engemedical-connect-worker absorverá as pendências na próxima rotina.`,
       );
     }
 

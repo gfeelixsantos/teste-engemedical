@@ -47,14 +47,14 @@ function testPenalizesWrongSocShellPage() {
       title: "SOCGED611",
       html: `
         <div>Testar versao Beta</div>
-        <div>Incluido por Ana Clara - CMSO</div>
+        <div>Incluido por Ana Clara - Engemedical</div>
         <div>Data Criacao 06/04/2026</div>
-        <div>Alterado por Ana Clara - CMSO</div>
+        <div>Alterado por Ana Clara - Engemedical</div>
       `,
       text: `
         Ficha Clinica
         Testar versao Beta
-        Incluido por Ana Clara - CMSO
+        Incluido por Ana Clara - Engemedical
         Data Criacao
       `,
     },

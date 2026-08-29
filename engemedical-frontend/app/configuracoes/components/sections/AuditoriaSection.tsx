@@ -15,7 +15,7 @@ import {
 } from "@/lib/audit-log/types";
 import { Card, CardBody, CardHeader } from "@heroui/react";
 import { ShieldCheck } from "lucide-react";
-import CmsoCircularLoading from "@/components/shared/CmsoCircularLoading";
+import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 import { AuditFilterForm } from "./audit/AuditFilterForm";
 import { AuditLogsTable } from "./audit/AuditLogsTable";
 import { resolveAuditLogsErrorBehavior } from "./audit/error-behavior.mjs";
@@ -154,7 +154,7 @@ export function AuditoriaSection({ user }: AuditoriaSectionProps) {
           {/* Loading overlay on table */}
           {hasSearched && isLoading && records.length === 0 && (
             <div className="text-center py-12 text-gray-400">
-              <CmsoCircularLoading iconSize={40} fullHeight={false} />
+              <EngemedicalCircularLoading iconSize={40} fullHeight={false} />
             </div>
           )}
 

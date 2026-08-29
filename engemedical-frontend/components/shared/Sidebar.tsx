@@ -41,7 +41,7 @@ interface SidebarRecepcaoProps {
   toggleTelemedicinaModo?: () => void;
 }
 
-/* SelectField CMSO */
+/* SelectField Engemedical */
 const SelectField = ({
   id,
   label,

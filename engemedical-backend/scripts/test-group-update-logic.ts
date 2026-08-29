@@ -16,7 +16,7 @@
  *   Dia 3: Parasitológico recebido → deve atualizar hemograma + parasitológico (novo comportamento)
  *   Dia 15: Cromo recebido → deve atualizar todos os 3 (novo comportamento)
  *
- * Como executar (da pasta cmso360-backend):
+ * Como executar (da pasta engemedical-connect-backend):
  *   chcp 65001 && node -r ts-node/register -r tsconfig-paths/register scripts/test-group-update-logic.ts
  * ============================================================
  */

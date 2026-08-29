@@ -42,7 +42,7 @@ export class GoogleDriveService {
     const sharedWorkerPath = path.join(
       process.cwd(),
       '..',
-      'cmso360-worker',
+      'engemedical-connect-worker',
       'src',
       'google',
       'drive',

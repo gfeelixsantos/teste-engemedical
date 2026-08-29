@@ -34,7 +34,7 @@ import {
   Switch,
   Pagination,
 } from "@heroui/react";
-import CmsoCircularLoading from "@/components/shared/CmsoCircularLoading";
+import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 
 import { useUsers, User } from "@/lib/config/useUsers";
 import { NEST_URL } from "@/config/constants";
@@ -288,7 +288,7 @@ export function UsuariosSection({ user }: UsuariosSectionProps) {
   }
 
   if (loading) {
-    return <CmsoCircularLoading fullHeight={false} />;
+    return <EngemedicalCircularLoading fullHeight={false} />;
   }
 
   return (

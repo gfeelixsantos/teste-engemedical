@@ -29,7 +29,7 @@ const features = [
   },
 ];
 
-export default function CMSO360Animation() {
+export default function EngemedicalConnectAnimation() {
   const [currentFeature, setCurrentFeature] = useState(0);
 
   // Timer mais leve (timeout ao invés de interval)
@@ -52,7 +52,7 @@ export default function CMSO360Animation() {
       >
         <Image
           priority
-          alt="CMSO 360 - Sistema Interno de Gestão"
+          alt="Engemedical Connect - Sistema Interno de Gestão"
           className="w-auto mx-auto"
           height={60}
           src="/images/logo.png"

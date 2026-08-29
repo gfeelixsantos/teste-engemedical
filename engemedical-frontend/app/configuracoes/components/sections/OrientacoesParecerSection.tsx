@@ -7,7 +7,7 @@ import {
   Card, CardBody, Chip, Switch, Divider,
   Modal, ModalContent, ModalHeader, ModalBody, ModalFooter,
 } from "@heroui/react";
-import CmsoCircularLoading from "@/components/shared/CmsoCircularLoading";
+import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 import { getCurrentUser } from "@/lib/utils";
 import {
    fetchOrientacoesConfig, createOrientacaoConfig, updateOrientacaoConfig,
@@ -300,7 +300,7 @@ export function OrientacoesParecerSection() {
   }
 
   if (loading) {
-    return <CmsoCircularLoading fullHeight={false} />;
+    return <EngemedicalCircularLoading fullHeight={false} />;
   }
 
   return (

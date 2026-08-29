@@ -19,7 +19,7 @@ import { IUserInfo } from "@/lib/user/interfaces/IUser";
 import { fetchBodyJson, formatCPF } from "@/lib/utils";
 import { ApiResponse } from "@/shared/responses/ApiResponse";
 import { API_REGISTER_URL } from "@/config/constants";
-import CMSO360Animation from "@/components/shared/CMSO360Animation";
+import EngemedicalConnectAnimation from "@/components/shared/EngemedicalConnectAnimation";
 
 interface InputProps {
   id: string;
@@ -242,7 +242,7 @@ export default function RegistroPage(): JSX.Element {
       <div className="w-full max-w-4xl mx-auto flex flex-col md:flex-row rounded-2xl shadow-xl overflow-hidden bg-white border border-gray-200">
         {/* Lado esquerdo - Animação CMSO 360 */}
         <div className="md:w-2/5 bg-white p-8 flex flex-col justify-center border-r border-gray-200">
-          <CMSO360Animation />
+          <EngemedicalConnectAnimation />
         </div>
 
         {/* Lado direito - Formulário de registro */}
@@ -425,7 +425,7 @@ export default function RegistroPage(): JSX.Element {
                     className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#104e35] focus:ring-[#104e35]"
                   />
                   <span className="text-sm text-gray-600">
-                    Aceito os <strong>Termos de Uso</strong> do CMSO360
+                    Aceito os <strong>Termos de Uso</strong> do Engemedical Connect
                   </span>
                 </label>
                 <label className="flex items-start gap-3 cursor-pointer">

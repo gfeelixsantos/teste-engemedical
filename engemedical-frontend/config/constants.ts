@@ -12,7 +12,7 @@ export const NEST_URL =
     ? NEST_URL_DEVELOP
     : normalizeBaseUrl(
         process.env.NEXT_PUBLIC_NEST_URL_PRODUCTION ||
-          "https://cmso360-backend.fly.dev",
+          "https://engemedical-connect-backend.fly.dev",
       );
 // export const NEST_URL = `http://192.168.0.222:${PORT}/`
 export const NEXT_WS_URL = NEST_URL?.replace("http", "ws").replace(

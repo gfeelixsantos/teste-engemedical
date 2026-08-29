@@ -315,7 +315,7 @@ const BiometriaValidacaoModal: React.FC<BiometriaValidacaoModalProps> = ({ state
               <XCircle className="h-14 w-14 text-red-500 mx-auto" />
               <p className="font-semibold text-red-800 text-base">Agente não encontrado</p>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Nenhum agente online para {context?.unidade || "esta unidade"}. Verifique se o aplicativo CMSO360 Biometria está aberto.
+                Nenhum agente online para {context?.unidade || "esta unidade"}. Verifique se o aplicativo Engemedical Connect Biometria está aberto.
               </p>
             </div>
           ) : visualStatus === "reader_unavailable" ? (

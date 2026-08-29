@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-interface CmsoCircularLoadingProps {
+interface EngemedicalCircularLoadingProps {
   title?: string;
   description?: string;
   iconSize?: number;
@@ -10,13 +10,13 @@ interface CmsoCircularLoadingProps {
   fullHeight?: boolean;
 }
 
-export default function CmsoCircularLoading({
+export default function EngemedicalCircularLoading({
   title = "Carregando",
   description = "Aguarde um momento...",
   iconSize = 64,
   spinnerColor = "#B9D764",
   fullHeight = true,
-}: CmsoCircularLoadingProps) {
+}: EngemedicalCircularLoadingProps) {
   const ringSize = iconSize + 24;
 
   return (
@@ -56,10 +56,10 @@ export default function CmsoCircularLoading({
 
           <Image
             priority
-            alt="CMSO 360°"
+            alt="Engemedical Connect"
             className="relative z-10"
             height={iconSize}
-            src="/images/cmso_icone.png"
+            src="/images/engemedical_icone.png"
             width={iconSize}
           />
         </div>

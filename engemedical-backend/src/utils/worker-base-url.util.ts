@@ -6,7 +6,7 @@ export function resolveWorkerBaseUrl(): string {
     url = internalUrl;
   } else {
     const prodUrl = (
-      process.env.WORKER_BASE_URL_PROD || 'https://cmso360-worker.fly.dev'
+      process.env.WORKER_BASE_URL_PROD || 'https://engemedical-connect-worker.fly.dev'
     ).trim();
 
     const lifecycleEvent = (process.env.npm_lifecycle_event || '').toLowerCase();

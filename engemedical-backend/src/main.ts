@@ -11,7 +11,7 @@ dns.setDefaultResultOrder('ipv4first');
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const DEFAULT_CORS_ORIGINS = [
-  'https://cmso360-frontend.vercel.app',
+  'https://engemedical-connect-frontend.vercel.app',
   'http://localhost:3000',
 ];
 

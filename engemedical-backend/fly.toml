@@ -1,4 +1,4 @@
-app = "cmso360-backend"
+app = "engemedical-connect-backend"
 primary_region = "gru"
 
 [build]

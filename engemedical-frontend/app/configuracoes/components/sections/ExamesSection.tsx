@@ -6,7 +6,7 @@ import {
   Button, Input, Select, SelectItem, Modal, ModalContent, ModalHeader, ModalBody,
   ModalFooter, Card, CardBody, Chip, Switch, Divider, Textarea,
 } from "@heroui/react";
-import CmsoCircularLoading from "@/components/shared/CmsoCircularLoading";
+import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 import { getCurrentUser } from "@/lib/utils";
 import { fetchExames, createExame, updateExame, deleteExame, IExame, IExameFormData } from "@/lib/exames/services/exames.service";
 import { invalidateExamsCatalog } from "@/lib/exames/utils/exames-catalog-cache";
@@ -250,7 +250,7 @@ export function ExamesSection() {
   }
 
   if (loading) {
-    return <CmsoCircularLoading fullHeight={false} />;
+    return <EngemedicalCircularLoading fullHeight={false} />;
   }
 
   return (

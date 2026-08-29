@@ -428,7 +428,7 @@ export class SocService {
                 ? AtendimentoStatus.AGENDADO
                 : hasScheduling.ATENDIMENTOSTATUS;
 
-            // Motor de Merge Inteligente — idêntico ao cmso360-backend-estavel
+            // Motor de Merge Inteligente — idêntico ao engemedical-connect-backend-estavel
             // Preserva grupo, url, formulário, assinaturas, status para exames existentes
             const { finais, resumo } = executeMergeInteligente(
               hasScheduling.EXAMES || [],

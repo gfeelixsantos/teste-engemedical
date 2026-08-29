@@ -150,7 +150,7 @@ async function main() {
   };
 
   const fs = require('fs');
-  const reportPath = `C:\\Users\\FELIX\\Desktop\\WORKSPACE\\CMSO360\\cmso360-backend\\debug\\reset-cedill-${targetDate.replace(/\//g, '-')}.json`;
+  const reportPath = `C:\\Users\\FELIX\\Desktop\\WORKSPACE\\Engemedical Connect\\engemedical-connect-backend\\debug\\reset-cedill-${targetDate.replace(/\//g, '-')}.json`;
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   console.log(`\n📄 Relatório salvo em: ${reportPath}`);
 

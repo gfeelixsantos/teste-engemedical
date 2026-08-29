@@ -14,7 +14,7 @@
  * 4. Testa cada gate: year, identity, text evidence, classification, confidence
  * 5. NADA é persistido
  *
- * Executar (da pasta cmso360-backend):
+ * Executar (da pasta engemedical-connect-backend):
  *   chcp 65001 && node -r ts-node/register -r tsconfig-paths/register scripts/test-scraper-raiox.ts
  *   chcp 65001 && node -r ts-node/register -r tsconfig-paths/register scripts/test-scraper-raiox.ts --scheduling-id=69cd13e2beb977ee9b8f029e
  *   chcp 65001 && node -r ts-node/register -r tsconfig-paths/register scripts/test-scraper-raiox.ts --provider=Veitieka
@@ -64,7 +64,7 @@ const { schedulingId: ARG_SCHEDULING_ID, provider: ARG_PROVIDER } = parseArgs();
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-const MONGO_URI = process.env.MONGO_URL || 'mongodb+srv://cmso360_db_user:123a5067b9@cmso360.nyei7qg.mongodb.net/';
+const MONGO_URI = process.env.MONGO_URL || 'mongodb+srv://engemedical-connect_db_user:123a5067b9@engemedical-connect.nyei7qg.mongodb.net/';
 const MONGO_DB = process.env.MONGO_DATABASE || 'cmso-agendamento';
 const MONGO_COLLECTION = process.env.MONGO_COLLECTION || 'schedulings';
 

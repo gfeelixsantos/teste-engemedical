@@ -31,7 +31,7 @@ export async function gerarTemplateAsoWorker(
   const logoLocalPath = path.resolve(
     process.cwd(),
     '..',
-    'cmso360-frontend',
+    'engemedical-connect-frontend',
     'public',
     'images',
     'cmso_logo.png',

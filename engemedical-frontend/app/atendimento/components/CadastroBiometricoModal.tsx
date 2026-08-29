@@ -235,7 +235,7 @@ const CadastroBiometricoModal: React.FC<CadastroBiometricoModalProps> = ({
               </div>
               <h3 className="text-lg font-bold text-red-800">Agente não encontrado</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Nenhum agente biométrico online para {context?.unidade || "esta unidade"}. Verifique se o aplicativo CMSO360 Biometria está aberto e conectado na unidade correta.
+                Nenhum agente biométrico online para {context?.unidade || "esta unidade"}. Verifique se o aplicativo Engemedical Connect Biometria está aberto e conectado na unidade correta.
               </p>
             </div>
           ) : status === "reader_unavailable" ? (

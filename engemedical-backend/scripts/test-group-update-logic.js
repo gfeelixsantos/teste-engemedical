@@ -6,7 +6,7 @@
  * Testa a lógica de atualização de exames do mesmo grupo quando
  * um novo PDF é recebido pelo scraper.
  *
- * Como executar (da pasta cmso360-backend):
+ * Como executar (da pasta engemedical-connect-backend):
  *   chcp 65001 && node scripts/test-group-update-logic.js
  * ============================================================
  */
@@ -43,7 +43,7 @@ async function main() {
   console.log(hr('='));
 
   // Conexão com MongoDB
-  const mongoUri = 'mongodb+srv://cmso360_db_user:123a5067b9@cmso360.nyei7qg.mongodb.net/?appName=cmso360';
+  const mongoUri = 'mongodb+srv://engemedical-connect_db_user:123a5067b9@engemedical-connect.nyei7qg.mongodb.net/?appName=engemedical-connect';
   console.log(`\nConectando ao MongoDB...`);
   const client = new MongoClient(mongoUri);
   await client.connect();

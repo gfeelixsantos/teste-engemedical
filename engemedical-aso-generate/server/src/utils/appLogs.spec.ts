@@ -6,7 +6,7 @@ const { appLogs, LogLevel } = require("./appLogs");
 export {};
 
 function createTempLogFilePath() {
-  const uniqueDir = fs.mkdtempSync(path.join(os.tmpdir(), "cmso360-logs-"));
+  const uniqueDir = fs.mkdtempSync(path.join(os.tmpdir(), "engemedical-connect-logs-"));
   return path.join(uniqueDir, "logs.txt");
 }
 

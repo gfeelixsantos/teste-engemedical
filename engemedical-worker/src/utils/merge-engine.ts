@@ -4,7 +4,7 @@ import { Logger } from '@nestjs/common';
 
 /**
  * Normaliza a string de data garantindo formato DD/MM/YYYY consistentes para chaves
- * Portado do cmso360-backend-estavel
+ * Portado do engemedical-connect-backend-estavel
  */
 export function normalizeDataExame(dataExame?: string | Date | null): string {
   if (!dataExame || dataExame === '') return 'sem-data';
@@ -111,7 +111,7 @@ export function gerarChaveComposta(exame: ExamsScheduled): string {
 
 /**
  * Motor de Merge Inteligente 2.0
- * Portado de cmso360-backend-estavel/src/utils/merge-engine.ts
+ * Portado de engemedical-connect-backend-estavel/src/utils/merge-engine.ts
  *
  * Regras:
  * - Exame existe no SOC e existe no banco → PRESERVA o banco (grupo, url, formulário, status)

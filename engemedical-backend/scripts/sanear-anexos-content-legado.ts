@@ -96,7 +96,7 @@ async function convertImageToPdf(imageBuffer: Buffer, mimeType: string) {
 async function main() {
   const MONGO_URL =
     process.env.MONGO_URL ||
-    'mongodb+srv://cmso360_db_user:123a5067b9@cmso360.nyei7qg.mongodb.net/?appName=cmso360';
+    'mongodb+srv://engemedical-connect_db_user:123a5067b9@engemedical-connect.nyei7qg.mongodb.net/?appName=engemedical-connect';
   const MONGO_DATABASE = process.env.MONGO_DATABASE || 'cmso-agendamento';
   const MONGO_COLLECTION = process.env.MONGO_COLLECTION || 'schedulings';
   const AZURE_CONNECTION_STRING =

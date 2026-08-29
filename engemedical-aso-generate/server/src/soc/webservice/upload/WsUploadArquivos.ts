@@ -33,7 +33,7 @@ export async function WsUploadArquivoProntuario(
   const CODIGO_SOCGED_ASODIGITAL = '41';
   const CODIGO_CLASSIFICACAO_SOCGED = 'ASO';
   const NOME_TIPO_GED = 'ASO - ATESTADO DE SAÚDE OCUPACIONAL DIGITAL';
-  const OBSERVACAOGED = `Upload realizado via servidor CMSO em ${new Date().toLocaleString('pt-BR')}`;
+  const OBSERVACAOGED = `Upload realizado via servidor Engemedical em ${new Date().toLocaleString('pt-BR')}`;
 
   /* =======================
      VALIDAÇÕES

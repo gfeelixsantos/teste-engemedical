@@ -10,7 +10,7 @@ const sections = [
     content: (
       <>
         <p className="mb-2">
-          O <strong>CMSO360</strong> é uma plataforma digital de gestão em saúde
+          O <strong>Engemedical Connect</strong> é uma plataforma digital de gestão em saúde
           ocupacional, destinada ao registro, emissão e guarda de Atestados de
           Saúde Ocupacional (ASO), exames complementares, prontuários
           ocupacionais e documentos correlatos, em conformidade com o PCMSO
@@ -32,7 +32,7 @@ const sections = [
     content: (
       <>
         <p className="mb-2">
-          Ao acessar e utilizar o CMSO360, o usuário declara estar ciente e de
+          Ao acessar e utilizar o Engemedical Connect, o usuário declara estar ciente e de
           acordo com as condições previstas nestes Termos de Uso.
         </p>
         <ul className="list-disc pl-5 space-y-1">
@@ -153,7 +153,7 @@ const sections = [
       <>
         <ul className="list-disc pl-5 space-y-1">
           <li>
-            O CMSO360 atua como plataforma de software, não se responsabilizando
+            O Engemedical Connect atua como plataforma de software, não se responsabilizando
             por atos ou omissões dos profissionais de saúde habilitados que
             utilizam o sistema.
           </li>
@@ -168,7 +168,7 @@ const sections = [
             Supabase, Azure, BRy) contratados para a operação do sistema.
           </li>
           <li>
-            A responsabilidade do CMSO360 fica limitada ao valor do serviço
+            A responsabilidade do Engemedical Connect fica limitada ao valor do serviço
             contratado, nos termos do Código de Defesa do Consumidor (Lei nº
             8.078/90) e do Código Civil Brasileiro.
           </li>
@@ -263,7 +263,7 @@ export default function TermosDeUsoPage() {
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <p className="text-gray-600 leading-relaxed">
           Estes Termos de Uso regulam o acesso e a utilização da plataforma
-          CMSO360 - Saúde Ocupacional por usuários autorizados, em
+          Engemedical Connect - Saúde Ocupacional por usuários autorizados, em
           conformidade com a Lei Geral de Proteção de Dados Pessoais (LGPD - Lei
           nº 13.709/2018), as normas regulamentadoras do Ministério do Trabalho
           e Emprego (NR-7 - PCMSO), a Consolidação das Leis do Trabalho (CLT

@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { NEST_INTERNAL_HEALTH_WORKERS } from "@/config/constants";
 
 export interface WorkerHealthResponse {
-  cmso360Worker: {
+  engemedical-connectWorker: {
     status: "online" | "offline" | "degraded";
     url: string;
     latencyMs: number;

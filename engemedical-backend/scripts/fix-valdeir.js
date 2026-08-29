@@ -1,7 +1,7 @@
 const { MongoClient, ObjectId } = require('mongodb');
 
 async function run() {
-  const uri = 'mongodb+srv://cmso360_db_user:123a5067b9@cmso360.nyei7qg.mongodb.net/?appName=cmso360';
+  const uri = 'mongodb+srv://engemedical-connect_db_user:123a5067b9@engemedical-connect.nyei7qg.mongodb.net/?appName=engemedical-connect';
   const client = new MongoClient(uri);
 
   const BULK_KEYS = ['status', 'anotacoes', 'examesRealizados', 'codigoMedico', 'medico'];

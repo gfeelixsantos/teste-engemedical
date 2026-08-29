@@ -76,7 +76,7 @@ test("retorna null quando nenhum token valido esta disponivel", async () => {
 
 test("retorna 401 quando nenhum token valido esta disponivel no BFF", async () => {
   const response = await handleAuditLogsProxy({
-    requestUrl: "https://cmso360-backend.fly.dev/audit-logs?page=1",
+    requestUrl: "https://engemedical-connect-backend.fly.dev/audit-logs?page=1",
     authToken: undefined,
     refreshToken: undefined,
     verifyJwt: async () => null,
@@ -94,7 +94,7 @@ test("retorna 401 quando nenhum token valido esta disponivel no BFF", async () =
 
 test("encaminha 403 do backend Nest sem alterar o corpo", async () => {
   const response = await handleAuditLogsProxy({
-    requestUrl: "https://cmso360-backend.fly.dev/audit-logs?page=2",
+    requestUrl: "https://engemedical-connect-backend.fly.dev/audit-logs?page=2",
     authToken: "token-principal",
     refreshToken: undefined,
     verifyJwt: async () => ({
@@ -132,7 +132,7 @@ test("encaminha 403 do backend Nest sem alterar o corpo", async () => {
 
 test("retorna 500 generico quando o BFF falha ao chamar o backend", async () => {
   const response = await handleAuditLogsProxy({
-    requestUrl: "https://cmso360-backend.fly.dev/audit-logs?page=1",
+    requestUrl: "https://engemedical-connect-backend.fly.dev/audit-logs?page=1",
     authToken: "token-principal",
     refreshToken: undefined,
     verifyJwt: async () => ({

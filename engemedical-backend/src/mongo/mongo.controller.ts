@@ -79,7 +79,7 @@ export class MongoController {
   private readonly logger = new Logger(MongoController.name);
 
   private createCriticalDeleteRequestId(): string {
-    return `cmso360_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    return `engemedical-connect_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
   }
 
   private requireReauthenticatedUser(req: Request): IUserInfo {

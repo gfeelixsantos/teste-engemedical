@@ -10,7 +10,7 @@
  *   4. Para cada candidato: baixa PDF
  *   5. NADA é persistido (simulação read-only)
  *
- * Executar (da pasta cmso360-backend):
+ * Executar (da pasta engemedical-connect-backend):
  *   chcp 65001; node -r ts-node/register -r tsconfig-paths/register scripts/test-cedill-cron-sim.ts
  *   chcp 65001; node -r ts-node/register -r tsconfig-paths/register scripts/test-cedill-cron-sim.ts --scheduling-id=6a3d5fcdf67b38d421f9bcf1
  *   chcp 65001; node -r ts-node/register -r tsconfig-paths/register scripts/test-cedill-cron-sim.ts --max=20
@@ -45,7 +45,7 @@ const { schedulingId: ARG_SCHEDULING_ID, max: ARG_MAX } = parseArgs();
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-const MONGO_URI = process.env.MONGO_URL || 'mongodb+srv://cmso360_db_user:123a5067b9@cmso360.nyei7qg.mongodb.net/';
+const MONGO_URI = process.env.MONGO_URL || 'mongodb+srv://engemedical-connect_db_user:123a5067b9@engemedical-connect.nyei7qg.mongodb.net/';
 const MONGO_DB = process.env.MONGO_DATABASE || 'cmso-agendamento';
 const MONGO_COLLECTION = process.env.MONGO_COLLECTION || 'schedulings';
 

@@ -10,7 +10,7 @@ const sections = [
     content: (
       <>
         <p className="mb-2">
-          <strong>CMSO360 - Saúde Ocupacional</strong> é o controlador dos dados
+          <strong>Engemedical Connect - Saúde Ocupacional</strong> é o controlador dos dados
           pessoais tratados nesta plataforma, conforme definido pelo Art. 5º, VI da LGPD.
         </p>
         <p>
@@ -160,7 +160,7 @@ export default function PrivacidadePage() {
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <p className="text-gray-600 leading-relaxed">
-          Esta Política de Privacidade descreve como o CMSO360 - Saúde Ocupacional
+          Esta Política de Privacidade descreve como o Engemedical Connect - Saúde Ocupacional
           coleta, usa, armazena e protege os dados pessoais dos usuários da plataforma,
           em conformidade com a Lei Geral de Proteção de Dados Pessoais (LGPD - Lei nº
           13.709/2018) e as resoluções do Conselho Federal de Medicina e do Ministério
@@ -199,7 +199,7 @@ export default function PrivacidadePage() {
                 consentimento para a versão atualizada.
               </p>
               <p className="text-xs text-gray-400 mt-4">
-                CMSO360 - Saúde Ocupacional v{versao} &mdash; {dataAtualizacao}
+                Engemedical Connect - Saúde Ocupacional v{versao} &mdash; {dataAtualizacao}
               </p>
             </div>
           </div>

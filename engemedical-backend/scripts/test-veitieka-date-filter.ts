@@ -12,7 +12,7 @@
  *   Agendamento: 26/06/2026
  *   Problema: Raio-X de 20/06/2025 (empresa 24049) foi vinculado
  *
- * Executar (da pasta cmso360-backend):
+ * Executar (da pasta engemedical-connect-backend):
  *   chcp 65001 && node -r ts-node/register -r tsconfig-paths/register scripts/test-veitieka-date-filter.ts
  *   chcp 65001 && node -r ts-node/register -r tsconfig-paths/register scripts/test-veitieka-date-filter.ts --scheduling-id=6a3d5fcdf67b38d421f9bcf1
  *   chcp 65001 && node -r ts-node/register -r tsconfig-paths/register scripts/test-veitieka-date-filter.ts --name="LUIZ CARLOS SAMPAIO" --date="26/06/2026"
@@ -54,7 +54,7 @@ const { schedulingId: ARG_SCHEDULING_ID, name: ARG_NAME, date: ARG_DATE } = pars
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-const MONGO_URI = process.env.MONGO_URL || 'mongodb+srv://cmso360_db_user:123a5067b9@cmso360.nyei7qg.mongodb.net/';
+const MONGO_URI = process.env.MONGO_URL || 'mongodb+srv://engemedical-connect_db_user:123a5067b9@engemedical-connect.nyei7qg.mongodb.net/';
 const MONGO_DB = process.env.MONGO_DATABASE || 'cmso-agendamento';
 const MONGO_COLLECTION = process.env.MONGO_COLLECTION || 'schedulings';
 

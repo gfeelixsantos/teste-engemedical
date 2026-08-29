@@ -273,7 +273,7 @@ function TotemContent() {
             <div className="text-center md:text-left">
               <Image
                 priority
-                alt="CMSO 360 - Telemedicina"
+                alt="Engemedical Connect - Telemedicina"
                 className="w-auto mx-auto md:mx-0"
                 height={50}
                 src="/images/logo.png"

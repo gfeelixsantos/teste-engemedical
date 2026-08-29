@@ -125,7 +125,7 @@ function getNestedString(source: unknown, path: string[]): string | undefined {
 }
 
 function createRequestId(): string {
-  return `cmso360_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  return `engemedical-connect_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
 function getRequestPaths(req: AuditRequest): string[] {

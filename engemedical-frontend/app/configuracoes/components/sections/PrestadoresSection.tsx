@@ -6,7 +6,7 @@ import {
   Button, Input, Select, SelectItem, Modal, ModalContent, ModalHeader, ModalBody,
   ModalFooter, Card, CardBody, Chip, Switch, Divider, Textarea,
 } from "@heroui/react";
-import CmsoCircularLoading from "@/components/shared/CmsoCircularLoading";
+import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 import { getCurrentUser } from "@/lib/utils";
 import { fetchPrestadores, createPrestador, updatePrestador, deletePrestador, IPrestador, IPrestadorFormData } from "@/lib/prestadores/services/prestadores.service";
 import { fetchGruposFromAPI, IGrupo } from "@/lib/grupos/services/grupos.service";
@@ -129,7 +129,7 @@ export function PrestadoresSection() {
   }
 
   if (loading) {
-    return <CmsoCircularLoading />;
+    return <EngemedicalCircularLoading />;
   }
 
   return (

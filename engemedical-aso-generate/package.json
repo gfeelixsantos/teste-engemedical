@@ -1,5 +1,5 @@
 {
-  "name": "cmso360-aso-generate",
+  "name": "engemedical-connect-aso-generate",
   "version": "1.0.0",
   "description": "Worker para geração de ASO via Puppeteer",
   "main": "dist/index.js",

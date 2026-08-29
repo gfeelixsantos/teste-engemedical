@@ -11,7 +11,7 @@
  * Caso 2: GUSTAVO CASTRO SANTOS (EEG, 07/05/2026, CEDASA)
  *   Erro: EEG de 27/03/2026 da empresa RUY ROCHA foi anexado
  *
- * Como executar (da pasta cmso360-backend):
+ * Como executar (da pasta engemedical-connect-backend):
  *   chcp 65001 && node -r ts-node/register -r tsconfig-paths/register scripts/test-scraper-casos-erro.ts
  * ============================================================
  */

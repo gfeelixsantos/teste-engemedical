@@ -187,7 +187,7 @@ export function CampaignForm({ initialData, onBack, onSave }: CampaignFormProps)
           label="Responder Para (Reply-To)" 
           value={replyTo} 
           onChange={(e) => setReplyTo(e.target.value)} 
-          placeholder="exemplo@cmso360.com.br" 
+          placeholder="exemplo@engemedical-connect.com.br" 
         />
       </div>
 

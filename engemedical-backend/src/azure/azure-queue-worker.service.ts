@@ -45,10 +45,10 @@ export class AzureQueueWorkerService implements OnModuleInit, OnModuleDestroy {
     this.isRunning = true;
 
     this.logger.warn(
-      '[AZURE_QUEUE_WORKER] Fila ASO-ENRIQUECIMENTO removida do backend. Fluxo oficial segue apenas no cmso360-worker.',
+      '[AZURE_QUEUE_WORKER] Fila ASO-ENRIQUECIMENTO removida do backend. Fluxo oficial segue apenas no engemedical-connect-worker.',
     );
     this.logger.warn(
-      '[AZURE_QUEUE_WORKER] Fila EXAME-ENRIQUECIMENTO removida do backend. Fluxo oficial segue apenas no cmso360-worker.',
+      '[AZURE_QUEUE_WORKER] Fila EXAME-ENRIQUECIMENTO removida do backend. Fluxo oficial segue apenas no engemedical-connect-worker.',
     );
     this.pollResultadoExameSoc();
     this.pollSocged();

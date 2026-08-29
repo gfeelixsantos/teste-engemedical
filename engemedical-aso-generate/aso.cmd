@@ -1,8 +1,8 @@
 @echo off
-title CMSO360 ASO Generator
+title Engemedical Connect ASO Generator
 
 echo ==========================================
-echo    CMSO360 ASO Generator - Auto Setup
+echo    Engemedical Connect ASO Generator - Auto Setup
 echo ==========================================
 echo:
 
@@ -28,7 +28,7 @@ if %errorlevel% neq 0 (
 echo [SUCCESS] Build concluido.
 
 :start_app
-echo [INFO] Iniciando aplicacao CMSO360 ASO Generator...
+echo [INFO] Iniciando aplicacao Engemedical Connect ASO Generator...
 echo:
 
 :: Set environment to production

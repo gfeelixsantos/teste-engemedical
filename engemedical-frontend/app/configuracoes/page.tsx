@@ -12,7 +12,7 @@ import {
 import { getCurrentUser, logout } from "@/lib/utils";
 import { getUserSettings } from "@/lib/user/services/user-settings.service";
 import { HeaderApp } from "@/components/shared/HeaderApp";
-import CmsoLoading from "@/components/shared/CmsoLoading";
+import EngemedicalLoading from "@/components/shared/EngemedicalLoading";
 
 import { SectionId } from "./components/types";
 import { SettingsSidebar } from "./components/SettingsSidebar";
@@ -77,7 +77,7 @@ export default function ConfiguracoesPage() {
   }, [router]);
 
   if (isLoading || !user) {
-    return <CmsoLoading />;
+    return <EngemedicalLoading />;
   }
 
   function renderSection() {

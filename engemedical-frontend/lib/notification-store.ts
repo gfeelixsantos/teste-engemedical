@@ -32,7 +32,7 @@ export type AppNotificationInput = Omit<
 
 type Listener = (notifications: AppNotification[]) => void;
 
-const STORAGE_KEY = "cmso360.notifications.v1";
+const STORAGE_KEY = "engemedical-connect.notifications.v1";
 const MAX_NOTIFICATIONS = 100;
 
 let notifications: AppNotification[] = [];
