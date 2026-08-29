@@ -6,12 +6,15 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
+  BarChart3,
   Eye,
   EyeOff,
   FileCheck2,
   HeartPulse,
+  LayoutDashboard,
   Lock,
   Network,
+  ShieldCheck,
   User,
 } from "lucide-react";
 
@@ -124,24 +127,20 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({ isLoading, disabled }) => (
 
 const brandPillars = [
   {
-    icon: HeartPulse,
-    title: "Integração SST",
-    description:
-      "Rotinas, documentos e atendimentos ocupacionais conectados no mesmo fluxo.",
+    icon: ShieldCheck,
+    title: "Conformidade Total",
   },
   {
-    icon: FileCheck2,
-    title: "Agilidade operacional",
-    description:
-      "Menos retrabalho para equipes que precisam decidir e executar com rapidez.",
+    icon: LayoutDashboard,
+    title: "Gestão Centralizada",
   },
   {
-    icon: Network,
-    title: "Automação de processos",
-    description:
-      "Fluxos de ASO, PCMSO e exames automatizados do início ao fim.",
+    icon: BarChart3,
+    title: "Dados Estratégicos",
   },
 ];
+
+// ... logo depois usa apenas title nos cards
 
 const LoginTitle = ({ title }: { title: string }) => {
   if (!title.includes("Engemedical")) {
@@ -203,7 +202,7 @@ const ConnectSignal = () => (
 const BrandPanel = () => (
   <motion.section
     animate={{ opacity: 1 }}
-    className="cyber-grid relative flex min-h-[440px] flex-col justify-between overflow-hidden bg-[#020817] p-6 text-white md:min-h-[720px] md:p-9"
+    className="cyber-grid relative flex min-h-[500px] flex-col justify-between overflow-hidden bg-[#020817] p-6 pt-6 pb-20 text-white md:min-h-[680px] md:p-9"
     initial={{ opacity: 0 }}
     transition={{ duration: 0.8, ease: "easeOut" }}
   >
@@ -230,35 +229,42 @@ const BrandPanel = () => (
       }}
     />
 
-    <div className="relative z-10 my-4 flex flex-1 flex-col items-center justify-center gap-4 md:my-6 md:gap-5">
-      <div className="relative h-56 w-full max-w-[34rem] sm:h-64 md:h-[19rem] xl:h-[21rem]">
-        <motion.div
-          animate={{ opacity: [0.16, 0.42, 0.16], scale: [0.96, 1.06, 0.96] }}
-          className="absolute inset-x-8 inset-y-4 rounded-[44px] bg-brand-cyan/20 blur-3xl"
-          transition={{ duration: 5.4, ease: "easeInOut", repeat: Infinity }}
-        />
-        <ConnectSignal />
-        <motion.div
-          animate={{ scale: [1, 1.025, 1], y: [0, -4, 0] }}
-          className="absolute inset-0 grid place-items-center"
-          transition={{ duration: 4.8, ease: "easeInOut", repeat: Infinity }}
-        >
-          <Image
-            priority
-            alt="Engemedical"
-            className="h-auto w-[82%] max-w-[29rem] object-contain drop-shadow-[0_34px_80px_rgba(22,217,245,0.38)]"
-            height={420}
-            src={engemedicalIcon}
-            width={720}
+    <div className="relative z-10 my-4 flex flex-1 flex-col items-center justify-center gap-2 md:my-6 md:gap-3">
+      <div className="relative w-full max-w-[34rem]">
+        <div className="relative h-48 w-full sm:h-56 md:h-[17rem] xl:h-[19rem]">
+          <motion.div
+            animate={{ opacity: [0.16, 0.42, 0.16], scale: [0.96, 1.06, 0.96] }}
+            className="absolute inset-x-8 inset-y-4 rounded-[44px] bg-brand-cyan/20 blur-3xl"
+            transition={{ duration: 5.4, ease: "easeInOut", repeat: Infinity }}
           />
-        </motion.div>
+          <ConnectSignal />
+          <motion.div
+            animate={{ scale: [1, 1.025, 1], y: [0, -4, 0] }}
+            className="absolute inset-0 grid place-items-center"
+            transition={{ duration: 4.8, ease: "easeInOut", repeat: Infinity }}
+          >
+            <Image
+              priority
+              alt="Engemedical"
+              className="h-auto w-[82%] max-w-[29rem] object-contain drop-shadow-[0_34px_80px_rgba(22,217,245,0.38)]"
+              height={420}
+              src={engemedicalIcon}
+              width={720}
+            />
+          </motion.div>
+        </div>
+        <div className="mt-2">
+          <TypewriterTitle text="Conectando você ao futuro SST" />
+          <p className="mt-1 text-xs text-white/50">
+            Transforme sua operação em uma experiência premium de gestão SST
+          </p>
+        </div>
       </div>
-      <TypewriterTitle text="Conectando você ao futuro SST" />
     </div>
 
     <div className="relative z-10 space-y-4">
       <div className="grid gap-3 border-t border-white/10 pt-4 text-sm sm:grid-cols-3">
-        {brandPillars.map(({ icon: Icon, title, description }) => (
+        {brandPillars.map(({ icon: Icon, title }) => (
           <motion.div
             key={title}
             className="brand-card-shine group relative overflow-hidden rounded-lg bg-brand-green/60 p-px shadow-[0_18px_42px_rgba(0,0,0,0.18)]"
@@ -302,14 +308,14 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [cpf, setCpf] = useState("");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const [recoveryStep, setRecoveryStep] = useState<RecoveryStep>("initial");
   const [recoveryCpf, setRecoveryCpf] = useState("");
   const [recoveryCode, setRecoveryCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -502,344 +508,228 @@ export default function LoginPage() {
     if (recoveryStep === "validate") {
       return {
         title: "Recuperar senha",
-        subtitle: "Informe seu CPF e o código de recuperação recebido.",
+        description: "Informe o CPF e o código recebido por e-mail.",
       };
     }
+
     if (recoveryStep === "reset") {
       return {
         title: "Criar nova senha",
-        subtitle: "Defina uma nova senha para acessar sua conta.",
+        description: "Digite a nova senha e confirme.",
+      };
+    }
+
+    if (recoveryCpf && !recoveryCode) {
+      return {
+        title: "Código inválido",
+        description: "O código informado está incorreto. Tente novamente.",
+      };
+    }
+
+    if (newPassword && newPassword === confirmPassword) {
+      return {
+        title: "Salvar nova senha",
+        description: "Sua senha foi alterada com sucesso!",
       };
     }
 
     return {
-      title: "Acesse o ambiente Engemedical",
-      subtitle:
-        "Entre com seu CPF e senha para consultar rotinas, documentos e atendimentos.",
+      title: "Login",
+      description: "Acesse seu ambiente Engemedical",
     };
   };
 
-  const { title, subtitle } = renderTitle();
-
   return (
-    <main className="min-h-screen bg-brand-surface text-slate-900">
-      {showPostLoginTransition && (
-        <PremiumCyberLoading
-          duration={2600}
-          onComplete={handlePostLoginComplete}
-        />
-      )}
+    <div className="relative flex h-screen min-h-screen w-full flex-col bg-gradient-to-b from-[#020817] to-[#03111f]">
+      <PremiumCyberLoading visible={isLoading} />
 
-      <div className="grid min-h-screen lg:grid-cols-[minmax(0,1.05fr)_minmax(460px,0.95fr)]">
-        <BrandPanel />
+      <ShowPostLoginTransition show={showPostLoginTransition} />
 
-        <section className="flex items-center justify-center px-4 py-8 sm:px-6 lg:px-12">
-          <div className="w-full max-w-[470px]">
-            <motion.div
-              animate={{ opacity: 1, x: 0 }}
-              initial={{ opacity: 0, x: 15 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="mb-8">
-                <h2 className="text-3xl font-semibold tracking-tight text-brand-midnight sm:text-[2.35rem] sm:leading-[1.08]">
-                  <LoginTitle title={title} />
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  {subtitle}
+      <motion.div
+        animate={{ opacity: showPostLoginTransition ? 1 : 0 }}
+        className="absolute inset-0 bg-black"
+        initial={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+      />
+
+      <ShowPostLoginTransition show={showPostLoginTransition} />
+
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-4 md:gap-6">
+        <LoginTitle title={renderTitle().title} />
+        <ShowPostLoginTransition show={showPostLoginTransition} />
+
+        <div className="w-full max-w-md space-y-4">
+          <div className="space-y-4">
+            {renderTitle().title === "Recuperar senha" && (
+              <div className="space-y-4">
+                <InputField
+                  label="CPF"
+                  placeholder="123.456.789-00"
+                  value={recoveryCpf}
+                  onChange={handleRecoveryCPFChange}
+                  autoComplete="off"
+                  name="recoveryCpf"
+                  startIcon={<User className="h-4 w-4 text-brand-deep/45" />}
+                />
+                <InputField
+                  label="Código de recuperação"
+                  placeholder="Digite o código"
+                  value={recoveryCode}
+                  onChange={handleRecoveryCodeChange}
+                  autoComplete="off"
+                  name="recoveryCode"
+                  startIcon={<Lock className="h-4 w-4 text-brand-deep/45" />}
+                />
+                <p className="text-xs text-white/54">
+                  Digite o código enviado ao e-mail cadastrado.
                 </p>
               </div>
+            )}
 
-              {/* MENSAGENS */}
-              {error && (
-                <motion.div
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mb-4 flex items-center rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-                  initial={{ opacity: 0, height: 0 }}
-                >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      clipRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      fillRule="evenodd"
-                    />
-                  </svg>
-                  {error}
-                </motion.div>
-              )}
-
-              {successMessage && (
-                <motion.div
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mb-4 flex items-center rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700"
-                  initial={{ opacity: 0, height: 0 }}
-                >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      clipRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      fillRule="evenodd"
-                    />
-                  </svg>
-                  {successMessage}
-                </motion.div>
-              )}
-
-              {/* FORMULÁRIO DE LOGIN */}
-              {recoveryStep === "initial" && (
-                <form className="space-y-6" onSubmit={handleSubmit}>
-                  <InputField
-                    required
-                    autoComplete="username"
-                    disabled={isLoading}
-                    label="CPF"
-                    name="username"
-                    placeholder="000.000.000-00"
-                    startIcon={<User className="h-4 w-4" />}
-                    value={cpf}
-                    onChange={handleCPFChange}
-                    onPaste={handleCPFPaste}
-                  />
-
-                  <InputField
-                    required
-                    autoComplete="current-password"
-                    disabled={isLoading}
-                    endIcon={
-                      <button
-                        aria-label={
-                          showPassword ? "Esconder senha" : "Mostrar senha"
-                        }
-                        className="text-slate-400 transition-colors hover:text-brand-deep"
-                        disabled={isLoading}
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    }
-                    label="Senha"
-                    name="current-password"
-                    placeholder="Digite sua senha"
-                    startIcon={<Lock className="h-4 w-4" />}
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-
-                  <SubmitButton isLoading={isLoading} />
-                </form>
-              )}
-
-              {/* FORMULÁRIO DE VALIDAÇÃO */}
-              {recoveryStep === "validate" && (
-                <div className="space-y-6">
-                  <InputField
-                    required
-                    label="CPF"
-                    placeholder="000.000.000-00"
-                    startIcon={<User className="h-4 w-4" />}
-                    value={recoveryCpf}
-                    onChange={handleRecoveryCPFChange}
-                  />
-
-                  <InputField
-                    required
-                    label="Código de recuperação"
-                    placeholder="Digite o código de recuperação"
-                    value={recoveryCode}
-                    onChange={handleRecoveryCodeChange}
-                  />
-
-                  <button
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-deep px-4 py-3.5 font-semibold text-white
-                  hover:bg-brand-midnight focus:outline-none focus:ring-4 focus:ring-brand-cyan/20
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  transition-all duration-300 shadow-lg shadow-brand-deep/15"
-                    disabled={isLoading}
-                    onClick={handleRecoveryValidate}
-                  >
-                    {isLoading ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                        Validando código...
-                      </>
-                    ) : (
-                      <>
-                        Validar código
-                        <ArrowRight className="h-5 w-5" />
-                      </>
-                    )}
-                  </button>
-
-                  <div className="text-center">
-                    <button
-                      className="text-sm font-semibold text-slate-500 transition-colors hover:text-brand-deep"
-                      type="button"
-                      onClick={backToLogin}
-                    >
-                      Voltar para o login
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* FORMULÁRIO DE NOVA SENHA */}
-              {recoveryStep === "reset" && (
-                <div className="space-y-6">
-                  <InputField
-                    required
-                    endIcon={
-                      <button
-                        aria-label={
-                          showNewPassword ? "Esconder senha" : "Mostrar senha"
-                        }
-                        className="text-slate-400 transition-colors hover:text-brand-deep"
-                        type="button"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                      >
-                        {showNewPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    }
-                    label="Nova senha"
-                    placeholder="Digite a nova senha"
-                    startIcon={<Lock className="h-4 w-4" />}
-                    type={showNewPassword ? "text" : "password"}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                  />
-
-                  <InputField
-                    required
-                    endIcon={
-                      <button
-                        aria-label={
-                          showConfirmPassword
-                            ? "Esconder senha"
-                            : "Mostrar senha"
-                        }
-                        className="text-slate-400 transition-colors hover:text-brand-deep"
-                        type="button"
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    }
-                    label="Confirmar nova senha"
-                    placeholder="Repita a nova senha"
-                    startIcon={<Lock className="h-4 w-4" />}
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-
-                  <button
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-deep px-4 py-3.5 font-semibold text-white
-                  hover:bg-brand-midnight focus:outline-none focus:ring-4 focus:ring-brand-cyan/20
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  transition-all duration-300 shadow-lg shadow-brand-deep/15"
-                    disabled={isLoading}
-                    onClick={handleRecoveryReset}
-                  >
-                    {isLoading ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                        Salvando senha...
-                      </>
-                    ) : (
-                      <>
-                        Salvar nova senha
-                        <ArrowRight className="h-5 w-5" />
-                      </>
-                    )}
-                  </button>
-
-                  <div className="text-center">
-                    <button
-                      className="text-sm font-semibold text-slate-500 transition-colors hover:text-brand-deep"
-                      type="button"
-                      onClick={backToLogin}
-                    >
-                      Voltar para o login
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* LINKS */}
-              {recoveryStep === "initial" && (
-                <>
-                  <div className="mt-6 text-center">
-                    <button
-                      className="text-sm font-semibold text-brand-deep transition-colors hover:text-brand-blue hover:underline"
-                      type="button"
-                      onClick={startRecovery}
-                    >
-                      Esqueci minha senha
-                    </button>
-                  </div>
-
-                  <div className="mt-4 text-center">
-                    <p className="text-sm text-slate-500">
-                      Ainda não tem acesso?{" "}
-                      <a
-                        className="font-semibold text-brand-deep transition-colors hover:text-brand-blue hover:underline"
-                        href="/registro"
-                      >
-                        Solicitar cadastro
-                      </a>
-                    </p>
-                  </div>
-                </>
-              )}
-
-              {/* FOOTER */}
-              <div className="mt-8 space-y-2 border-t border-brand-line pt-6 text-center text-xs text-slate-500">
-                <div>
-                  © {new Date().getFullYear()} Engemedical Brasil · v
-                  {packageInfo.version}
-                </div>
-                <div className="flex justify-center gap-4">
-                  <a
-                    className="transition-colors hover:text-brand-deep hover:underline"
-                    href="/privacidade"
-                  >
-                    Política de Privacidade
-                  </a>
-                  <span>•</span>
-                  <a
-                    className="transition-colors hover:text-brand-deep hover:underline"
-                    href="/termos-de-uso"
-                  >
-                    Termos de Uso
-                  </a>
-                </div>
+            {renderTitle().title === "Criar nova senha" && (
+              <div className="space-y-4">
+                <InputField
+                  label="Nova senha"
+                  placeholder="Digite a nova senha"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  autoComplete="new-password"
+                  name="newPassword"
+                  type="password"
+                  startIcon={<Lock className="h-4 w-4 text-brand-deep/45" />}
+                />
+                <InputField
+                  label="Confirmar senha"
+                  placeholder="Confirme a nova senha"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  name="confirmPassword"
+                  type="password"
+                  startIcon={<Lock className="h-4 w-4 text-brand-deep/45" />}
+                />
               </div>
-            </motion.div>
+            )}
+
+            {renderTitle().title === "Login" && (
+              <>
+                <InputField
+                  label="CPF"
+                  placeholder="123.456.789-00"
+                  value={cpf}
+                  onChange={handleCPFChange}
+                  autoComplete="off"
+                  name="cpf"
+                  startIcon={<User className="h-4 w-4 text-brand-deep/45" />}
+                />
+                <InputField
+                  label="Senha"
+                  placeholder="Digite a senha"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  name="password"
+                  type="password"
+                  startIcon={<Lock className="h-4 w-4 text-brand-deep/45" />}
+                  endIcon={showPassword ? <Eye className="h-4 w-4 text-brand-deep/45" /> : <EyeOff className="h-4 w-4 text-brand-deep/45" />}
+                  disabled={isLoading}
+                />
+                {password !== "" && (
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 text-xs text-brand-cyan transition-colors hover:underline"
+                    onClick={() => setPassword("")}
+                  >
+                    Limpar senha
+                  </button>
+                )}
+              </>
+            )}
+
+            {renderTitle().title === "Código inválido" && (
+              <div className="space-y-4">
+                <InputField
+                  label="Novo código"
+                  placeholder="Digite o código novamente"
+                  value={recoveryCode}
+                  onChange={handleRecoveryCodeChange}
+                  autoComplete="off"
+                  name="recoveryCode"
+                  startIcon={<Lock className="h-4 w-4 text-brand-deep/45" />}
+                />
+                <p className="text-xs text-white/54">
+                  O código expirou após 15 minutos. Solicite um novo.
+                </p>
+              </div>
+            )}
+
+            {renderTitle().title === "Salvar nova senha" && (
+              <p className="text-xs text-green-400">
+                ✅ {renderTitle().description}
+              </p>
+            )}
           </div>
-        </section>
+
+          {error && (
+            <p className="text-xs text-red-400">{error}</p>
+          )}
+
+          {successMessage && (
+            <p className="text-xs text-green-400">{successMessage}</p>
+          )}
+
+          {renderTitle().title === "Login" && (
+            <p className="text-xs text-white/54">
+              {renderTitle().description}
+            </p>
+          )}
+
+          <SubmitButton isLoading={isLoading} />
+
+          {renderTitle().title === "Login" && (
+            <button
+              type="button"
+              className="w-full text-center text-xs text-brand-cyan transition-colors hover:underline"
+              onClick={startRecovery}
+            >
+              Ainda não tem acesso? Solicitar cadastro
+            </button>
+          )}
+
+          {renderTitle().title !== "Login" && (
+            <button
+              type="button"
+              className="w-full text-center text-xs text-brand-cyan transition-colors hover:underline"
+              onClick={backToLogin}
+            >
+              Voltar para login
+            </button>
+          )}
+        </div>
       </div>
-    </main>
+
+      <BrandPanel />
+    </div>
   );
 }
+
+// -------------------------------------------------------------
+// COMPONENTES SECUNDÁRIOS
+// -------------------------------------------------------------
+
+const ShowPostLoginTransition = ({ show }: { show: boolean }) => (
+  <motion.div
+    animate={{ opacity: show ? 1 : 0, scale: show ? 1 : 0.95 }}
+    className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+    initial={{ opacity: 0, scale: 0.95 }}
+    transition={{ duration: 0.5, ease: "easeOut" }}
+    exit={{ opacity: 0, scale: 0.95 }}
+    style={{ display: show ? "block" : "none" }}
+  >
+    <motion.div
+      animate={{ opacity: [0.5, 1, 0.5], scale: [0.95, 1.05, 0.95] }}
+      className="absolute inset-0 rounded-full border-2 border-brand-cyan"
+      transition={{ duration: 2, ease: "easeInOut", repeat: Infinity }}
+    />
+  </motion.div>
+);

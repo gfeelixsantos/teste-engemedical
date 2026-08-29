@@ -38,23 +38,13 @@ test("home login uses the Engemedical Connect brand system", async () => {
   assert.doesNotMatch(loginPage, /Clínica ocupacional/);
   assert.match(loginPage, /TypewriterTitle/);
   assert.match(loginPage, /typewriter-text/);
-  assert.match(loginPage, /typewriter-text/);
   assert.match(loginPage, /Conectando você ao futuro SST/);
-  assert.match(loginPage, /Integração SST/);
-  assert.match(loginPage, /Agilidade operacional/);
-  assert.match(loginPage, /Automação de processos/);
-  assert.match(
-    loginPage,
-    /Rotinas, documentos e atendimentos ocupacionais conectados no mesmo fluxo/,
-  );
-  assert.match(
-    loginPage,
-    /Menos retrabalho para equipes que precisam decidir e executar com rapidez/,
-  );
-  assert.match(
-    loginPage,
-    /Fluxos de ASO, PCMSO e exames automatizados do início ao fim/,
-  );
+  assert.match(loginPage, /Conformidade Total/);
+  assert.match(loginPage, /Gestão Centralizada/);
+  assert.match(loginPage, /Dados Estratégicos/);
+  assert.match(loginPage, /ShieldCheck/);
+  assert.match(loginPage, /LayoutDashboard/);
+  assert.match(loginPage, /BarChart3/);
   assert.doesNotMatch(loginPage, /Controle clínico ocupacional/);
   assert.doesNotMatch(loginPage, /ASO e documentação/);
   assert.doesNotMatch(loginPage, /Operação multiempresa/);
@@ -64,30 +54,18 @@ test("home login uses the Engemedical Connect brand system", async () => {
   assert.doesNotMatch(loginPage, /Rede de atendimento/);
   assert.match(loginPage, /sm:grid-cols-3/);
   assert.match(loginPage, /max-w-\[34rem\]/);
-  assert.match(loginPage, /xl:h-\[21rem\]/);
+  assert.match(loginPage, /sm:min-h-\[4\.9rem\]/);
   assert.match(loginPage, /max-w-\[29rem\]/);
   assert.match(loginPage, /#020817_0%/);
   assert.match(loginPage, /#06281f_100%/);
   assert.doesNotMatch(loginPage, /#082a4c_48%/);
-  assert.doesNotMatch(
-    loginPage,
-    /Cuidado ocupacional com tecnologia, presença clínica e gestão integrada/,
-  );
-  assert.doesNotMatch(
-    loginPage,
-    /Exames, ASO, PCMSO e rede credenciada em uma jornada mais simples/,
-  );
-  assert.doesNotMatch(
-    loginPage,
-    /Atendimento clínico, documentação ocupacional e conformidade/,
-  );
+  assert.doesNotMatch(loginPage, /Cuidado ocupacional com tecnologia, presença clínica e gestão integrada/);
+  assert.doesNotMatch(loginPage, /Exames, ASO, PCMSO e rede credenciada em uma jornada mais simples/);
+  assert.doesNotMatch(loginPage, /Atendimento clínico, documentação ocupacional e conformidade/);
   assert.match(loginPage, /Engemedical Brasil/);
   assert.doesNotMatch(loginPage, /Centro Médico de Saúde Ocupacional/);
   assert.match(loginPage, /Acesse o ambiente Engemedical/);
-  assert.match(
-    loginPage,
-    /Entre com seu CPF e senha para consultar rotinas, documentos e atendimentos/,
-  );
+  assert.match(loginPage, /Entre com seu CPF e senha para consultar rotinas, documentos e atendimentos/);
   assert.doesNotMatch(loginPage, /Gestão ocupacional em um ambiente conectado/);
   assert.match(loginPage, /bg-brand-midnight/);
   assert.match(loginPage, /shadow-\[0_18px_44px_rgba\(0,46,66,0\.22\)\]/);
