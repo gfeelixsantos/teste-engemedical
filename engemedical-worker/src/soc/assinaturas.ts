@@ -3,8 +3,9 @@
  * chave é o código do funcionário
  */
 
+const empresaPrincipal = process.env.SOC_WEBSERVICE_EMPRESA_PRINCIPAL || '1153506';
 const urlBase =
-  'https://sistema.soc.com.br/estatico/upload/empresas/16459/pessoa/';
+  `https://sistema.soc.com.br/estatico/upload/empresas/${empresaPrincipal}/pessoa/`;
 
 export const ASSINATURAS_URL: Record<string, string> = {
   '450': urlBase + '450.png?a=1761172638989', // Gabriel teste

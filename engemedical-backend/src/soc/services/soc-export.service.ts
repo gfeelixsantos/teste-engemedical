@@ -12,6 +12,11 @@ import { calcularRangePipeline } from 'src/utils/util';
 import { AsoFuncionarioDto } from '../types/AsoFuncionario';
 import { SchedulingDocument } from 'src/mongo/types/scheduling';
 import { DocumentoGED } from '../types/GED';
+import {
+  buildSocExportDataUrl,
+  getSocExportCredentials,
+  getSocExportLayoutCredentials,
+} from '../utils/soc-export-data-url';
 
 type CodigoEmpresa = string;
 
@@ -41,12 +46,21 @@ export class SocExportService {
       return this.pessoasCache.data;
     }
 
-    const SOC_ED_CADASTRO_PESSOAS_URL = this.configService.get<string>(
-      'SOC_ED_CADASTRO_PESSOAS_URL',
+    const credentials = getSocExportCredentials(
+      'SOC_ED_CADASTRO_PESSOAS',
+      this.configService,
+    );
+    const url = buildSocExportDataUrl(
+      {
+        ...credentials,
+        tipoSaida: 'json',
+        ativo: '1',
+      },
+      this.configService,
     );
 
     try {
-      const response = await fetch(SOC_ED_CADASTRO_PESSOAS_URL!, {
+      const response = await fetch(url, {
         signal: AbortSignal.timeout(5000),
       });
 
@@ -118,8 +132,22 @@ export class SocExportService {
       '28.01.137-6', // TGP
     ];
 
+    const credentials = getSocExportCredentials(
+      'SOC_ED_RESULTADO_EXAMES_TODAS_EMPRESAS',
+      this.configService,
+    );
+
     for (const codigo of codigosDeExames) {
-      const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"16459","codigo":"208636","chave":"2b11b1211e2258516d3f","tipoSaida":"json","dataInicio":"${dataInicio}","datafim":"${dataFim}","codexame":"${codigo}"}`;
+      const url = buildSocExportDataUrl(
+        {
+          ...credentials,
+          tipoSaida: 'json',
+          dataInicio,
+          datafim: dataFim,
+          codexame: codigo,
+        },
+        this.configService,
+      );
 
       try {
         const response = await fetch(url, {
@@ -215,7 +243,34 @@ export class SocExportService {
       dataFim = diaBrStr,
     } = request;
 
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"${empresa}","codigo":"161440","chave":"3d0851191bdd7e498167","tipoSaida":"json","paramSequencial":"","sequenciaFicha":"","funcionarioInicio":"1","funcionarioFim":"999999999","paramData":"1","dataInicio":"${dataInicio}","dataFim":"${dataFim}","paramFunc":"","cpffuncionario":"","nomefuncionario":"","codpresta":"","nomepresta":"","paramPresta":"","codunidade":"","nomeunidade":"","paramUnidade":""}`;
+    const credentials = getSocExportLayoutCredentials(
+      'SOC_ED_PEDIDO_EXAME',
+      this.configService,
+    );
+    const url = buildSocExportDataUrl(
+      {
+        empresa,
+        ...credentials,
+        tipoSaida: 'json',
+        paramSequencial: '',
+        sequenciaFicha: '',
+        funcionarioInicio: '1',
+        funcionarioFim: '999999999',
+        paramData: '1',
+        dataInicio,
+        dataFim,
+        paramFunc: '',
+        cpffuncionario: '',
+        nomefuncionario: '',
+        codpresta: '',
+        nomepresta: '',
+        paramPresta: '',
+        codunidade: '',
+        nomeunidade: '',
+        paramUnidade: '',
+      },
+      this.configService,
+    );
 
     try {
       const response = await fetch(url, {
@@ -293,7 +348,34 @@ export class SocExportService {
       dataFim = diaBrStr,
     } = request;
 
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"${empresa}","codigo":"161440","chave":"3d0851191bdd7e498167","tipoSaida":"json","paramSequencial":"","sequenciaFicha":"","funcionarioInicio":"1","funcionarioFim":"999999999","paramData":"1","dataInicio":"${dataInicio}","dataFim":"${dataFim}","paramFunc":"","cpffuncionario":"","nomefuncionario":"","codpresta":"","nomepresta":"","paramPresta":"","codunidade":"","nomeunidade":"","paramUnidade":""}`;
+    const credentials = getSocExportLayoutCredentials(
+      'SOC_ED_PEDIDO_EXAME',
+      this.configService,
+    );
+    const url = buildSocExportDataUrl(
+      {
+        empresa,
+        ...credentials,
+        tipoSaida: 'json',
+        paramSequencial: '',
+        sequenciaFicha: '',
+        funcionarioInicio: '1',
+        funcionarioFim: '999999999',
+        paramData: '1',
+        dataInicio,
+        dataFim,
+        paramFunc: '',
+        cpffuncionario: '',
+        nomefuncionario: '',
+        codpresta: '',
+        nomepresta: '',
+        paramPresta: '',
+        codunidade: '',
+        nomeunidade: '',
+        paramUnidade: '',
+      },
+      this.configService,
+    );
 
     try {
       const response = await fetch(url, {
@@ -360,7 +442,23 @@ export class SocExportService {
     funcionario: string,
     fichaAtual: string,
   ): Promise<AsoFuncionarioDto[]> {
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":'${empresa}',"codigo":"193600","chave":"81c895206e0228be0e08","tipoSaida":"json","funcionario":"${funcionario}","tipoASO":"1,2,3,4,5,6","paramFiltroData":"0","dataInicio":"","dataFim":""}`;
+    const credentials = getSocExportLayoutCredentials(
+      'SOC_ED_ASO_FUNCIONARIO',
+      this.configService,
+    );
+    const url = buildSocExportDataUrl(
+      {
+        empresa,
+        ...credentials,
+        tipoSaida: 'json',
+        funcionario,
+        tipoASO: '1,2,3,4,5,6',
+        paramFiltroData: '0',
+        dataInicio: '',
+        dataFim: '',
+      },
+      this.configService,
+    );
 
     try {
       const response = await fetch(url, {
@@ -380,9 +478,30 @@ export class SocExportService {
   }
 
   async expdSocged(funcionario: SchedulingDocument) {
-    const CODIGO_ASODIGITAL = process.env.SOC_CODIGO_SOCGED_ASODIGITAL || 41;
+    const CODIGO_ASODIGITAL =
+      this.configService.get<string>('SOC_CODIGO_SOCGED_ASODIGITAL') || '41';
+    const credentials = getSocExportLayoutCredentials(
+      'SOC_ED_SOCGED',
+      this.configService,
+    );
 
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"${funcionario.CODIGOEMPRESA}","codigo":"185018","chave":"1f08c325e1730380d6ab","tipoSaida":"json","tipoBusca":"0","sequencialFicha":"","cpfFuncionario":"","filtraPorTipoSocged":"true","codigoTipoSocged":"${CODIGO_ASODIGITAL}","dataInicio":"01/01/2026","dataFim":"04/02/2026","dataEmissaoInicio":"","dataEmissaoFim":""}`;
+    const url = buildSocExportDataUrl(
+      {
+        empresa: funcionario.CODIGOEMPRESA,
+        ...credentials,
+        tipoSaida: 'json',
+        tipoBusca: '0',
+        sequencialFicha: '',
+        cpfFuncionario: '',
+        filtraPorTipoSocged: 'true',
+        codigoTipoSocged: CODIGO_ASODIGITAL,
+        dataInicio: '01/01/2026',
+        dataFim: '04/02/2026',
+        dataEmissaoInicio: '',
+        dataEmissaoFim: '',
+      },
+      this.configService,
+    );
 
     try {
       const response = await fetch(url, {
@@ -409,21 +528,20 @@ export class SocExportService {
    */
   async getCompanyContacts(codEmpresa: string): Promise<string[] | null> {
     const CODIGO_PERFIL_ASO = '2';
-    const empresaPrincipal =
-      this.configService.get<string>('SOCWS_EMPRESA_PRINCIPAL') || '16459';
-    const chaveAcesso =
-      this.configService.get<string>('SOCWS_PASS') || '8d13e860934fcca2ae7d';
+    const credentials = getSocExportCredentials(
+      'SOC_ED_CONTATOS_EMPRESA',
+      this.configService,
+    );
 
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(
-      JSON.stringify({
-        empresa: empresaPrincipal,
-        codigo: '187196',
-        chave: chaveAcesso,
+    const url = buildSocExportDataUrl(
+      {
+        ...credentials,
         tipoSaida: 'json',
         empresaTrabalho: codEmpresa,
         codigoPerfil: '',
-      }),
-    )}`;
+      },
+      this.configService,
+    );
 
     try {
       const response = await fetch(url, {
@@ -477,21 +595,20 @@ export class SocExportService {
    * Busca contatos detalhados de uma empresa a partir do layout 187196.
    */
   async getCompanyContactsDetailed(codEmpresa: string): Promise<any[] | null> {
-    const empresaPrincipal =
-      this.configService.get<string>('SOCWS_EMPRESA_PRINCIPAL') || '16459';
-    const chaveAcesso =
-      this.configService.get<string>('SOCWS_PASS') || '8d13e860934fcca2ae7d';
+    const credentials = getSocExportCredentials(
+      'SOC_ED_CONTATOS_EMPRESA',
+      this.configService,
+    );
 
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(
-      JSON.stringify({
-        empresa: empresaPrincipal,
-        codigo: '187196',
-        chave: chaveAcesso,
+    const url = buildSocExportDataUrl(
+      {
+        ...credentials,
         tipoSaida: 'json',
         empresaTrabalho: codEmpresa,
         codigoPerfil: '',
-      }),
-    )}`;
+      },
+      this.configService,
+    );
 
     try {
       const response = await fetch(url, {
@@ -538,10 +655,13 @@ export class SocExportService {
       ferias?: string;
     },
   ): Promise<CadastroFuncionarioPorSituacao[]> {
+    const credentials = getSocExportLayoutCredentials(
+      'SOC_ED_CADASTRO_FUNCIONARIOS_SITUACAO',
+      this.configService,
+    );
     const payload = {
       empresa: empresaSolicitada,
-      codigo: '193586',
-      chave: '16b663d2d0859bf14b01',
+      ...credentials,
       tipoSaida: 'json',
       ativo: params?.ativo || 'Sim',
       inativo: params?.inativo || 'Sim',
@@ -550,8 +670,7 @@ export class SocExportService {
       ferias: params?.ferias || 'Sim',
     };
 
-    const parametro = encodeURIComponent(JSON.stringify(payload));
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${parametro}`;
+    const url = buildSocExportDataUrl(payload, this.configService);
 
     try {
       const response = await fetch(url, {

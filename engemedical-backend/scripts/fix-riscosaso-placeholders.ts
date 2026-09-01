@@ -85,7 +85,7 @@ async function fetchJson(url: string): Promise<any[]> {
  */
 async function lookupFuncionarioCode(empresaTrabalho: string, sequenciaFicha: string): Promise<string | null> {
   const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(JSON.stringify({
-    empresa: '16459', codigo: '193601', chave: '8ce693447b44481c7438',
+    empresa: '1153506', codigo: '193601', chave: '8ce693447b44481c7438',
     tipoSaida: 'json', sequencial: sequenciaFicha, empresaTrabalho,
   }))}`;
   const data = await fetchJson(url);
@@ -102,7 +102,7 @@ async function lookupFuncionarioCode(empresaTrabalho: string, sequenciaFicha: st
  */
 async function fetchEmployeeRiskCodes(empresaTrabalho: string, codigoFuncionario: string): Promise<Set<string>> {
   const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(JSON.stringify({
-    empresa: '16459', codigo: '193602', chave: '8355c87bb9157db187cb',
+    empresa: '1153506', codigo: '193602', chave: '8355c87bb9157db187cb',
     tipoSaida: 'json', empresaTrabalho, funcionario: codigoFuncionario,
   }))}`;
   const data = await fetchJson(url);
@@ -116,7 +116,7 @@ async function fetchEmployeeRiskCodes(empresaTrabalho: string, codigoFuncionario
 
 /**
  * Busca códigos de risco via 161440 (Pedido de Exame) usando empresa alvo + funcionario + data.
- * Tenta empresa=empresaTrabalho primeiro, fallback para empresa=16459 + empresaTrabalho.
+ * Tenta empresa=empresaTrabalho primeiro, fallback para empresa=1153506 + empresaTrabalho.
  */
 async function fetchPedidoRiskCodes(
   empresaTrabalho: string, codigoFuncionario: string, dataAgendamento: string
@@ -159,8 +159,8 @@ async function fetchPedidoRiskCodes(
   let data = await fetchJson(buildUrl(empresaTrabalho));
   if (Array.isArray(data) && data.length > 0) return parseRiscos(data);
 
-  // 2a tentativa: empresa = '16459' + empresaTrabalho
-  data = await fetchJson(buildUrl('16459', empresaTrabalho));
+  // 2a tentativa: empresa = '1153506' + empresaTrabalho
+  data = await fetchJson(buildUrl('1153506', empresaTrabalho));
   if (Array.isArray(data) && data.length > 0) return parseRiscos(data);
 
   return new Set();
@@ -273,7 +273,7 @@ async function resolverRiscos(
 
   // 2. PCMSO (210129) — fonte secundária de nome e grupo
   await delay(REQUEST_DELAY);
-  const pcmsUrl = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"16459","codigo":"210129","chave":"1bdcb22f319e202d8cf1","tipoSaida":"json","empresaTrabalho":"${empresaTrabalho}","codigoRisco":"","codigoExame":"","codigoGrupoRisco":""}`;
+  const pcmsUrl = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"1153506","codigo":"210129","chave":"1bdcb22f319e202d8cf1","tipoSaida":"json","empresaTrabalho":"${empresaTrabalho}","codigoRisco":"","codigoExame":"","codigoGrupoRisco":""}`;
   const pcmsData = await fetchJson(pcmsUrl);
   const pcmsGrupoMap: Record<string, string> = {};
   const pcmsNomeMap: Record<string, string> = {};
@@ -291,7 +291,7 @@ async function resolverRiscos(
   // 2. Cadastro Risco Empresa (198100) — fallback de nome para todos os riscos cadastrados
   await delay(REQUEST_DELAY);
   const cadUrl = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(JSON.stringify({
-    empresa: '16459', codigo: '198100', chave: 'aacce9903d91a5196136',
+    empresa: '1153506', codigo: '198100', chave: 'aacce9903d91a5196136',
     tipoSaida: 'json', empresaTrabalho,
   }))}`;
   const cadData = await fetchJson(cadUrl);
@@ -305,7 +305,7 @@ async function resolverRiscos(
   // 3. Endpoint do funcionário (193602) — fallback de nome
   await delay(REQUEST_DELAY);
   const empUrl = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(JSON.stringify({
-    empresa: '16459', codigo: '193602', chave: '8355c87bb9157db187cb',
+    empresa: '1153506', codigo: '193602', chave: '8355c87bb9157db187cb',
     tipoSaida: 'json', empresaTrabalho, funcionario: codigoFuncionario,
   }))}`;
   const employeeData = await fetchJson(empUrl);
@@ -583,3 +583,4 @@ main().catch((err) => {
   console.error('[FIX] ERRO CRÍTICO:', err);
   process.exit(1);
 });
+

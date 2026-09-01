@@ -39,6 +39,10 @@ import { GoogleDriveService } from 'src/google/drive/google-drive.service';
 import { FuncionarioEntity } from '../mongo/model/FuncionarioEntity';
 import { WsResultadoExame } from './webservice/resultadoExame/WsResultadoExame';
 import { WsFuncionarioModelo2 } from './webservice/funcionario/WsFuncionarioModelo2';
+import {
+  buildSocExportDataUrl,
+  getSocExportCredentials,
+} from './utils/soc-export-data-url';
 
 const getMongoService = () =>
   require('../mongo/mongo.service').MongoService;
@@ -1130,14 +1134,15 @@ export class SocService {
     // Fallback: tentar buscar sequencial da REST API SOC se ainda estiver vazio
     if (!sequencialResultadoExame && codigoExame && scheduling.SEQUENCIAFICHA) {
       try {
-        const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${JSON.stringify({
-          empresa: '16459',
-          codigo: '193601',
-          chave: '8ce693447b44481c7438',
+        const credentials = getSocExportCredentials(
+          'SOC_ED_SEQUENCIAL_RESULTADO',
+        );
+        const url = buildSocExportDataUrl({
+          ...credentials,
           tipoSaida: 'json',
           sequencial: scheduling.SEQUENCIAFICHA,
           empresaTrabalho: scheduling.CODIGOEMPRESA,
-        })}`;
+        });
 
         const response = await fetch(url, {
           signal: AbortSignal.timeout(10000),

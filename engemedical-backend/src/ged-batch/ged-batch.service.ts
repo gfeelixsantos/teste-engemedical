@@ -29,7 +29,11 @@ const { ZipArchive } = require('archiver');
 import * as stream from 'stream';
 import { mergePdfs } from '../utils/util';
 import { ContainerClient } from '@azure/storage-blob';
-    import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
+import {
+  buildSocExportDataUrl,
+  getSocExportLayoutCredentials,
+} from '../soc/utils/soc-export-data-url';
 
 @Injectable()
 export class GedBatchService implements OnModuleInit {
@@ -1332,7 +1336,21 @@ export class GedBatchService implements OnModuleInit {
 
       try {
         const CODIGO_ASODIGITAL = process.env.SOC_CODIGO_SOCGED_ASODIGITAL || '41';
-        const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"${codEmpresa}","codigo":"185018","chave":"1f08c325e1730380d6ab","tipoSaida":"json","tipoBusca":"1","sequencialFicha":"${targetFicha}","cpfFuncionario":"","filtraPorTipoSocged":"true","codigoTipoSocged":"${CODIGO_ASODIGITAL}","dataInicio":"","dataFim":"","dataEmissaoInicio":"","dataEmissaoFim":""}`;
+        const credentials = getSocExportLayoutCredentials('SOC_ED_SOCGED');
+        const url = buildSocExportDataUrl({
+          empresa: codEmpresa,
+          ...credentials,
+          tipoSaida: 'json',
+          tipoBusca: '1',
+          sequencialFicha: targetFicha,
+          cpfFuncionario: '',
+          filtraPorTipoSocged: 'true',
+          codigoTipoSocged: CODIGO_ASODIGITAL,
+          dataInicio: '',
+          dataFim: '',
+          dataEmissaoInicio: '',
+          dataEmissaoFim: '',
+        });
 
         const response = await fetch(url, {
           signal: AbortSignal.timeout(15000),

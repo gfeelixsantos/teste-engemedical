@@ -4,13 +4,16 @@ import { ConfigService } from '@nestjs/config';
 import { CadastroEmpresa } from '../types/CadastroEmpresa';
 import type { MongoService } from 'src/mongo/mongo.service';
 import { EmpresaDocument } from 'src/mongo/types/empresa';
+import {
+  buildSocExportDataUrl,
+  getSocExportCredentials,
+} from '../utils/soc-export-data-url';
 
 const getMongoService = () =>
   require('../../mongo/mongo.service').MongoService;
 
 @Injectable()
 export class SocCompanyService implements OnModuleInit {
-  private url?: string;
   private socCompaniesCache: Record<string, CadastroEmpresa> = {};
   private refreshTimer: NodeJS.Timeout | null = null;
 
@@ -21,7 +24,6 @@ export class SocCompanyService implements OnModuleInit {
     private readonly logger: StructuredLogger,
   ) {
     this.logger.setContext(SocCompanyService.name);
-    this.url = this.configService.get<string>('SOC_ED_CADASTRO_EMPRESAS_URL');
   }
 
   onModuleInit(): void {
@@ -133,14 +135,22 @@ export class SocCompanyService implements OnModuleInit {
    * Não salva no banco de dados automaticamente.
    */
   async fetchRawSocCompanies(): Promise<CadastroEmpresa[]> {
-    if (!this.url) {
-      throw new Error('URL de exportação de empresas SOC não configurada.');
-    }
+    const credentials = getSocExportCredentials(
+      'SOC_ED_CADASTRO_EMPRESAS',
+      this.configService,
+    );
+    const url = buildSocExportDataUrl(
+      {
+        ...credentials,
+        tipoSaida: 'json',
+      },
+      this.configService,
+    );
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
     try {
-      const response = await fetch(this.url, { signal: controller.signal });
+      const response = await fetch(url, { signal: controller.signal });
       clearTimeout(timeout);
 
       if (response.ok) {

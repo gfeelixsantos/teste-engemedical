@@ -21,6 +21,31 @@ export class SupabaseService {
     }
   }
 
+  private buildCadastroPessoasUrl(): string | null {
+    const baseUrl =
+      process.env.SOC_EXPORT_DATA_BASE_URL ||
+      'https://ws1.soc.com.br/WebSoc/exportadados';
+    const empresa = process.env.SOC_WEBSERVICE_EMPRESA_PRINCIPAL;
+    const codigo = process.env.SOC_ED_CADASTRO_PESSOAS_CODIGO;
+    const chave = process.env.SOC_ED_CADASTRO_PESSOAS_CHAVE;
+
+    if (!empresa || !codigo || !chave) {
+      return null;
+    }
+
+    const parametro = encodeURIComponent(
+      JSON.stringify({
+        empresa,
+        codigo,
+        chave,
+        tipoSaida: 'json',
+        ativo: '1',
+      }),
+    );
+
+    return `${baseUrl}?parametro=${parametro}`;
+  }
+
   getClient(): SupabaseClient {
     if (!this.supabase) {
       throw new Error('Supabase client is not initialized');
@@ -276,9 +301,9 @@ export class SupabaseService {
       return this.socProfessionalsCache;
     }
 
-    const socUrl = process.env.SOC_ED_CADASTRO_PESSOAS_URL;
+    const socUrl = this.buildCadastroPessoasUrl();
     if (!socUrl) {
-      this.logger.warn('SOC_ED_CADASTRO_PESSOAS_URL não configurada.');
+      this.logger.warn('SOC_ED_CADASTRO_PESSOAS não configurado.');
       return null;
     }
 
@@ -289,7 +314,7 @@ export class SupabaseService {
 
       if (!response.ok) {
         this.logger.warn(
-          `Falha ao consultar SOC_ED_CADASTRO_PESSOAS_URL. status=${response.status}`,
+          `Falha ao consultar SOC_ED_CADASTRO_PESSOAS. status=${response.status}`,
         );
         return null;
       }

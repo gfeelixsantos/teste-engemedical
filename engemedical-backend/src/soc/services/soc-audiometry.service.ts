@@ -7,6 +7,10 @@ import {
 import { AsoFuncionario } from '../types/AsoFuncionario';
 import { PedidoExameSequencialFicha } from '../types/PedidoExameSequencialFicha';
 import { AudiometriaExportaDados } from '../types/AudiometriaExportaDados';
+import {
+  buildSocExportDataUrl,
+  getSocExportLayoutCredentials,
+} from '../utils/soc-export-data-url';
 
 @Injectable()
 export class SocAudiometryService {
@@ -126,19 +130,17 @@ export class SocAudiometryService {
     empresa: string,
     codigoFuncionario: string,
   ): Promise<AsoFuncionario[]> {
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(
-      JSON.stringify({
-        empresa: empresa,
-        codigo: '193600',
-        chave: '81c895206e0228be0e08',
-        tipoSaida: 'json',
-        funcionario: codigoFuncionario,
-        tipoASO: '1,2,3,4,5,6',
-        paramFiltroData: '0',
-        dataInicio: '',
-        dataFim: '',
-      }),
-    )}`;
+    const credentials = getSocExportLayoutCredentials('SOC_ED_ASO_FUNCIONARIO');
+    const url = buildSocExportDataUrl({
+      empresa,
+      ...credentials,
+      tipoSaida: 'json',
+      funcionario: codigoFuncionario,
+      tipoASO: '1,2,3,4,5,6',
+      paramFiltroData: '0',
+      dataInicio: '',
+      dataFim: '',
+    });
 
     try {
       const controller = new AbortController();
@@ -209,16 +211,16 @@ export class SocAudiometryService {
     empresa: string,
     idFicha: string,
   ): Promise<string | null> {
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(
-      JSON.stringify({
-        empresa: empresa, // Usando a empresa recebida como parâmetro
-        codigo: '193601',
-        chave: '8ce693447b44481c7438',
-        tipoSaida: 'json',
-        sequencial: idFicha,
-        empresaTrabalho: empresa,
-      }),
-    )}`;
+    const credentials = getSocExportLayoutCredentials(
+      'SOC_ED_SEQUENCIAL_RESULTADO',
+    );
+    const url = buildSocExportDataUrl({
+      empresa,
+      ...credentials,
+      tipoSaida: 'json',
+      sequencial: idFicha,
+      empresaTrabalho: empresa,
+    });
 
     try {
       const fetchResponse = await fetch(url);
@@ -259,16 +261,14 @@ export class SocAudiometryService {
   ): Promise<AudiometriaExportaDados[]> {
     if (codigosResultados.length === 0) return [];
 
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(
-      JSON.stringify({
-        empresa: empresa, // Usando a empresa recebida como parâmetro
-        codigo: '212149',
-        chave: '2a089d4add624770a46d',
-        tipoSaida: 'json',
-        empresaTrabalho: empresa,
-        listaSequencialExames: codigosResultados.join(','),
-      }),
-    )}`;
+    const credentials = getSocExportLayoutCredentials('SOC_ED_AUDIOMETRIA');
+    const url = buildSocExportDataUrl({
+      empresa,
+      ...credentials,
+      tipoSaida: 'json',
+      empresaTrabalho: empresa,
+      listaSequencialExames: codigosResultados.join(','),
+    });
 
     try {
       const fetchResponse = await fetch(url);

@@ -4,6 +4,10 @@ import { ExamStatus } from 'src/mongo/enum/scheduling.enum';
 import { ExameSocnet } from '../types/ExameSocnet';
 import { getExamesList, ExamToogle } from 'src/exames/exames.provider';
 import { OpenAI } from 'openai';
+import {
+  buildSocExportDataUrl,
+  getSocExportCredentials,
+} from '../utils/soc-export-data-url';
 
 @Injectable()
 export class SocCredentialedService {
@@ -59,7 +63,13 @@ export class SocCredentialedService {
       const dataInicio = new Intl.DateTimeFormat('pt-BR', {
         timeZone: 'America/Sao_Paulo',
       }).format(new Date());
-      const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"16459","codigo":"209159","chave":"e5a1d73e0256a3cfd58d","tipoSaida":"json","DataInicio":"${dataInicio}","empresasFiltro":""}`;
+      const credentials = getSocExportCredentials('SOC_ED_CREDENCIADAS');
+      const url = buildSocExportDataUrl({
+        ...credentials,
+        tipoSaida: 'json',
+        DataInicio: dataInicio,
+        empresasFiltro: '',
+      });
 
       const fetchResponse = await fetch(url);
       if (!fetchResponse.ok)

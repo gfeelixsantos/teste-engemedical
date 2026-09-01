@@ -3,6 +3,10 @@ import { PedidoExame } from '../types/PedidoExame';
 import { RiscosAso } from 'src/mongo/types/scheduling';
 import { SocEmployeeRiskService } from './soc-employee-risk.service';
 import { RiscosConfigService } from '../../riscos-config/riscos-config.service';
+import {
+  buildSocExportDataUrl,
+  getSocExportCredentials,
+} from '../utils/soc-export-data-url';
 
 @Injectable()
 export class SocRiskService {
@@ -223,7 +227,15 @@ export class SocRiskService {
    * Busca riscos do PCMSO da empresa (endpoint 210129).
    */
   private async fetchCompanyPcmsRisks(empresaTrabalho: string): Promise<any[]> {
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"16459","codigo":"210129","chave":"1bdcb22f319e202d8cf1","tipoSaida":"json","empresaTrabalho":"${empresaTrabalho}","codigoRisco":"","codigoExame":"","codigoGrupoRisco":""}`;
+    const credentials = getSocExportCredentials('SOC_ED_PCMSO');
+    const url = buildSocExportDataUrl({
+      ...credentials,
+      tipoSaida: 'json',
+      empresaTrabalho,
+      codigoRisco: '',
+      codigoExame: '',
+      codigoGrupoRisco: '',
+    });
 
     try {
       const response = await fetch(url);
@@ -271,10 +283,12 @@ export class SocRiskService {
    * Busca riscos do Cadastro Risco Empresa (endpoint 198100).
    */
   private async fetchCompanyRisksCadastro(empresaTrabalho: string): Promise<any[]> {
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(JSON.stringify({
-      empresa: '16459', codigo: '198100', chave: 'aacce9903d91a5196136',
-      tipoSaida: 'json', empresaTrabalho,
-    }))}`;
+    const credentials = getSocExportCredentials('SOC_ED_CADASTRO_RISCO_EMPRESA');
+    const url = buildSocExportDataUrl({
+      ...credentials,
+      tipoSaida: 'json',
+      empresaTrabalho,
+    });
 
     try {
       const response = await fetch(url);
@@ -361,4 +375,3 @@ export class SocRiskService {
     return 'INESPECIFICOS';
   }
 }
-

@@ -21,8 +21,18 @@ type ContatoEmpresaDto = {
 export async function companyContacts(empresa: string): Promise<string[] | null>
 {
     const CODIGOPERFILASO = "2"
+    const empresaPrincipal =
+        process.env.SOC_WEBSERVICE_EMPRESA_PRINCIPAL ||
+        "1153506"
+    const codigo =
+        process.env.SOC_ED_CONTATOS_EMPRESA_CODIGO ||
+        "187196"
+    const chave =
+        process.env.SOC_ED_CONTATOS_EMPRESA_CHAVE ||
+        process.env.SOC_WEBSERVICE_PASS ||
+        ""
 
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"16459","codigo":"187196","chave":"8d13e860934fcca2ae7d","tipoSaida":"json","empresaTrabalho":"${empresa}","codigoPerfil":""}`;
+    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(JSON.stringify({empresa: empresaPrincipal, codigo, chave, tipoSaida: "json", empresaTrabalho: empresa, codigoPerfil: ""}))}`;
 
     try {
         const response = await fetch(url)

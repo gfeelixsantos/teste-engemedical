@@ -36,7 +36,6 @@ export interface HandleUpdateResult {
 export class SocService {
   private today = new Date().toLocaleDateString('pt-br');
 
-  private url?: string;
   private socCompaniesCache: Record<string, CadastroEmpresa> = {};
   private readonly logger = new Logger(SocService.name);
 
@@ -54,9 +53,7 @@ export class SocService {
   constructor(
     private readonly configService: ConfigService,
     private readonly mongoService: MongoService,
-  ) {
-    this.url = this.configService.get<string>('SOC_ED_CADASTRO_EMPRESAS_URL');
-  }
+  ) {}
 
   async onModuleInit() {
     // this.handleUpdateSocToMongo() // Função para atualizar agendamentos rodar todo inicio do dia...
@@ -108,8 +105,12 @@ export class SocService {
       '28.01.137-6', // TGP
     ];
 
+    const empresaPrincipal =
+      this.configService.get<string>('SOC_WEBSERVICE_EMPRESA_PRINCIPAL') ||
+      '1153506';
+
     for (const codigo of codigosDeExames) {
-      const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"16459","codigo":"208636","chave":"2b11b1211e2258516d3f","tipoSaida":"json","dataInicio":"${dataInicio}","datafim":"${dataFim}","codexame":"${codigo}"}`;
+      const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"${empresaPrincipal}","codigo":"208636","chave":"2b11b1211e2258516d3f","tipoSaida":"json","dataInicio":"${dataInicio}","datafim":"${dataFim}","codexame":"${codigo}"}`;
 
       try {
         const response = await fetch(url);
@@ -301,7 +302,10 @@ export class SocService {
       return [];
     }
 
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":'16459',"codigo":"193601","chave":"8ce693447b44481c7438","tipoSaida":"json","sequencial":"${resultados[0].SEQUENCIAFICHA}","empresaTrabalho":"${resultados[0].CODIGOEMPRESA}"}`;
+    const empresaPrincipal =
+      this.configService.get<string>('SOC_WEBSERVICE_EMPRESA_PRINCIPAL') ||
+      '1153506';
+    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"${empresaPrincipal}","codigo":"193601","chave":"8ce693447b44481c7438","tipoSaida":"json","sequencial":"${resultados[0].SEQUENCIAFICHA}","empresaTrabalho":"${resultados[0].CODIGOEMPRESA}"}`;
 
     let codigosSequenciaisResultados: PedidoExameSequencialFicha[] = [];
     let response: Response | undefined;

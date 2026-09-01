@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { FuncionarioDeficiencia } from '../types/FuncionarioDeficiencia';
+import {
+  buildSocExportDataUrl,
+  getSocExportLayoutCredentials,
+} from '../utils/soc-export-data-url';
 
 @Injectable()
 export class SocPcdService {
@@ -12,7 +16,12 @@ export class SocPcdService {
     codFuncionario: string,
     empresa: string,
   ): Promise<string | null> {
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":"${empresa}","codigo":"211978","chave":"ed766fc80c5ef04c59d6","tipoSaida":"json"}`;
+    const credentials = getSocExportLayoutCredentials('SOC_ED_PCD');
+    const url = buildSocExportDataUrl({
+      empresa,
+      ...credentials,
+      tipoSaida: 'json',
+    });
     try {
       const response = await fetch(url);
       if (!response.ok) {

@@ -1,6 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import {
+  buildSocExportDataUrl,
+  getSocExportCredentials,
+} from '../soc/utils/soc-export-data-url';
 
 @Injectable()
 export class SupabaseService implements OnModuleInit {
@@ -279,8 +283,18 @@ export class SupabaseService implements OnModuleInit {
       return this.socProfessionalsCache;
     }
 
-    const socUrl = String(process.env.SOC_ED_CADASTRO_PESSOAS_URL || '').trim();
-    if (!socUrl) return null;
+    const credentials = getSocExportCredentials(
+      'SOC_ED_CADASTRO_PESSOAS',
+      this.configService,
+    );
+    const socUrl = buildSocExportDataUrl(
+      {
+        ...credentials,
+        tipoSaida: 'json',
+        ativo: '1',
+      },
+      this.configService,
+    );
 
     try {
       const response = await fetch(socUrl, {
@@ -289,7 +303,7 @@ export class SupabaseService implements OnModuleInit {
 
       if (!response.ok) {
         this.logger.warn(
-          `Falha ao consultar SOC_ED_CADASTRO_PESSOAS_URL. status=${response.status}`,
+          `Falha ao consultar SOC_ED_CADASTRO_PESSOAS. status=${response.status}`,
         );
         return null;
       }

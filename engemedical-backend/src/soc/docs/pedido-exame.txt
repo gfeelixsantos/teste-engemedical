@@ -2,9 +2,9 @@
  1280256167_edit-select-all.png
 
 Variáveis Possíveis:<br> empresa = código da empresa <br> código = código do exporta dados <br> chave = chave gerada <br> tipoSaida = txt,xml,html ou json <br> usuário = codigo usuário <br> identificação  = Id da senha do Login do usuário <br> senha = senha cadastrada <br> separador = separador de campos para arquivo texto padrão ';' <br> quebra = quebra linha para arquivo texto (0 ou 1) <br> cabeçalho = Se mostra a primeira linha com nome dos campos (0 ou 1) <br> empresaTrabalho = Usado para informar codigo de empresa SOCNET ou não atual <br> atualizaOrigem:'Sim' , Atualiza o exporta dados com o Origem da copia se houverString teste
-{"empresa":'16459',"codigo":"161440","chave":"3d0851191bdd7e498167","tipoSaida":"html","paramSequencial":"","sequenciaFicha":"","funcionarioInicio":"","funcionarioFim":"","paramData":"","dataInicio":"","dataFim":"","paramFunc":"","cpffuncionario":"","nomefuncionario":"","codpresta":"","nomepresta":"","paramPresta":"","codunidade":"","nomeunidade":"","paramUnidade":""}
+{"empresa":'1153506',"codigo":"161440","chave":"3d0851191bdd7e498167","tipoSaida":"html","paramSequencial":"","sequenciaFicha":"","funcionarioInicio":"","funcionarioFim":"","paramData":"","dataInicio":"","dataFim":"","paramFunc":"","cpffuncionario":"","nomefuncionario":"","codpresta":"","nomepresta":"","paramPresta":"","codunidade":"","nomeunidade":"","paramUnidade":""}
 
-{"empresa":"16459","codigo":"161440","chave":"3d0851191bdd7e498167","tipoSaida":"","paramSequencial":"","sequenciaFicha":"","funcionarioInicio":"","funcionarioFim":"","paramData":"","dataInicio":"","dataFim":"","paramFunc":"","cpffuncionario":"","nomefuncionario":"","codpresta":"","nomepresta":"","paramPresta":"","codunidade":"","nomeunidade":"","paramUnidade":""}
+{"empresa":"1153506","codigo":"161440","chave":"3d0851191bdd7e498167","tipoSaida":"","paramSequencial":"","sequenciaFicha":"","funcionarioInicio":"","funcionarioFim":"","paramData":"","dataInicio":"","dataFim":"","paramFunc":"","cpffuncionario":"","nomefuncionario":"","codpresta":"","nomepresta":"","paramPresta":"","codunidade":"","nomeunidade":"","paramUnidade":""}
 
 Observação:*
 Descrição: Neste Exporta Dados, serão listadas todas as informações relacionadas ao pedido de exame, incluindo dados do funcionário e da hierarquia.

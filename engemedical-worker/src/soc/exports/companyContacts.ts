@@ -41,8 +41,13 @@ export async function getCompanyContacts(
   const CODIGOPERFILASO = '2';
 
   // Variáveis de ambiente - mesmas usadas no asO-generate
-  const empresaPrincipal = process.env.SOCWS_EMPRESA_PRINCIPAL || '16459';
-  const chaveAcesso = process.env.SOCWS_PASS || '8d13e860934fcca2ae7d';
+  const empresaPrincipal =
+    process.env.SOC_WEBSERVICE_EMPRESA_PRINCIPAL ||
+    '1153506';
+  const chaveAcesso =
+    process.env.SOC_ED_CONTATOS_EMPRESA_CHAVE ||
+    process.env.SOC_WEBSERVICE_PASS ||
+    '';
 
   const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(
     JSON.stringify({

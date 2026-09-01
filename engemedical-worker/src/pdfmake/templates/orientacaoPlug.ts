@@ -34,9 +34,10 @@ export async function getPaginaOrientacaoPlugSilicone(
     return [];
   }
 
-  const logoWhirlpool = await getImageBase64(
-    'https://sistema.soc.com.br/estatico/upload/empresas/16459/logos/relatorio/16459r16logorel.png',
-  );
+  const logoWhirlpoolUrl =
+    process.env.SOC_ORIENTACAO_PLUG_LOGO_URL ||
+    'https://sistema.soc.com.br/estatico/upload/empresas/1153506/logos/relatorio/1153506r16logorel.png';
+  const logoWhirlpool = await getImageBase64(logoWhirlpoolUrl);
 
   const imagemUsoProtetor = await getImageBase64(
     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgWgwWk2kvUkiXXb_FipaJixdX1_fGV1mjtA&s',

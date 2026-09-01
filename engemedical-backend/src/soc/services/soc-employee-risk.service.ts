@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RiscoFuncionario } from '../types/RiscoFuncionario';
+import {
+  buildSocExportDataUrl,
+  getSocExportCredentials,
+} from '../utils/soc-export-data-url';
 
 @Injectable()
 export class SocEmployeeRiskService {
@@ -12,16 +16,19 @@ export class SocEmployeeRiskService {
     empresaTrabalho: string,
     funcionario: string,
   ): Promise<RiscoFuncionario[]> {
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro=${encodeURIComponent(
-      JSON.stringify({
-        empresa: '16459',
-        codigo: '193602',
-        chave: '8355c87bb9157db187cb',
+    const credentials = getSocExportCredentials(
+      'SOC_ED_RISCO_FUNCIONARIO',
+      this.configService,
+    );
+    const url = buildSocExportDataUrl(
+      {
+        ...credentials,
         tipoSaida: 'json',
         empresaTrabalho,
         funcionario,
-      }),
-    )}`;
+      },
+      this.configService,
+    );
 
     this.logger.log(
       `[SocEmployeeRiskService] Buscando riscos do funcionário ${funcionario} na empresa ${empresaTrabalho}`,

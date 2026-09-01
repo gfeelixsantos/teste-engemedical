@@ -20,6 +20,10 @@ import { SchedulingClass } from 'src/mongo/model/SchedulingClass';
 import { ObjectId } from 'mongodb';
 import { RiscosAso, FileUpload } from 'src/mongo/types/scheduling';
 import { SocCompanyService } from './soc-company.service';
+import {
+  buildSocExportDataUrl,
+  getSocExportCredentials,
+} from '../utils/soc-export-data-url';
 
 const getMongoService = () =>
   require('../../mongo/mongo.service').MongoService;
@@ -45,7 +49,13 @@ export class SocExamService {
       return [];
     }
 
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":'16459',"codigo":"193601","chave":"8ce693447b44481c7438","tipoSaida":"json","sequencial":"${resultados[0].SEQUENCIAFICHA}","empresaTrabalho":"${resultados[0].CODIGOEMPRESA}"}`;
+    const credentials = getSocExportCredentials('SOC_ED_SEQUENCIAL_RESULTADO');
+    const url = buildSocExportDataUrl({
+      ...credentials,
+      tipoSaida: 'json',
+      sequencial: resultados[0].SEQUENCIAFICHA,
+      empresaTrabalho: resultados[0].CODIGOEMPRESA,
+    });
 
     let codigosSequenciaisResultados: PedidoExameSequencialFicha[] = [];
     let response: Response | undefined;
@@ -144,7 +154,13 @@ export class SocExamService {
       return [];
     }
 
-    const url = `https://ws1.soc.com.br/WebSoc/exportadados?parametro={"empresa":'16459',"codigo":"193601","chave":"8ce693447b44481c7438","tipoSaida":"json","sequencial":"${resultados[0].SEQUENCIAFICHA}","empresaTrabalho":"${resultados[0].CODIGOEMPRESA}"}`;
+    const credentials = getSocExportCredentials('SOC_ED_SEQUENCIAL_RESULTADO');
+    const url = buildSocExportDataUrl({
+      ...credentials,
+      tipoSaida: 'json',
+      sequencial: resultados[0].SEQUENCIAFICHA,
+      empresaTrabalho: resultados[0].CODIGOEMPRESA,
+    });
 
     let codigosSequenciaisResultados: PedidoExameSequencialFicha[] = [];
     let response: Response | undefined;
