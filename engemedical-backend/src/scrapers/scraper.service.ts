@@ -836,10 +836,10 @@ export class ScraperService implements OnModuleInit {
 
       this.metrics.incrementReceived(provider);
 
-      const groupName =
+      const fileGroupName =
         doc.EXAMES.find((ex) => matchedCodigos.includes(ex.codigoExame))
           ?.grupo || 'Exame';
-      const fileName = `${groupName}.pdf`;
+      const fileName = `${fileGroupName}.pdf`;
 
       const url = await this.azureService.uploadGenericFile(
         doc,
@@ -852,12 +852,12 @@ export class ScraperService implements OnModuleInit {
       // Lógica de atualização por grupo: quando um novo exame é recebido,
       // todos os exames do mesmo grupo que já estão FINALIZADOS também são atualizados
       // com a nova URL (PDFs são cumulativos)
-      const groupName = doc.EXAMES.find((ex) => matchedCodigos.includes(ex.codigoExame))
+      const updateGroupName = doc.EXAMES.find((ex) => matchedCodigos.includes(ex.codigoExame))
         ?.grupo || '';
       
       const finishedExamsInGroup = (doc.EXAMES || []).filter(
         (ex) =>
-          ex.grupo === groupName &&
+          ex.grupo === updateGroupName &&
           ex.status === ExamStatus.FINALIZADO &&
           !matchedCodigos.includes(ex.codigoExame)
       );
@@ -867,7 +867,7 @@ export class ScraperService implements OnModuleInit {
 
       if (finishedCodesInGroup.length > 0) {
         this.logger.log(
-          `[GROUP_UPDATE] Atualizando ${finishedCodesInGroup.length} exames finalizados do grupo "${groupName}" junto com os novos exames: ${finishedCodesInGroup.join(', ')}`,
+          `[GROUP_UPDATE] Atualizando ${finishedCodesInGroup.length} exames finalizados do grupo "${updateGroupName}" junto com os novos exames: ${finishedCodesInGroup.join(', ')}`,
         );
       }
 

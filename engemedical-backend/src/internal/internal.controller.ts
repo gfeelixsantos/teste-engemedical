@@ -716,7 +716,7 @@ export class InternalController {
     } catch {}
 
     return {
-      engemedical-connectWorker: {
+      'engemedical-connectWorker': {
         status: workerStatus,
         url: workerUrl,
         latencyMs: workerLatencyMs,

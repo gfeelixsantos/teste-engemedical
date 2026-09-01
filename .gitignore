@@ -72,3 +72,4 @@ coverage/
 # ======================== CREDENTIALS =========================
 bry-credencial.txt
 *.stackdump
+.pnpm-store/
