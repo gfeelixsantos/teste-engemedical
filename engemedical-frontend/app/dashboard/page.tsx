@@ -2,19 +2,25 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   Users,
   Stethoscope,
-  Calendar,
   FileText,
-  CheckCircle,
-  Clock,
   ChartNoAxesCombined,
   Bell,
   X,
 } from "lucide-react";
-import { Button, addToast, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@heroui/react";
+import {
+  Button,
+  addToast,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+} from "@heroui/react";
 
 import { StatisticsSection } from "./components/StatisticsSection";
 import { ConsentModal } from "@/lib/consent/ConsentModal";
@@ -28,39 +34,8 @@ import { IUserInfo } from "@/lib/user/interfaces/IUser";
 import { getCurrentUser, logout } from "@/lib/utils";
 import { HeaderApp } from "@/components/shared/HeaderApp";
 import EngemedicalLoading from "@/components/shared/EngemedicalLoading";
-import { NEST_DASHBOARD } from "@/config/constants";
+import PremiumCyberLoading from "@/components/shared/PremiumCyberLoading";
 import { usePscAuthStatus } from "@/hooks/usePscAuthStatus";
-
-// Interfaces
-interface MenuCardProps {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  path: string;
-  subItems: { icon: React.ReactNode; text: string }[];
-  onPress: () => void;
-  index: number;
-}
-
-interface StatsCardProps {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-  index: number;
-  description?: string;
-  trend?: {
-    value: string;
-    isPositive: boolean;
-  };
-}
-
-interface DashboardStats {
-  totalGeral: number;
-  agendados: number;
-  atendimento: number;
-  aguardandoResultados: number;
-  aguardandoAvaliacaoMedica: number;
-}
 
 // Constantes
 const SESSION_MESSAGE_KEY = "dashboard_current_message";
@@ -117,7 +92,7 @@ const MessageModal: React.FC<{
                 dangerouslySetInnerHTML={{
                   __html: sanitizeMessageHtml(message.content),
                 }}
-                dangerouslySetInnerHTML={{ __html: sanitizeMessageHtml(message.content) }} className="text-gray-700 leading-relaxed [&_p]:my-3 [&_strong]:text-[#005C7A] [&_a]:text-[#0698C2] [&_a:hover]:text-[#005C7A] [&_a]:underline [&_img]:rounded-2xl [&_img]:max-h-56 [&_img]:w-auto [&_img]:mx-auto [&_img]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-3 [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-6 [&_h3]:text-[#005C7A] [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-2 [&_blockquote]:mt-5 [&_blockquote]:rounded-xl [&_blockquote]:border-l-4 [&_blockquote]:border-[#0698C2] [&_blockquote]:bg-[#F2F9FC] [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:text-[#005C7A]"
+                className="text-gray-700 leading-relaxed [&_p]:my-3 [&_strong]:text-[#005C7A] [&_a]:text-[#0698C2] [&_a:hover]:text-[#005C7A] [&_a]:underline [&_img]:rounded-2xl [&_img]:max-h-56 [&_img]:w-auto [&_img]:mx-auto [&_img]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-3 [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-6 [&_h3]:text-[#005C7A] [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-2 [&_blockquote]:mt-5 [&_blockquote]:rounded-xl [&_blockquote]:border-l-4 [&_blockquote]:border-[#0698C2] [&_blockquote]:bg-[#F2F9FC] [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:text-[#005C7A]"
               />
             ) : (
               <div className="whitespace-pre-line text-gray-700">
@@ -205,12 +180,117 @@ const clearSessionMessage = (): void => {
   }
 };
 
-// Componentes existentes...
+const dashboardNavItems = [
+  {
+    title: "Atendimento",
+    description: "Fluxo clínico e exames",
+    icon: Stethoscope,
+    path: "/atendimento",
+  },
+  {
+    title: "Recepção",
+    description: "Fila, chegada e triagem",
+    icon: Users,
+    path: "/recepcao",
+  },
+  {
+    title: "Relatórios",
+    description: "Indicadores e documentos",
+    icon: ChartNoAxesCombined,
+    path: "/relatorio",
+  },
+  {
+    title: "Prontuários",
+    description: "Histórico ocupacional",
+    icon: FileText,
+    path: "/prontuarios",
+  },
+] as const;
+
+const PremiumDashboardSidebar: React.FC<{
+  onNavigate: (path: string) => void;
+}> = ({ onNavigate }) => {
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+
+  return (
+    <motion.aside
+      animate={{ width: isSidebarExpanded ? 288 : 84 }}
+      aria-label="Menu principal do dashboard"
+      className="group fixed left-4 top-24 z-30 hidden h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-brand-line/70 bg-white/95 text-slate-900 shadow-[0_18px_48px_rgba(15,23,42,0.10)] backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_20px_56px_rgba(15,23,42,0.14)] lg:block"
+      initial={false}
+      onMouseEnter={() => setIsSidebarExpanded(true)}
+      onMouseLeave={() => setIsSidebarExpanded(false)}
+    >
+      <div className="flex h-full flex-col p-3">
+        <div className="mb-5 flex h-14 items-center gap-3 rounded-xl border border-brand-line/70 bg-brand-mist/70 px-3">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-brand-line bg-white shadow-sm">
+            <Image
+              alt="Engemedical Brasil"
+              className="h-8 w-8 object-contain"
+              height={28}
+              src="/images/logo.png"
+              width={28}
+            />
+          </div>
+          <motion.div
+            animate={{
+              opacity: isSidebarExpanded ? 1 : 0,
+              x: isSidebarExpanded ? 0 : -8,
+            }}
+            className="min-w-0"
+          >
+            <p className="truncate text-sm font-semibold text-brand-midnight">
+              Engemedical
+            </p>
+            <p className="truncate text-[11px] uppercase tracking-[0.18em] text-brand-blue">
+              Connect
+            </p>
+          </motion.div>
+        </div>
+
+        <nav className="space-y-2" role="navigation">
+          {dashboardNavItems.map(({ title, description, icon: Icon, path }) => (
+            <button
+              key={title}
+              aria-label={`Acessar ${title}`}
+              className="group/item flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-all duration-200 hover:border-brand-line hover:bg-brand-mist focus:outline-none focus:ring-2 focus:ring-brand-cyan/40"
+              type="button"
+              onClick={() => onNavigate(path)}
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-brand-line bg-white text-brand-blue shadow-sm transition-all duration-200 group-hover/item:border-brand-green/40 group-hover/item:bg-brand-mist group-hover/item:text-brand-green">
+                <Icon className="h-5 w-5" />
+              </span>
+              <motion.span
+                animate={{
+                  opacity: isSidebarExpanded ? 1 : 0,
+                  width: isSidebarExpanded ? "auto" : 0,
+                }}
+                className="min-w-0 overflow-hidden"
+              >
+                <span className="block whitespace-nowrap text-sm font-semibold text-slate-900">
+                  {title}
+                </span>
+                <span className="block whitespace-nowrap text-xs text-slate-500">
+                  {description}
+                </span>
+              </motion.span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="mt-auto flex justify-center border-t border-brand-line/70 pt-4">
+          <span className="h-1.5 w-8 rounded-full bg-gradient-to-r from-brand-blue to-brand-green" />
+        </div>
+      </div>
+    </motion.aside>
+  );
+};
+
 const WelcomeSection: React.FC<{ name: string }> = ({ name }) => (
   <motion.section
     animate={{ opacity: 1, y: 0 }}
     aria-labelledby="welcome-title"
-    className="mb-10"
+    className="mb-6"
     initial={{ opacity: 0, y: 20 }}
     transition={{ duration: 0.5 }}
   >
@@ -226,100 +306,12 @@ const WelcomeSection: React.FC<{ name: string }> = ({ name }) => (
           </span>
         </h1>
         <p className="text-lg text-gray-600 mt-2">
-          Acesse as funcionalidades do sistema abaixo
+          Acompanhe a operação do dia com indicadores consolidados de
+          atendimento e SST.
         </p>
       </div>
     </section>
   </motion.section>
-);
-
-const MenuCard: React.FC<MenuCardProps> = ({
-  title,
-  description,
-  icon,
-  subItems,
-  onPress,
-  index,
-}) => (
-  <motion.article
-    animate={{ opacity: 1, y: 0 }}
-    aria-label={`Acessar ${title}`}
-    className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200"
-    initial={{ opacity: 0, y: 20 }}
-    role="button"
-    tabIndex={0}
-    transition={{ duration: 0.5, delay: index * 0.1 }}
-    onClick={onPress}
-    onKeyDown={(e) => e.key === "Enter" && onPress()}
-  >
-    <header aria-labelledby={`card-title-${index}`} className="text-center p-6">
-      <div
-        className="mx-auto w-16 h-16 rounded-full flex items-center justify-center bg-gray-50 mb-4 transition-all duration-300"
-      >
-        <div className="group-hover:scale-110 group-hover:text-[#30D158] transition-transform duration-300">
-          {icon}
-        </div>
-      </div>
-      <h3
-        className="text-xl font-semibold text-gray-900"
-        id={`card-title-${index}`}
-      >
-        {title}
-      </h3>
-      <p className="text-gray-600 text-sm">{description}</p>
-    </header>
-    <div className="p-6">
-      <div className="flex items-center justify-center space-x-4 text-sm text-gray-600">
-        {subItems.map((item, i) => (
-          <div key={i} aria-label={item.text} className="flex items-center">
-            {item.icon}
-            <span>{item.text}</span>
-          </div>
-        ))}
-      </div>
-      <button
-        aria-label={`Acessar ${title}`}
-        className="w-full px-4 py-2 bg-[#0698C2] text-white rounded-md group-hover:bg-[#047A9E] focus:outline-none focus:ring-2 focus:ring-[#0698C2] focus:ring-offset-2 transition-colors cursor-pointer"
-      >
-        Acessar
-      </button>
-    </div>
-  </motion.article>
-);
-
-const StatsCard: React.FC<StatsCardProps> = ({
-  title,
-  value,
-  icon,
-  index,
-  description,
-  trend,
-}) => (
-  <article
-    aria-labelledby={`stat-title-${index}`}
-    className="bg-white rounded-2xl shadow-sm border border-gray-200/80 overflow-hidden"
-    role="region"
-  >
-    <div className="p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p
-            className="text-sm font-medium text-gray-600 mb-1"
-            id={`stat-title-${index}`}
-          >
-            {title}
-          </p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          {description && (
-            <p className="text-xs text-gray-500 mt-1">{description}</p>
-          )}
-        </div>
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#0698C2] text-white shadow-lg">
-          {icon}
-        </div>
-      </div>
-    </div>
-  </article>
 );
 
 // Componente Principal
@@ -328,20 +320,27 @@ export default function DashboardPage() {
 
   const [user, setUser] = useState<IUserInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(
-    null,
-  );
   const [currentMessage, setCurrentMessage] = useState<Message | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
+  const [showPostLoginTransition, setShowPostLoginTransition] = useState(false);
 
-  const { pscAuthStatus, isLoading: isPscLoading, refetch: refetchPscStatus } = usePscAuthStatus();
+  const {
+    pscAuthStatus,
+    isLoading: isPscLoading,
+    refetch: refetchPscStatus,
+  } = usePscAuthStatus();
   const previousPscStatusRef = useRef(pscAuthStatus.status);
   const expiryWarningShownRef = useRef(false);
   const [showReauthModal, setShowReauthModal] = useState(false);
   const [isPscAuthenticating, setIsPscAuthenticating] = useState(false);
   const pscAuthWindowRef = useRef<Window | null>(null);
   const [pscAuthWindowUrl, setPscAuthWindowUrl] = useState<string>("");
+
+  const handlePostLoginComplete = useCallback(() => {
+    setShowPostLoginTransition(false);
+    router.replace("/dashboard", { scroll: false });
+  }, [router]);
 
   // Buscar mensagem atual
   const fetchAndSetMessage = async () => {
@@ -372,18 +371,16 @@ export default function DashboardPage() {
         return;
       }
 
+      if (
+        new URLSearchParams(window.location.search).get("loginTransition") ===
+        "1"
+      ) {
+        setShowPostLoginTransition(true);
+      }
+
       setUser(currentUser);
 
       try {
-        // Buscar dados do dashboard
-        const res = await fetch(NEST_DASHBOARD);
-
-        if (!res.ok) throw new Error("Erro ao buscar atendimentos");
-
-        const responseStats: DashboardStats = await res.json();
-
-        setDashboardStats(responseStats);
-
         // Verificar se há mensagem na sessão
         const storedMessage = getSessionMessage();
 
@@ -400,8 +397,7 @@ export default function DashboardPage() {
           await fetchAndSetMessage();
         }
       } catch (err) {
-        console.error("Erro ao carregar atendimentos:", err);
-        setDashboardStats(null);
+        console.error("Erro ao carregar mensagem do dashboard:", err);
       } finally {
         setIsLoading(false);
       }
@@ -415,30 +411,36 @@ export default function DashboardPage() {
     const curr = pscAuthStatus.status;
 
     if (prev !== curr) {
-      if (curr === 'EXPIRED') {
+      if (curr === "EXPIRED") {
         expiryWarningShownRef.current = false;
         setShowReauthModal(true);
         addToast({
-          title: 'Sessão PSC expirada',
-          description: 'Sua autenticação de assinatura expirou. Reautentique-se para continuar assinando digitalmente.',
-          severity: 'warning',
-          color: 'foreground',
-          variant: 'flat',
+          title: "Sessão PSC expirada",
+          description:
+            "Sua autenticação de assinatura expirou. Reautentique-se para continuar assinando digitalmente.",
+          severity: "warning",
+          color: "foreground",
+          variant: "flat",
         });
       }
       previousPscStatusRef.current = curr;
     }
 
-    if (curr === 'ACTIVE' && pscAuthStatus.expiresAt && !expiryWarningShownRef.current) {
+    if (
+      curr === "ACTIVE" &&
+      pscAuthStatus.expiresAt &&
+      !expiryWarningShownRef.current
+    ) {
       const timeLeft = new Date(pscAuthStatus.expiresAt).getTime() - Date.now();
       if (timeLeft > 0 && timeLeft <= 300000) {
         expiryWarningShownRef.current = true;
         addToast({
-          title: 'Assinatura Digital',
-          description: 'Sua assinatura digital está próxima ao vencimento. Reautentique-se para evitar interrupções.',
-          severity: 'warning',
-          color: 'foreground',
-          variant: 'flat',
+          title: "Assinatura Digital",
+          description:
+            "Sua assinatura digital está próxima ao vencimento. Reautentique-se para evitar interrupções.",
+          severity: "warning",
+          color: "foreground",
+          variant: "flat",
         });
       }
     }
@@ -446,10 +448,10 @@ export default function DashboardPage() {
 
   const attemptPscReauth = useCallback(async () => {
     try {
-      const payload = { provider: '' };
-      const response = await fetch('/api/psc/auth/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const payload = { provider: "" };
+      const response = await fetch("/api/psc/auth/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (!response.ok) throw new Error(await response.text());
@@ -461,9 +463,17 @@ export default function DashboardPage() {
 
         const width = 800;
         const height = 700;
-        const left = window.screen.width ? (window.screen.width - width) / 2 : 0;
-        const top = window.screen.height ? (window.screen.height - height) / 2 : 0;
-        const newWindow = window.open(data.url, 'psc_auth', `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`);
+        const left = window.screen.width
+          ? (window.screen.width - width) / 2
+          : 0;
+        const top = window.screen.height
+          ? (window.screen.height - height) / 2
+          : 0;
+        const newWindow = window.open(
+          data.url,
+          "psc_auth",
+          `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`,
+        );
         if (newWindow) {
           pscAuthWindowRef.current = newWindow;
           newWindow.focus();
@@ -471,11 +481,11 @@ export default function DashboardPage() {
       }
     } catch (error: any) {
       addToast({
-        title: 'Erro de Autenticação',
-        description: `Falha ao conectar com provedor: ${error.message || 'Erro desconhecido'}`,
-        severity: 'danger',
-        color: 'foreground',
-        variant: 'flat',
+        title: "Erro de Autenticação",
+        description: `Falha ao conectar com provedor: ${error.message || "Erro desconhecido"}`,
+        severity: "danger",
+        color: "foreground",
+        variant: "flat",
       });
     }
   }, []);
@@ -487,9 +497,10 @@ export default function DashboardPage() {
         clearInterval(pollInterval);
         setIsPscAuthenticating(false);
         addToast({
-          title: 'Autenticação Não Concluída',
-          description: 'A janela de autenticação foi fechada antes de concluir.',
-          variant: 'flat',
+          title: "Autenticação Não Concluída",
+          description:
+            "A janela de autenticação foi fechada antes de concluir.",
+          variant: "flat",
         });
         return;
       }
@@ -505,11 +516,11 @@ export default function DashboardPage() {
         pscAuthWindowRef.current.close();
       }
       addToast({
-        title: 'Autenticação Realizada',
-        description: 'Assinatura digital habilitada com sucesso.',
-        severity: 'success',
-        color: 'foreground',
-        variant: 'flat',
+        title: "Autenticação Realizada",
+        description: "Assinatura digital habilitada com sucesso.",
+        severity: "success",
+        color: "foreground",
+        variant: "flat",
       });
     }
   }, [isPscAuthenticating, pscAuthStatus.isActive]);
@@ -519,71 +530,23 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, [refetchPscStatus]);
 
-  const menuItems = [
-    {
-      title: "Atendimento",
-      description: "Exames",
-      icon: <Stethoscope className="h-6 w-6" />,
-      path: "/atendimento",
-      subItems: [],
-    },
-    {
-      title: "Recepção",
-      description: "Atendimento",
-      icon: <Users className="h-6 w-6" />,
-      path: "/recepcao",
-      subItems: [],
-    },
-    {
-      title: "Relatórios",
-      description: "Consultas",
-      icon: <ChartNoAxesCombined className="h-6 w-6" />,
-      path: "/relatorio",
-      subItems: [],
-    },
-    {
-      title: "Prontuários",
-      description: "Resultados",
-      icon: <FileText className="h-6 w-6" />,
-      path: "/prontuarios",
-      subItems: [],
-    },
-  ];
-
-  const stats = [
-    {
-      title: "Total Prontuários",
-      value: dashboardStats?.totalGeral,
-      icon: <FileText className="h-6 w-6" />,
-      description: "Até dia atual",
-    },
-    {
-      title: "Atendimentos Previstos",
-      value: dashboardStats?.agendados,
-      icon: <Calendar className="h-6 w-6" />,
-      description: "Todas as unidades",
-      trend: { value: "+12%", isPositive: true },
-    },
-    {
-      title: "Aguardando Liberação",
-      value: `${dashboardStats?.aguardandoAvaliacaoMedica}`,
-      icon: <CheckCircle className="h-6 w-6" />,
-      description: "Para avaliação médica",
-    },
-    {
-      title: "Aguardando Resultados",
-      value: dashboardStats?.aguardandoResultados,
-      icon: <Clock className="h-6 w-6" />,
-      description: "Para finalização de exames",
-    },
-  ];
-
   if (isLoading || !user) {
     return <EngemedicalLoading />;
   }
 
+  if (showPostLoginTransition) {
+    return (
+      <PremiumCyberLoading
+        duration={2600}
+        onComplete={handlePostLoginComplete}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <PremiumDashboardSidebar onNavigate={(path) => router.push(path)} />
+
       <HeaderApp
         onLogout={() => {
           // Limpar mensagem ao fazer logout
@@ -597,27 +560,9 @@ export default function DashboardPage() {
 
       <main
         aria-label="Dashboard principal"
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"
+        className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:pl-24 lg:pr-8"
       >
         <WelcomeSection name={user.nome} />
-
-        <section
-          aria-label="Menu de funcionalidades"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-        >
-          {menuItems.map((item, index) => (
-            <MenuCard
-              key={item.title}
-              description={item.description}
-              icon={item.icon}
-              index={index}
-              path={item.path}
-              subItems={item.subItems}
-              title={item.title}
-              onPress={() => router.push(item.path)}
-            />
-          ))}
-        </section>
 
         <section aria-labelledby="stats-title" className="mt-8">
           <div>
@@ -644,21 +589,35 @@ export default function DashboardPage() {
       <ConsentModal />
 
       {/* Modal de re-autenticação PSC */}
-      <Modal isOpen={showReauthModal} onClose={() => setShowReauthModal(false)} placement="center" size="sm">
+      <Modal
+        isOpen={showReauthModal}
+        onClose={() => setShowReauthModal(false)}
+        placement="center"
+        size="sm"
+      >
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1 text-[#005C7A]">
             Sessão de Assinatura Expirada
           </ModalHeader>
           <ModalBody>
             <p className="text-sm text-gray-600">
-              Sua sessão de assinatura digital expirou. Para continuar assinando, clique no botão abaixo e realize a autenticação novamente.
+              Sua sessão de assinatura digital expirou. Para continuar
+              assinando, clique no botão abaixo e realize a autenticação
+              novamente.
             </p>
           </ModalBody>
           <ModalFooter className="flex gap-2">
-            <Button variant="flat" color="default" onPress={() => setShowReauthModal(false)}>
+            <Button
+              variant="flat"
+              color="default"
+              onPress={() => setShowReauthModal(false)}
+            >
               Agora não
             </Button>
-            <Button className="bg-[#0698C2] text-white hover:bg-[#047A9E]" onPress={attemptPscReauth}>
+            <Button
+              className="bg-[#0698C2] text-white hover:bg-[#047A9E]"
+              onPress={attemptPscReauth}
+            >
               Autenticar
             </Button>
           </ModalFooter>

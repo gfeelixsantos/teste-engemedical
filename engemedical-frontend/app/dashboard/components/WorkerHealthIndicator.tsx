@@ -55,8 +55,9 @@ export function WorkerHealthIndicator() {
 
   if (!data) return null;
 
-  const { engemedical-connectWorker, asoProcessingQueue, asoEnriquecimentoQueue } = data;
-  const workerOnline = engemedical-connectWorker.status === "online";
+  const connectWorker = data["engemedical-connectWorker"];
+  const { asoProcessingQueue, asoEnriquecimentoQueue } = data;
+  const workerOnline = connectWorker.status === "online";
 
   return (
     <motion.div
@@ -78,9 +79,9 @@ export function WorkerHealthIndicator() {
         </span>
       </div>
 
-      {workerOnline && engemedical-connectWorker.latencyMs > 0 && (
+      {workerOnline && connectWorker.latencyMs > 0 && (
         <span className="text-[10px] text-gray-400">
-          {engemedical-connectWorker.latencyMs}ms
+          {connectWorker.latencyMs}ms
         </span>
       )}
 

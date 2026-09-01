@@ -1,5 +1,7 @@
 "use client";
+
 import { motion } from "framer-motion";
+import { CheckCircle2, Radar } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -8,243 +10,140 @@ interface PremiumCyberLoadingProps {
   duration?: number;
 }
 
+const transitionSteps = [
+  "Validando sessão corporativa",
+  "Sincronizando ambiente SST",
+  "Preparando dashboard operacional",
+] as const;
+
 export default function PremiumCyberLoading({
   onComplete,
-  duration = 3000,
+  duration = 2600,
 }: PremiumCyberLoadingProps) {
-  const [progress, setProgress] = useState(0);
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 1;
-      });
-    }, duration / 100);
+    const shouldReduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const finalDuration = shouldReduceMotion ? 420 : duration;
+    const stepDuration = Math.max(finalDuration / transitionSteps.length, 120);
 
-    const timeout = setTimeout(() => {
+    const interval = window.setInterval(() => {
+      setActiveStep((current) =>
+        Math.min(current + 1, transitionSteps.length - 1),
+      );
+    }, stepDuration);
+
+    const timeout = window.setTimeout(() => {
       onComplete?.();
-    }, duration);
+    }, finalDuration);
 
     return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
     };
   }, [duration, onComplete]);
 
-  const hexagonVariants = {
-    initial: { scale: 0, rotate: -180, opacity: 0 },
-    animate: {
-      scale: 1,
-      rotate: 0,
-      opacity: 1,
-      transition: {
-        duration: 1.2,
-        ease: [0.23, 1, 0.32, 1],
-      },
-    },
-  };
-
-  const glowVariants = {
-    initial: { scale: 0.8, opacity: 0 },
-    animate: {
-      scale: [1, 1.2, 1],
-      opacity: [0.5, 0.8, 0.5],
-      transition: {
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut",
-      },
-    },
-  };
-
-  const textVariants = {
-    initial: { y: 20, opacity: 0 },
-    animate: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        delay: 0.8,
-        duration: 0.8,
-        ease: [0.23, 1, 0.32, 1],
-      },
-    },
-  };
-
-  const particleVariants = {
-    initial: { scale: 0, opacity: 0 },
-    animate: (i: number) => ({
-      scale: [0, 1, 0],
-      opacity: [0, 1, 0],
-      rotate: [0, 180],
-      transition: {
-        delay: i * 0.1,
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut",
-      },
-    }),
-  };
-
-  const particles = Array.from({ length: 12 }, (_, i) => i);
-
   return (
-    <main
-      aria-label="Carregando sistema"
-      className="min-h-screen bg-gradient-to-br from-[#0a1a0f] via-[#0d2818] to-[#0a1a0f] flex items-center justify-center relative overflow-hidden"
+    <motion.div
+      animate={{ opacity: 1 }}
+      aria-label="Portal conectado"
+      aria-live="polite"
+      className="fixed inset-0 z-[9999] grid place-items-center overflow-hidden bg-[#020817] px-5 text-white"
+      initial={{ opacity: 0 }}
+      role="status"
+      transition={{ duration: 0.28, ease: "easeOut" }}
     >
-      {/* Background grid effect */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(16,78,53,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(16,78,53,0.1)_1px,transparent_1px)] bg-[size:50px_50px]" />
-      </div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(48,209,88,0.22),transparent_28%),radial-gradient(circle_at_18%_18%,rgba(6,152,194,0.2),transparent_30%),linear-gradient(135deg,#020817_0%,#03111f_46%,#06281f_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:72px_72px] opacity-30" />
+      <motion.div
+        animate={{ x: ["-42%", "42%", "-42%"], opacity: [0.24, 0.7, 0.24] }}
+        className="absolute top-[48%] h-px w-[72vw] max-w-[760px] bg-gradient-to-r from-transparent via-brand-lime/70 to-transparent shadow-[0_0_30px_rgba(94,225,122,0.45)]"
+        transition={{ duration: 4.6, ease: "easeInOut", repeat: Infinity }}
+      />
+      <motion.div
+        animate={{ opacity: [0.16, 0.38, 0.16], scale: [0.94, 1.06, 0.94] }}
+        className="absolute h-[420px] w-[420px] rounded-full border border-brand-cyan/20"
+        transition={{ duration: 5.6, ease: "easeInOut", repeat: Infinity }}
+      />
+      <motion.div
+        animate={{ opacity: [0.14, 0.3, 0.14], scale: [1.04, 0.96, 1.04] }}
+        className="absolute h-[310px] w-[310px] rounded-full border border-brand-green/20"
+        transition={{ duration: 6.8, ease: "easeInOut", repeat: Infinity }}
+      />
 
-      {/* Animated particles */}
-      <div className="absolute inset-0 pointer-events-none">
-        {particles.map((i) => (
+      <motion.section
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative z-10 flex w-full max-w-[540px] flex-col items-center rounded-[28px] border border-white/12 bg-white/[0.07] px-7 py-9 text-center shadow-[0_34px_120px_rgba(0,0,0,0.42)] backdrop-blur-2xl sm:px-10"
+        initial={{ opacity: 0, scale: 0.95, y: 18 }}
+        transition={{ duration: 0.52, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <div className="relative mb-7 grid h-36 w-full place-items-center">
           <motion.div
-            key={i}
-            custom={i}
-            initial="initial"
-            animate="animate"
-            variants={particleVariants}
-            className="absolute w-1 h-1 bg-[#a6ce39] rounded-full"
-            style={{
-              top: `${20 + (i * 5) % 60}%`,
-              left: `${10 + (i * 7) % 80}%`,
-            }}
+            animate={{ rotate: 360 }}
+            className="absolute h-36 w-36 rounded-full border border-dashed border-brand-cyan/32"
+            transition={{ duration: 8, ease: "linear", repeat: Infinity }}
           />
-        ))}
-      </div>
+          <motion.div
+            animate={{ rotate: -360 }}
+            className="absolute h-28 w-28 rounded-full border border-brand-green/28"
+            transition={{ duration: 7, ease: "linear", repeat: Infinity }}
+          />
+          <Image
+            priority
+            alt="Engemedical Brasil"
+            className="relative z-10 h-auto w-[min(74vw,330px)] object-contain drop-shadow-[0_30px_74px_rgba(22,217,245,0.4)]"
+            height={190}
+            src="/images/logo.png"
+            width={430}
+          />
+        </div>
 
-      <div className="relative z-10 flex flex-col items-center">
-        {/* Glow effect behind logo */}
-        <motion.div
-          initial="initial"
-          animate="animate"
-          variants={glowVariants}
-          className="absolute w-64 h-64 bg-[#a6ce39] rounded-full blur-[100px] opacity-30"
-        />
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-brand-green/28 bg-brand-green/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-brand-lime">
+          <Radar className="h-3.5 w-3.5" />
+          Portal conectado
+        </div>
 
-        {/* Logo with hexagon animation */}
-        <motion.div
-          initial="initial"
-          animate="animate"
-          variants={hexagonVariants}
-          className="relative mb-8"
-        >
-          <div className="relative">
-            {/* Rotating ring */}
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 8, ease: "linear", repeat: Infinity }}
-              className="absolute inset-0 w-48 h-48"
-            >
-              <svg
-                className="w-full h-full"
-                viewBox="0 0 200 200"
-                fill="none"
+        <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+          Entrada autorizada
+        </h1>
+        <p className="mt-2 max-w-sm text-sm leading-6 text-white/66">
+          Preparando sua operação Engemedical com segurança, contexto clínico e
+          dados de SST.
+        </p>
+
+        <div className="mt-8 w-full space-y-3 text-left">
+          {transitionSteps.map((step, index) => {
+            const isActive = index <= activeStep;
+
+            return (
+              <motion.div
+                key={step}
+                animate={{ opacity: isActive ? 1 : 0.45, x: isActive ? 0 : -6 }}
+                className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.055] px-3 py-2.5 text-sm text-white/84"
+                initial={{ opacity: 0, x: -12 }}
+                transition={{ duration: 0.28, delay: index * 0.08 }}
               >
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="95"
-                  stroke="url(#gradient1)"
-                  strokeWidth="2"
-                  strokeDasharray="10 5"
-                  opacity="0.5"
+                <CheckCircle2
+                  className={`h-4 w-4 shrink-0 ${
+                    isActive ? "text-brand-lime" : "text-white/28"
+                  }`}
                 />
-                <defs>
-                  <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#0698C2" />
-                    <stop offset="50%" stopColor="#a6ce39" />
-                    <stop offset="100%" stopColor="#0698C2" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </motion.div>
+                <span>{step}</span>
+              </motion.div>
+            );
+          })}
+        </div>
 
-            {/* Second rotating ring (opposite direction) */}
-            <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ duration: 6, ease: "linear", repeat: Infinity }}
-              className="absolute inset-0 w-48 h-48"
-            >
-              <svg
-                className="w-full h-full"
-                viewBox="0 0 200 200"
-                fill="none"
-              >
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="85"
-                  stroke="url(#gradient2)"
-                  strokeWidth="1.5"
-                  strokeDasharray="15 10"
-                  opacity="0.4"
-                />
-                <defs>
-                  <linearGradient id="gradient2" x1="100%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#a6ce39" />
-                    <stop offset="100%" stopColor="#0698C2" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </motion.div>
-
-            {/* Logo image */}
-            <div className="relative w-40 h-40 flex items-center justify-center">
-              <Image
-                priority
-                alt="Engemedical"
-                className="w-32 h-32 object-contain"
-                height={128}
-                src="/images/engemedical_icone.png"
-                width={128}
-              />
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Text with reveal effect */}
-        <motion.div
-          initial="initial"
-          animate="animate"
-          variants={textVariants}
-          className="text-center space-y-4"
-        >
-          <h1 className="text-4xl font-bold text-white tracking-wider">
-            <span className="text-[#4a9eff]">ENGE</span>
-            <span className="text-[#a6ce39]">MEDICAL</span>
-          </h1>
-          <p className="text-gray-400 text-sm tracking-widest uppercase">
-            Brasil
-          </p>
-
-          {/* Progress bar */}
-          <div className="w-64 h-1 bg-gray-800 rounded-full overflow-hidden mt-6">
-            <motion.div
-              animate={{ width: `${progress}%` }}
-              className="h-full bg-gradient-to-r from-[#0698C2] via-[#a6ce39] to-[#4a9eff] rounded-full"
-              initial={{ width: "0%" }}
-              transition={{ duration: 0.1 }}
-            />
-          </div>
-
-          <p className="text-gray-500 text-xs mt-2">
-            {progress}% Concluído
-          </p>
-        </motion.div>
-      </div>
-
-      {/* Corner accents */}
-      <div className="absolute top-8 left-8 w-16 h-16 border-l-2 border-t-2 border-[#a6ce39] opacity-30" />
-      <div className="absolute top-8 right-8 w-16 h-16 border-r-2 border-t-2 border-[#a6ce39] opacity-30" />
-      <div className="absolute bottom-8 left-8 w-16 h-16 border-l-2 border-b-2 border-[#a6ce39] opacity-30" />
-      <div className="absolute bottom-8 right-8 w-16 h-16 border-r-2 border-b-2 border-[#a6ce39] opacity-30" />
-    </main>
+        <div className="mt-8 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+          <motion.div
+            animate={{ x: ["-100%", "0%"] }}
+            className="h-full rounded-full bg-gradient-to-r from-brand-blue via-brand-cyan to-brand-green"
+            transition={{ duration: duration / 1000, ease: [0.16, 1, 0.3, 1] }}
+          />
+        </div>
+      </motion.section>
+    </motion.div>
   );
 }
