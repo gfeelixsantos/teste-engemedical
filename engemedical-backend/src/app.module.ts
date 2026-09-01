@@ -43,6 +43,7 @@ import { GoogleDriveModule } from './google/drive/google-drive.module';
 import { CommitmentsModule } from './commitments/commitments.module';
 import { MuralModule } from './mural/mural.module';
 import { CustomerEmailCampaignModule } from './customer-email-campaign/customer-email-campaign.module';
+import { SftpIntegratorModule } from './sftp-integrator/sftp-integrator.module';
 
 require('dotenv').config();
 
@@ -85,6 +86,7 @@ require('dotenv').config();
     CommitmentsModule,
     MuralModule,
     CustomerEmailCampaignModule,
+    SftpIntegratorModule,
   ],
   controllers: [AppController, TicketController, HealthController],
   providers: [AppService],

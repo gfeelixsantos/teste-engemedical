@@ -9,12 +9,19 @@ import { StructuredLogger } from 'src/utils/logger';
 import { calcularRangePipeline } from 'src/utils/util';
 import { WebsocketGateway } from 'src/websocket/websocket-connection';
 import { GedBatchService } from 'src/ged-batch/ged-batch.service';
+import { SftpIntegratorService } from 'src/sftp-integrator/sftp-integrator.service';
 
 @Injectable()
 export class CronJobs implements OnModuleInit {
   private readonly enableSocSyncCron =
     String(process.env.ENABLE_SOC_SYNC_CRON ?? 'false').toLowerCase() ===
     'true';
+  private readonly enableGrupoToraSftpCron =
+    String(
+      process.env.SFTP_INTEGRATOR_GRUPO_TORA_CRON_ENABLED ??
+        process.env.ENABLE_TORA_SFTP_CRON ??
+        'false',
+    ).toLowerCase() === 'true';
 
   constructor(
     private readonly ticketsService: TicketService,
@@ -24,6 +31,7 @@ export class CronJobs implements OnModuleInit {
     private readonly scraperMetrics: ScraperMetricsService,
     private readonly logger: StructuredLogger,
     private readonly gedBatchService: GedBatchService,
+    private readonly sftpIntegratorService: SftpIntegratorService,
   ) {
     this.logger.setContext(CronJobs.name);
   }
@@ -246,6 +254,31 @@ export class CronJobs implements OnModuleInit {
       });
     } catch (error) {
       this.logger.error('Erro na rotina de inativação em massa:', error);
+    }
+  }
+
+  @Cron('30 18 * * *', { timeZone: 'America/Sao_Paulo' })
+  async grupoToraSftpPullJob() {
+    if (!this.enableGrupoToraSftpCron) {
+      this.logger.warn({
+        event: 'SFTP_INTEGRATOR_GRUPO_TORA_CRON_DISABLED',
+        message: '[CRON][SFTP] Grupo Tora desativado por configuracao',
+      });
+      return;
+    }
+
+    this.logger.log('[CRON][SFTP] Iniciando pull Grupo Tora...');
+    try {
+      const result = await this.sftpIntegratorService.pullLatest('grupo-tora');
+      this.logger.log({
+        event: 'SFTP_INTEGRATOR_GRUPO_TORA_PULL_FINISH',
+        downloaded: result.downloaded,
+        remoteName: result.file.remoteName,
+        size: result.file.size,
+        sha256: result.file.sha256,
+      });
+    } catch (error) {
+      this.logger.error('[CRON][SFTP] Erro no pull Grupo Tora:', error);
     }
   }
 
