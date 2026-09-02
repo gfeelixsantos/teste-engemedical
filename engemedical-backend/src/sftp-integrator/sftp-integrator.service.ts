@@ -23,6 +23,7 @@ import {
   SftpIntegratorParseRun,
   SftpPullResult,
 } from './sftp-integrator.types';
+import { SftpSocProcessor } from './sftp-soc-processor';
 
 function wildcardToRegExp(pattern: string): RegExp {
   const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
@@ -40,6 +41,7 @@ export class SftpIntegratorService implements OnModuleInit {
     private readonly fs: SftpIntegratorFs,
     private readonly spreadsheetParser: SftpSpreadsheetParser,
     private readonly emailService: EmailService,
+    private readonly socProcessor: SftpSocProcessor,
     @Optional()
     @Inject('SFTP_INTEGRATOR_BACKEND_ROOT')
     private readonly backendRoot = process.cwd(),
@@ -114,10 +116,35 @@ export class SftpIntegratorService implements OnModuleInit {
     };
   }
 
+  async pullLatestAndRunDryRun(clientKey: string) {
+    const pull = await this.pullLatest(clientKey);
+    const fileId = String((pull.file as any)._id || '');
+    if (!fileId) {
+      throw new BadRequestException(
+        'Arquivo baixado sem identificador para dry-run',
+      );
+    }
+
+    return {
+      pull,
+      dryRun: await this.runDryRun(clientKey, fileId),
+    };
+  }
+
   async listFiles(clientKey: string, limit = 50) {
     const normalizedClientKey = normalizeSftpIntegratorClientKey(clientKey);
     const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
     return this.collection()
+      .find({ clientKey: normalizedClientKey })
+      .sort({ createdAt: -1 })
+      .limit(safeLimit)
+      .toArray();
+  }
+
+  async listRuns(clientKey: string, limit = 50) {
+    const normalizedClientKey = normalizeSftpIntegratorClientKey(clientKey);
+    const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
+    return this.runsCollection()
       .find({ clientKey: normalizedClientKey })
       .sort({ createdAt: -1 })
       .limit(safeLimit)
@@ -181,6 +208,7 @@ export class SftpIntegratorService implements OnModuleInit {
       rowNumber: payload.rowNumber,
       lookupKey: payload.lookupKey,
       situationToSend: payload.situationToSend,
+      codigoEmpresaOrigem: payload.employee.CODIGOEMPRESA,
       maskedCpf: maskCpf(payload.employee.CPF),
       nomeFuncionario: payload.employee.NOME,
       matriculaRh: payload.employee.MATRICULARH,
@@ -220,6 +248,71 @@ export class SftpIntegratorService implements OnModuleInit {
     };
 
     await this.sendDryRunReport(result);
+    return result;
+  }
+
+  async processSocLimited(clientKey: string, id: string) {
+    const normalizedClientKey = normalizeSftpIntegratorClientKey(clientKey);
+    if (!isEnabled(
+      process.env[`SFTP_INTEGRATOR_${envClientKey(normalizedClientKey)}_SOC_ENABLED`],
+    )) {
+      throw new BadRequestException('Processamento SOC desabilitado');
+    }
+
+    const { fileId, file, resolvedPath } = await this.loadFile(clientKey, id);
+    const parsed = await this.spreadsheetParser.parseGrupoToraFile(resolvedPath);
+    const payloads = parsed.rows
+      .filter((row) => row.valid)
+      .map((row) => buildGrupoToraSocPayload(row));
+    const socResult = await this.socProcessor.process(payloads, {
+      limit: getPositiveInt(
+        process.env[`SFTP_INTEGRATOR_${envClientKey(normalizedClientKey)}_SOC_LIMIT`],
+        3,
+      ),
+      delayMs: getNonNegativeInt(
+        process.env[
+          `SFTP_INTEGRATOR_${envClientKey(normalizedClientKey)}_SOC_DELAY_MS`
+        ],
+        2500,
+      ),
+      lookupCompanyCode:
+        process.env[
+          `SFTP_INTEGRATOR_${envClientKey(normalizedClientKey)}_SOC_LOOKUP_COMPANY_CODE`
+        ],
+    });
+    const now = new Date();
+    const run: SftpIntegratorParseRun = {
+      clientKey: normalizedClientKey,
+      fileId,
+      status: 'soc_limited',
+      summary: {
+        ...parsed.summary,
+        ...socResult.summary,
+        mode: 'soc_limited',
+      },
+      invalidRowsPreview: parsed.rows
+        .filter((row) => !row.valid)
+        .slice(0, 50)
+        .map((row) => ({
+          rowNumber: row.rowNumber,
+          errors: row.errors,
+        })),
+      soapPreview: socResult.rows,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const inserted = await this.runsCollection().insertOne(run);
+    const result = {
+      _id: inserted.insertedId,
+      ...run,
+      file: {
+        remoteName: file.remoteName,
+        sha256: file.sha256,
+        size: file.size,
+      },
+    };
+
+    await this.sendSocReport(result);
     return result;
   }
 
@@ -288,6 +381,47 @@ export class SftpIntegratorService implements OnModuleInit {
       template: buildDryRunReportHtml(run),
     });
   }
+
+  private async sendSocReport(run: {
+    clientKey: string;
+    summary: any;
+    invalidRowsPreview: unknown[];
+    soapPreview?: unknown[];
+    file: { remoteName: string; sha256: string; size: number };
+  }) {
+    const recipients = parseEmailList(
+      process.env.SFTP_INTEGRATOR_GRUPO_TORA_REPORT_EMAIL_TO,
+    );
+    if (!recipients.length) {
+      return;
+    }
+
+    await this.emailService.sendEmail({
+      to: recipients,
+      subject: `Execução SOC SFTP Grupo Tora - ${run.file.remoteName}`,
+      templatename: 'CUSTOM_REPORT',
+      attachment: [],
+      template: buildSocReportHtml(run),
+    });
+  }
+}
+
+function envClientKey(clientKey: string): string {
+  return clientKey.replace(/-/g, '_').toUpperCase();
+}
+
+function isEnabled(value?: string): boolean {
+  return String(value || '').toLowerCase() === 'true';
+}
+
+function getPositiveInt(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
+}
+
+function getNonNegativeInt(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : fallback;
 }
 
 function parseEmailList(value?: string): string[] {
@@ -319,7 +453,7 @@ function buildDryRunReportHtml(run: {
   const previewRows = (run.soapPreview || [])
     .map(
       (item: any) =>
-        `<tr><td>${item.rowNumber}</td><td>${escapeHtml(item.lookupKey)}</td><td>${escapeHtml(item.situationToSend)}</td><td>${escapeHtml(item.maskedCpf)}</td><td>${escapeHtml(item.matriculaRh)}</td></tr>`,
+        `<tr><td>${item.rowNumber}</td><td>${escapeHtml(item.lookupKey)}</td><td>${escapeHtml(item.codigoEmpresaOrigem)}</td><td>${escapeHtml(item.situationToSend)}</td><td>${escapeHtml(item.maskedCpf)}</td><td>${escapeHtml(item.matriculaRh)}</td></tr>`,
     )
     .join('');
   const errorRows = (run.invalidRowsPreview || [])
@@ -341,8 +475,31 @@ function buildDryRunReportHtml(run: {
     <h3>Situações</h3>
     <table border="1" cellpadding="6" cellspacing="0"><tbody>${situationRows}</tbody></table>
     <h3>Prévia SOAP</h3>
-    <table border="1" cellpadding="6" cellspacing="0"><thead><tr><th>Linha</th><th>Chave</th><th>Situação</th><th>CPF</th><th>Matrícula RH</th></tr></thead><tbody>${previewRows}</tbody></table>
+    <table border="1" cellpadding="6" cellspacing="0"><thead><tr><th>Linha</th><th>Chave</th><th>Empresa origem</th><th>Situação</th><th>CPF</th><th>Matrícula RH</th></tr></thead><tbody>${previewRows}</tbody></table>
     ${errorsBlock}
+  `;
+}
+
+function buildSocReportHtml(run: {
+  clientKey: string;
+  summary: any;
+  invalidRowsPreview: unknown[];
+  soapPreview?: unknown[];
+  file: { remoteName: string; sha256: string; size: number };
+}): string {
+  const rows = (run.soapPreview || [])
+    .map(
+      (item: any) =>
+        `<tr><td>${item.rowNumber}</td><td>${escapeHtml(item.maskedCpf)}</td><td>${escapeHtml(item.situationToSend)}</td><td>${item.success ? 'Sucesso' : 'Falha'}</td><td>${escapeHtml(item.error || item.httpStatus || '')}</td></tr>`,
+    )
+    .join('');
+
+  return `
+    <h2>Execução SOC Integrador SFTP - Grupo Tora</h2>
+    <p><strong>Arquivo:</strong> ${escapeHtml(run.file.remoteName)}</p>
+    <p><strong>Total selecionado:</strong> ${run.summary.totalSelected} | <strong>Sucesso:</strong> ${run.summary.success} | <strong>Falhas:</strong> ${run.summary.failed}</p>
+    <p><strong>Ignorados por limite:</strong> ${run.summary.skippedByLimit} | <strong>Delay:</strong> ${run.summary.delayMs}ms</p>
+    <table border="1" cellpadding="6" cellspacing="0"><thead><tr><th>Linha</th><th>CPF</th><th>Situação</th><th>Status</th><th>Retorno</th></tr></thead><tbody>${rows}</tbody></table>
   `;
 }
 

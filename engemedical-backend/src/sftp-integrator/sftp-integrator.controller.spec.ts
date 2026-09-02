@@ -88,4 +88,52 @@ describe('SftpIntegratorController', () => {
       '66f000000000000000000001',
     );
   });
+
+  it('delegates pull plus dry-run processing for the latest file', async () => {
+    const result = {
+      pull: { downloaded: true, file: { remoteName: 'LOG.xlsx' } },
+      dryRun: { status: 'dry_run', summary: { payloadsPrepared: 1 } },
+    };
+    const service = {
+      pullLatestAndRunDryRun: jest.fn().mockResolvedValue(result),
+    };
+    const controller = new SftpIntegratorController(service as any);
+
+    await expect(
+      controller.dryRunLatest('grupo-tora', 'token-test'),
+    ).resolves.toBe(result);
+    expect(service.pullLatestAndRunDryRun).toHaveBeenCalledWith('grupo-tora');
+  });
+
+  it('lists dry-run executions for a client', async () => {
+    const result = [{ status: 'dry_run', summary: { totalRows: 1 } }];
+    const service = { listRuns: jest.fn().mockResolvedValue(result) };
+    const controller = new SftpIntegratorController(service as any);
+
+    await expect(
+      controller.listRuns('grupo-tora', 'token-test', '25'),
+    ).resolves.toBe(result);
+    expect(service.listRuns).toHaveBeenCalledWith('grupo-tora', 25);
+  });
+
+  it('delegates limited SOC processing for a registered file', async () => {
+    const result = {
+      status: 'soc_limited',
+      summary: { totalSelected: 3, success: 3, failed: 0 },
+    };
+    const service = { processSocLimited: jest.fn().mockResolvedValue(result) };
+    const controller = new SftpIntegratorController(service as any);
+
+    await expect(
+      controller.processSocLimited(
+        'grupo-tora',
+        '66f000000000000000000001',
+        'token-test',
+      ),
+    ).resolves.toBe(result);
+    expect(service.processSocLimited).toHaveBeenCalledWith(
+      'grupo-tora',
+      '66f000000000000000000001',
+    );
+  });
 });

@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { readSheet } from 'read-excel-file/node';
 
 export type GrupoToraEmployeeRow = {
   codigoEmpresaProtheus: string;
@@ -135,6 +134,7 @@ export function parseGrupoToraRows(rows: CellValue[][]): GrupoToraParseResult {
 export class SftpSpreadsheetParser {
   async parseGrupoToraFile(filePath: string): Promise<GrupoToraParseResult> {
     try {
+      const { readSheet } = await import('read-excel-file/node');
       const rows = (await readSheet(filePath)) as CellValue[][];
       return parseGrupoToraRows(rows);
     } catch (error) {

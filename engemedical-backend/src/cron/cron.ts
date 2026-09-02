@@ -269,26 +269,16 @@ export class CronJobs implements OnModuleInit {
 
     this.logger.log('[CRON][SFTP] Iniciando pull Grupo Tora...');
     try {
-      const result = await this.sftpIntegratorService.pullLatest('grupo-tora');
+      const result =
+        await this.sftpIntegratorService.pullLatestAndRunDryRun('grupo-tora');
       this.logger.log({
-        event: 'SFTP_INTEGRATOR_GRUPO_TORA_PULL_FINISH',
-        downloaded: result.downloaded,
-        remoteName: result.file.remoteName,
-        size: result.file.size,
-        sha256: result.file.sha256,
+        event: 'SFTP_INTEGRATOR_GRUPO_TORA_DRY_RUN_FINISH',
+        downloaded: result.pull.downloaded,
+        remoteName: result.pull.file.remoteName,
+        size: result.pull.file.size,
+        sha256: result.pull.file.sha256,
+        summary: result.dryRun.summary,
       });
-      const fileId = String((result.file as any)._id || '');
-      if (fileId) {
-        const dryRun = await this.sftpIntegratorService.runDryRun(
-          'grupo-tora',
-          fileId,
-        );
-        this.logger.log({
-          event: 'SFTP_INTEGRATOR_GRUPO_TORA_DRY_RUN_FINISH',
-          remoteName: result.file.remoteName,
-          summary: dryRun.summary,
-        });
-      }
     } catch (error) {
       this.logger.error('[CRON][SFTP] Erro no pull Grupo Tora:', error);
     }

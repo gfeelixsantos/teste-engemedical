@@ -45,7 +45,7 @@ export type SftpPullResult = {
 export type SftpIntegratorParseRun = {
   clientKey: string;
   fileId: unknown;
-  status: 'parsed' | 'dry_run';
+  status: 'parsed' | 'dry_run' | 'soc_limited';
   summary: unknown;
   invalidRowsPreview: unknown[];
   soapPreview?: unknown[];

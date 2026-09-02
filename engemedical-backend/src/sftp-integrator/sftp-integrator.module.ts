@@ -5,6 +5,8 @@ import { Ssh2SftpClientAdapter } from './sftp-client.adapter';
 import { SftpIntegratorController } from './sftp-integrator.controller';
 import { SftpIntegratorFs } from './sftp-integrator.fs';
 import { SftpIntegratorService } from './sftp-integrator.service';
+import { SftpSocEmployeeLookupService } from './sftp-soc-employee-lookup.service';
+import { SftpSocProcessor } from './sftp-soc-processor';
 import { SftpSpreadsheetParser } from './sftp-spreadsheet-parser';
 
 @Module({
@@ -13,6 +15,8 @@ import { SftpSpreadsheetParser } from './sftp-spreadsheet-parser';
   providers: [
     SftpIntegratorFs,
     SftpSpreadsheetParser,
+    SftpSocEmployeeLookupService,
+    SftpSocProcessor,
     SftpIntegratorService,
     {
       provide: 'SFTP_CLIENT_ADAPTER',

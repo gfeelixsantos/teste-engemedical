@@ -1,4 +1,8 @@
 import { CadastroFuncionarioPorSituacao } from '../../types/CadastroFuncionarioPorSituacao';
+import {
+  FuncionarioModelo2ResponseData,
+  parseFuncionarioModelo2Response,
+} from './funcionario-modelo2-response.parser';
 
 const WSSecurity = require('wssecurity-soap');
 
@@ -22,10 +26,31 @@ function converterSituacao(situacao: string) {
   }
 }
 
+type WsFuncionarioModelo2Options = {
+  overwriteSituacao?: string;
+  lookupKey?: 'CODIGO' | 'CPF';
+  auditObservation?: string;
+};
+
+function resolveOptions(
+  options?: string | WsFuncionarioModelo2Options,
+): WsFuncionarioModelo2Options {
+  if (typeof options === 'string') {
+    return { overwriteSituacao: options };
+  }
+  return options || {};
+}
+
 export async function WsFuncionarioModelo2(
   employee: CadastroFuncionarioPorSituacao,
-  overwriteSituacao?: string,
-): Promise<{ status: number; responseText: string; xml: string }> {
+  options?: string | WsFuncionarioModelo2Options,
+): Promise<{
+  status: number;
+  responseText: string;
+  xml: string;
+  data: FuncionarioModelo2ResponseData;
+}> {
+  const resolvedOptions = resolveOptions(options);
   const header = new WSSecurity(
     process.env.SOC_WEBSERVICE_USER,
     process.env.SOC_WEBSERVICE_PASS,
@@ -56,7 +81,11 @@ export async function WsFuncionarioModelo2(
   }
 
   const situacaoFinal =
-    overwriteSituacao || converterSituacao(employee.SITUACAO);
+    resolvedOptions.overwriteSituacao || converterSituacao(employee.SITUACAO);
+  const lookupKey = resolvedOptions.lookupKey || 'CODIGO';
+  const auditObservation =
+    resolvedOptions.auditObservation ||
+    `Inativado via automação Engemedical Connect em ${new Date().toLocaleString('pt-BR')}`;
 
   const xml = `
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://services.soc.age.com/">
@@ -70,7 +99,7 @@ export async function WsFuncionarioModelo2(
             <atualizarCargo>false</atualizarCargo>
             <funcionarioWsVo>
               <categoria></categoria>
-              <chaveProcuraFuncionario>CODIGO</chaveProcuraFuncionario>
+              <chaveProcuraFuncionario>${lookupKey}</chaveProcuraFuncionario>
               <cnpjEmpresaFuncionario>${cleanCnpj}</cnpjEmpresaFuncionario>
               <codigo>${employee.CODIGO || ''}</codigo>
               <codigoEmpresa>${employee.CODIGOEMPRESA || ''}</codigoEmpresa>
@@ -80,7 +109,7 @@ export async function WsFuncionarioModelo2(
               <dataNascimento>${dataNascimento}</dataNascimento>
               <descricaoAtividade></descricaoAtividade>
               <estadoCivil>SOLTEIRO</estadoCivil>
-              <matricula></matricula>
+              <matricula>${employee.MATRICULAFUNCIONARIO || employee.MATRICULARH || ''}</matricula>
               <nomeFuncionario>${(employee.NOME || '').toUpperCase().trim()}</nomeFuncionario>
               <observacaoPpp></observacaoPpp>
               <regimeTrabalho>NORMAL</regimeTrabalho>
@@ -91,7 +120,7 @@ export async function WsFuncionarioModelo2(
               <situacao>${situacaoFinal.toUpperCase()}</situacao>
               <tipoBuscaEmpresa>CODIGO_SOC</tipoBuscaEmpresa>
               <tipoContratacao>CLT</tipoContratacao>
-              <observacaoFuncionario>Inativado via automação Engemedical Connect em ${new Date().toLocaleString('pt-BR')}</observacaoFuncionario>
+              <observacaoFuncionario>${auditObservation}</observacaoFuncionario>
               <codigoCategoriaESocial></codigoCategoriaESocial>
               <tipoVinculo>EMPREGATICIO</tipoVinculo>
               <tipoAdmissao>ADMISSAO</tipoAdmissao>
@@ -133,6 +162,7 @@ export async function WsFuncionarioModelo2(
       status: response.status,
       responseText,
       xml,
+      data: parseFuncionarioModelo2Response(responseText),
     };
   } catch (error) {
     throw new Error(error instanceof Error ? error.message : String(error));

@@ -34,6 +34,15 @@ export class SftpIntegratorController {
     return this.service.pullLatest(clientKey);
   }
 
+  @Post(':clientKey/dry-run-latest')
+  async dryRunLatest(
+    @Param('clientKey') clientKey: string,
+    @Headers('x-internal-token') token?: string,
+  ) {
+    this.assertInternalAuth(token);
+    return this.service.pullLatestAndRunDryRun(clientKey);
+  }
+
   @Get(':clientKey/files')
   async listFiles(
     @Param('clientKey') clientKey: string,
@@ -42,6 +51,16 @@ export class SftpIntegratorController {
   ) {
     this.assertInternalAuth(token);
     return this.service.listFiles(clientKey, Number(limit || 50));
+  }
+
+  @Get(':clientKey/runs')
+  async listRuns(
+    @Param('clientKey') clientKey: string,
+    @Headers('x-internal-token') token?: string,
+    @Query('limit') limit?: string,
+  ) {
+    this.assertInternalAuth(token);
+    return this.service.listRuns(clientKey, Number(limit || 50));
   }
 
   @Get(':clientKey/files/:id/download')
@@ -74,5 +93,15 @@ export class SftpIntegratorController {
   ) {
     this.assertInternalAuth(token);
     return this.service.runDryRun(clientKey, id);
+  }
+
+  @Post(':clientKey/files/:id/process-soc-limited')
+  async processSocLimited(
+    @Param('clientKey') clientKey: string,
+    @Param('id') id: string,
+    @Headers('x-internal-token') token?: string,
+  ) {
+    this.assertInternalAuth(token);
+    return this.service.processSocLimited(clientKey, id);
   }
 }

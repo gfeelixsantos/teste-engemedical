@@ -1,5 +1,5 @@
 import { CadastroFuncionarioPorSituacao } from 'src/soc/types/CadastroFuncionarioPorSituacao';
-import { GrupoToraParsedRow } from './sftp-spreadsheet-parser';
+import type { GrupoToraParsedRow } from './sftp-spreadsheet-parser';
 
 export type GrupoToraSocPayload = {
   rowNumber: number;
