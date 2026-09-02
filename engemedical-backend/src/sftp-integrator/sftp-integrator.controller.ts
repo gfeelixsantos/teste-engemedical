@@ -55,4 +55,24 @@ export class SftpIntegratorController {
     const { file, path } = await this.service.getFileForDownload(clientKey, id);
     res.download(path, file.remoteName);
   }
+
+  @Post(':clientKey/files/:id/parse')
+  async parseFile(
+    @Param('clientKey') clientKey: string,
+    @Param('id') id: string,
+    @Headers('x-internal-token') token?: string,
+  ) {
+    this.assertInternalAuth(token);
+    return this.service.parseFile(clientKey, id);
+  }
+
+  @Post(':clientKey/files/:id/dry-run')
+  async dryRun(
+    @Param('clientKey') clientKey: string,
+    @Param('id') id: string,
+    @Headers('x-internal-token') token?: string,
+  ) {
+    this.assertInternalAuth(token);
+    return this.service.runDryRun(clientKey, id);
+  }
 }

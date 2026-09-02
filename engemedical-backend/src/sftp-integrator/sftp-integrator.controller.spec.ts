@@ -54,4 +54,38 @@ describe('SftpIntegratorController', () => {
       'LOG_INTEGRACAO_2026-09-01.xlsx',
     );
   });
+
+  it('delegates spreadsheet parsing for a registered file', async () => {
+    const result = {
+      status: 'parsed',
+      summary: { totalRows: 1, validRows: 1, invalidRows: 0 },
+    };
+    const service = { parseFile: jest.fn().mockResolvedValue(result) };
+    const controller = new SftpIntegratorController(service as any);
+
+    await expect(
+      controller.parseFile('grupo-tora', '66f000000000000000000001', 'token-test'),
+    ).resolves.toBe(result);
+    expect(service.parseFile).toHaveBeenCalledWith(
+      'grupo-tora',
+      '66f000000000000000000001',
+    );
+  });
+
+  it('delegates dry-run processing for a registered file', async () => {
+    const result = {
+      status: 'dry_run',
+      summary: { totalRows: 1, payloadsPrepared: 1 },
+    };
+    const service = { runDryRun: jest.fn().mockResolvedValue(result) };
+    const controller = new SftpIntegratorController(service as any);
+
+    await expect(
+      controller.dryRun('grupo-tora', '66f000000000000000000001', 'token-test'),
+    ).resolves.toBe(result);
+    expect(service.runDryRun).toHaveBeenCalledWith(
+      'grupo-tora',
+      '66f000000000000000000001',
+    );
+  });
 });

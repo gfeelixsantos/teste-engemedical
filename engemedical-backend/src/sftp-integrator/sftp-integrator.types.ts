@@ -42,6 +42,17 @@ export type SftpPullResult = {
   file: SftpIntegratorFileRecord;
 };
 
+export type SftpIntegratorParseRun = {
+  clientKey: string;
+  fileId: unknown;
+  status: 'parsed' | 'dry_run';
+  summary: unknown;
+  invalidRowsPreview: unknown[];
+  soapPreview?: unknown[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export interface SftpClientAdapter {
   list(config: SftpIntegratorConfig): Promise<SftpRemoteFile[]>;
   download(

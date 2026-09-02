@@ -9,14 +9,18 @@ import {
 import { Collection, ObjectId } from 'mongodb';
 import * as path from 'path';
 import { MongoService } from 'src/mongo/mongo.service';
+import { EmailService } from 'src/nodemailer/nodemailer.service';
 import {
   getSftpIntegratorConfig,
   normalizeSftpIntegratorClientKey,
 } from './sftp-integrator.config';
+import { buildGrupoToraSocPayload } from './sftp-soc-payload.mapper';
 import { SftpIntegratorFs } from './sftp-integrator.fs';
+import { SftpSpreadsheetParser } from './sftp-spreadsheet-parser';
 import {
   SftpClientAdapter,
   SftpIntegratorFileRecord,
+  SftpIntegratorParseRun,
   SftpPullResult,
 } from './sftp-integrator.types';
 
@@ -34,6 +38,8 @@ export class SftpIntegratorService implements OnModuleInit {
     @Inject('SFTP_CLIENT_ADAPTER')
     private readonly sftpClient: SftpClientAdapter,
     private readonly fs: SftpIntegratorFs,
+    private readonly spreadsheetParser: SftpSpreadsheetParser,
+    private readonly emailService: EmailService,
     @Optional()
     @Inject('SFTP_INTEGRATOR_BACKEND_ROOT')
     private readonly backendRoot = process.cwd(),
@@ -137,6 +143,86 @@ export class SftpIntegratorService implements OnModuleInit {
     return { file, path: resolvedPath };
   }
 
+  async parseFile(clientKey: string, id: string) {
+    const { normalizedClientKey, fileId, resolvedPath } =
+      await this.loadFile(clientKey, id);
+    const parsed = await this.spreadsheetParser.parseGrupoToraFile(resolvedPath);
+    const now = new Date();
+    const run: SftpIntegratorParseRun = {
+      clientKey: normalizedClientKey,
+      fileId,
+      status: 'parsed',
+      summary: parsed.summary,
+      invalidRowsPreview: parsed.rows
+        .filter((row) => !row.valid)
+        .slice(0, 50)
+        .map((row) => ({
+          rowNumber: row.rowNumber,
+          errors: row.errors,
+        })),
+      createdAt: now,
+      updatedAt: now,
+    };
+    const inserted = await this.runsCollection().insertOne(run);
+
+    return {
+      _id: inserted.insertedId,
+      ...run,
+    };
+  }
+
+  async runDryRun(clientKey: string, id: string) {
+    const { normalizedClientKey, fileId, file, resolvedPath } =
+      await this.loadFile(clientKey, id);
+    const parsed = await this.spreadsheetParser.parseGrupoToraFile(resolvedPath);
+    const validRows = parsed.rows.filter((row) => row.valid);
+    const payloads = validRows.map((row) => buildGrupoToraSocPayload(row));
+    const soapPreview = payloads.slice(0, 10).map((payload) => ({
+      rowNumber: payload.rowNumber,
+      lookupKey: payload.lookupKey,
+      situationToSend: payload.situationToSend,
+      maskedCpf: maskCpf(payload.employee.CPF),
+      nomeFuncionario: payload.employee.NOME,
+      matriculaRh: payload.employee.MATRICULARH,
+    }));
+    const summary = {
+      ...parsed.summary,
+      payloadsPrepared: payloads.length,
+      skippedRows: parsed.summary.invalidRows,
+      mode: 'dry_run',
+    };
+    const now = new Date();
+    const run: SftpIntegratorParseRun = {
+      clientKey: normalizedClientKey,
+      fileId,
+      status: 'dry_run',
+      summary,
+      invalidRowsPreview: parsed.rows
+        .filter((row) => !row.valid)
+        .slice(0, 50)
+        .map((row) => ({
+          rowNumber: row.rowNumber,
+          errors: row.errors,
+        })),
+      soapPreview,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const inserted = await this.runsCollection().insertOne(run);
+    const result = {
+      _id: inserted.insertedId,
+      ...run,
+      file: {
+        remoteName: file.remoteName,
+        sha256: file.sha256,
+        size: file.size,
+      },
+    };
+
+    await this.sendDryRunReport(result);
+    return result;
+  }
+
   async resolveDownloadPath(clientKey: string, filePath: string): Promise<string> {
     const config = getSftpIntegratorConfig(clientKey);
     const root = path.resolve(this.backendRoot, config.downloadDir);
@@ -155,4 +241,116 @@ export class SftpIntegratorService implements OnModuleInit {
   private collection(): Collection {
     return this.mongoService.db.collection(this.collectionName);
   }
+
+  private runsCollection(): Collection {
+    return this.mongoService.db.collection('sftp_integrator_runs');
+  }
+
+  private async loadFile(clientKey: string, id: string) {
+    const normalizedClientKey = normalizeSftpIntegratorClientKey(clientKey);
+    if (!ObjectId.isValid(id)) {
+      throw new BadRequestException('ID de arquivo invalido');
+    }
+    const fileId = new ObjectId(id);
+    const file = await this.collection().findOne({
+      _id: fileId,
+      clientKey: normalizedClientKey,
+    });
+    if (!file) {
+      throw new NotFoundException('Arquivo nao encontrado');
+    }
+    const resolvedPath = await this.resolveDownloadPath(
+      normalizedClientKey,
+      file.localPath,
+    );
+    return { normalizedClientKey, fileId, file, resolvedPath };
+  }
+
+  private async sendDryRunReport(run: {
+    clientKey: string;
+    summary: any;
+    invalidRowsPreview: unknown[];
+    soapPreview?: unknown[];
+    file: { remoteName: string; sha256: string; size: number };
+  }) {
+    const recipients = parseEmailList(
+      process.env.SFTP_INTEGRATOR_GRUPO_TORA_REPORT_EMAIL_TO,
+    );
+    if (!recipients.length) {
+      return;
+    }
+
+    await this.emailService.sendEmail({
+      to: recipients,
+      subject: `Dry-run SFTP Grupo Tora - ${run.file.remoteName}`,
+      templatename: 'CUSTOM_REPORT',
+      attachment: [],
+      template: buildDryRunReportHtml(run),
+    });
+  }
+}
+
+function parseEmailList(value?: string): string[] {
+  return String(value || '')
+    .split(',')
+    .map((email) => email.trim())
+    .filter(Boolean);
+}
+
+function maskCpf(value: string): string {
+  const cpf = String(value || '').replace(/\D/g, '');
+  if (cpf.length <= 4) return cpf;
+  return `${'*'.repeat(cpf.length - 4)}${cpf.slice(-4)}`;
+}
+
+function buildDryRunReportHtml(run: {
+  clientKey: string;
+  summary: any;
+  invalidRowsPreview: unknown[];
+  soapPreview?: unknown[];
+  file: { remoteName: string; sha256: string; size: number };
+}): string {
+  const situationRows = Object.entries(run.summary.situationCounts || {})
+    .map(
+      ([situacao, total]) =>
+        `<tr><td>${escapeHtml(situacao)}</td><td>${total}</td></tr>`,
+    )
+    .join('');
+  const previewRows = (run.soapPreview || [])
+    .map(
+      (item: any) =>
+        `<tr><td>${item.rowNumber}</td><td>${escapeHtml(item.lookupKey)}</td><td>${escapeHtml(item.situationToSend)}</td><td>${escapeHtml(item.maskedCpf)}</td><td>${escapeHtml(item.matriculaRh)}</td></tr>`,
+    )
+    .join('');
+  const errorRows = (run.invalidRowsPreview || [])
+    .map(
+      (item: any) =>
+        `<tr><td>${item.rowNumber}</td><td>${escapeHtml((item.errors || []).join(', '))}</td></tr>`,
+    )
+    .join('');
+  const errorsBlock = errorRows
+    ? `<h3>Prévia de erros</h3><table border="1" cellpadding="6" cellspacing="0"><thead><tr><th>Linha</th><th>Erros</th></tr></thead><tbody>${errorRows}</tbody></table>`
+    : '<p><strong>Prévia de erros:</strong> nenhum erro estrutural identificado.</p>';
+
+  return `
+    <h2>Dry-run Integrador SFTP - Grupo Tora</h2>
+    <p><strong>Arquivo:</strong> ${escapeHtml(run.file.remoteName)}</p>
+    <p><strong>SHA256:</strong> ${escapeHtml(run.file.sha256)}</p>
+    <p><strong>Total:</strong> ${run.summary.totalRows} | <strong>Válidos:</strong> ${run.summary.validRows} | <strong>Inválidos:</strong> ${run.summary.invalidRows}</p>
+    <p><strong>Payloads SOAP preparados:</strong> ${run.summary.payloadsPrepared}</p>
+    <h3>Situações</h3>
+    <table border="1" cellpadding="6" cellspacing="0"><tbody>${situationRows}</tbody></table>
+    <h3>Prévia SOAP</h3>
+    <table border="1" cellpadding="6" cellspacing="0"><thead><tr><th>Linha</th><th>Chave</th><th>Situação</th><th>CPF</th><th>Matrícula RH</th></tr></thead><tbody>${previewRows}</tbody></table>
+    ${errorsBlock}
+  `;
+}
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
