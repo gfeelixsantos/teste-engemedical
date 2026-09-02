@@ -667,7 +667,9 @@ describe('SftpIntegratorService', () => {
     expect(emailService.sendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         subject: expect.stringContaining('Execução SOC SFTP Grupo Tora'),
-        template: expect.stringContaining('*******8901'),
+        template: expect.stringContaining(
+          'Nenhuma falha retornada pelo SOC nesta execucao.',
+        ),
       }),
     );
   });

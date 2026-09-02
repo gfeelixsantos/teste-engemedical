@@ -24,6 +24,10 @@ import {
   SftpPullResult,
 } from './sftp-integrator.types';
 import { SftpSocProcessor } from './sftp-soc-processor';
+import {
+  buildSftpDryRunReportEmail,
+  buildSftpSocReportEmail,
+} from './sftp-report-email.template';
 
 function wildcardToRegExp(pattern: string): RegExp {
   const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
@@ -378,7 +382,7 @@ export class SftpIntegratorService implements OnModuleInit {
       subject: `Dry-run SFTP Grupo Tora - ${run.file.remoteName}`,
       templatename: 'CUSTOM_REPORT',
       attachment: [],
-      template: buildDryRunReportHtml(run),
+      template: buildSftpDryRunReportEmail(run),
     });
   }
 
@@ -401,7 +405,7 @@ export class SftpIntegratorService implements OnModuleInit {
       subject: `Execução SOC SFTP Grupo Tora - ${run.file.remoteName}`,
       templatename: 'CUSTOM_REPORT',
       attachment: [],
-      template: buildSocReportHtml(run),
+      template: buildSftpSocReportEmail(run),
     });
   }
 }
@@ -435,79 +439,4 @@ function maskCpf(value: string): string {
   const cpf = String(value || '').replace(/\D/g, '');
   if (cpf.length <= 4) return cpf;
   return `${'*'.repeat(cpf.length - 4)}${cpf.slice(-4)}`;
-}
-
-function buildDryRunReportHtml(run: {
-  clientKey: string;
-  summary: any;
-  invalidRowsPreview: unknown[];
-  soapPreview?: unknown[];
-  file: { remoteName: string; sha256: string; size: number };
-}): string {
-  const situationRows = Object.entries(run.summary.situationCounts || {})
-    .map(
-      ([situacao, total]) =>
-        `<tr><td>${escapeHtml(situacao)}</td><td>${total}</td></tr>`,
-    )
-    .join('');
-  const previewRows = (run.soapPreview || [])
-    .map(
-      (item: any) =>
-        `<tr><td>${item.rowNumber}</td><td>${escapeHtml(item.lookupKey)}</td><td>${escapeHtml(item.codigoEmpresaOrigem)}</td><td>${escapeHtml(item.situationToSend)}</td><td>${escapeHtml(item.maskedCpf)}</td><td>${escapeHtml(item.matriculaRh)}</td></tr>`,
-    )
-    .join('');
-  const errorRows = (run.invalidRowsPreview || [])
-    .map(
-      (item: any) =>
-        `<tr><td>${item.rowNumber}</td><td>${escapeHtml((item.errors || []).join(', '))}</td></tr>`,
-    )
-    .join('');
-  const errorsBlock = errorRows
-    ? `<h3>Prévia de erros</h3><table border="1" cellpadding="6" cellspacing="0"><thead><tr><th>Linha</th><th>Erros</th></tr></thead><tbody>${errorRows}</tbody></table>`
-    : '<p><strong>Prévia de erros:</strong> nenhum erro estrutural identificado.</p>';
-
-  return `
-    <h2>Dry-run Integrador SFTP - Grupo Tora</h2>
-    <p><strong>Arquivo:</strong> ${escapeHtml(run.file.remoteName)}</p>
-    <p><strong>SHA256:</strong> ${escapeHtml(run.file.sha256)}</p>
-    <p><strong>Total:</strong> ${run.summary.totalRows} | <strong>Válidos:</strong> ${run.summary.validRows} | <strong>Inválidos:</strong> ${run.summary.invalidRows}</p>
-    <p><strong>Payloads SOAP preparados:</strong> ${run.summary.payloadsPrepared}</p>
-    <h3>Situações</h3>
-    <table border="1" cellpadding="6" cellspacing="0"><tbody>${situationRows}</tbody></table>
-    <h3>Prévia SOAP</h3>
-    <table border="1" cellpadding="6" cellspacing="0"><thead><tr><th>Linha</th><th>Chave</th><th>Empresa origem</th><th>Situação</th><th>CPF</th><th>Matrícula RH</th></tr></thead><tbody>${previewRows}</tbody></table>
-    ${errorsBlock}
-  `;
-}
-
-function buildSocReportHtml(run: {
-  clientKey: string;
-  summary: any;
-  invalidRowsPreview: unknown[];
-  soapPreview?: unknown[];
-  file: { remoteName: string; sha256: string; size: number };
-}): string {
-  const rows = (run.soapPreview || [])
-    .map(
-      (item: any) =>
-        `<tr><td>${item.rowNumber}</td><td>${escapeHtml(item.maskedCpf)}</td><td>${escapeHtml(item.situationToSend)}</td><td>${item.success ? 'Sucesso' : 'Falha'}</td><td>${escapeHtml(item.error || item.httpStatus || '')}</td></tr>`,
-    )
-    .join('');
-
-  return `
-    <h2>Execução SOC Integrador SFTP - Grupo Tora</h2>
-    <p><strong>Arquivo:</strong> ${escapeHtml(run.file.remoteName)}</p>
-    <p><strong>Total selecionado:</strong> ${run.summary.totalSelected} | <strong>Sucesso:</strong> ${run.summary.success} | <strong>Falhas:</strong> ${run.summary.failed}</p>
-    <p><strong>Ignorados por limite:</strong> ${run.summary.skippedByLimit} | <strong>Delay:</strong> ${run.summary.delayMs}ms</p>
-    <table border="1" cellpadding="6" cellspacing="0"><thead><tr><th>Linha</th><th>CPF</th><th>Situação</th><th>Status</th><th>Retorno</th></tr></thead><tbody>${rows}</tbody></table>
-  `;
-}
-
-function escapeHtml(value: unknown): string {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
 }

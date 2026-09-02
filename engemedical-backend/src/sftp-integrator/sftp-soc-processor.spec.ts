@@ -55,6 +55,9 @@ describe('SftpSocProcessor', () => {
       expect.objectContaining({
         lookupKey: 'CPF',
         overwriteSituacao: 'FERIAS',
+        auditObservation: expect.stringMatching(
+          /^Integrado Engemedical Connect em \d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}:\d{2}$/,
+        ),
       }),
     );
     expect(delay).not.toHaveBeenCalled();

@@ -26,6 +26,15 @@ function converterSituacao(situacao: string) {
   }
 }
 
+function formatSocDate(value: string): string {
+  const date = String(value || '').trim();
+  const isoMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+  }
+  return date;
+}
+
 type WsFuncionarioModelo2Options = {
   overwriteSituacao?: string;
   lookupKey?: 'CODIGO' | 'CPF';
@@ -61,9 +70,9 @@ export async function WsFuncionarioModelo2(
   const cleanCpf = employee.CPF ? employee.CPF.replace(/[^\d]/g, '') : '';
   const cleanCnpj = employee.CNPJ ? employee.CNPJ.replace(/[^\d]/g, '') : '';
 
-  const dataNascimento = employee.DATA_NASCIMENTO || '';
-  const dataAdmissao = employee.DATA_ADMISSAO || '';
-  const dataDemissao = employee.DATA_DEMISSAO || '';
+  const dataNascimento = formatSocDate(employee.DATA_NASCIMENTO);
+  const dataAdmissao = formatSocDate(employee.DATA_ADMISSAO);
+  const dataDemissao = formatSocDate(employee.DATA_DEMISSAO);
   const rg = String(employee.RG || '')
     .replace(/[^\dA-Za-z]/g, '')
     .trim();

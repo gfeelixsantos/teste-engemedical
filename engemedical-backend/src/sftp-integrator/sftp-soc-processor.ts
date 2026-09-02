@@ -102,7 +102,7 @@ export class SftpSocProcessor {
           const response = await this.callFuncionarioModelo2(lookup.employee, {
             lookupKey: payload.lookupKey,
             overwriteSituacao: payload.situationToSend,
-            auditObservation: `Atualizado via integrador SFTP em ${new Date().toLocaleString('pt-BR')}`,
+            auditObservation: `Integrado Engemedical Connect em ${new Date().toLocaleString('pt-BR')}`,
           });
           const functionalSuccess =
             response.data?.success !== false && !response.data?.encontrouErro;

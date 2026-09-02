@@ -113,4 +113,22 @@ describe('WsFuncionarioModelo2', () => {
       codigoFuncionario: '12345',
     });
   });
+
+  it('formats ISO employee dates before sending FuncionarioModelo2 XML', async () => {
+    const employee = {
+      ...baseEmployee(),
+      DATA_NASCIMENTO: '1982-02-15',
+      DATA_ADMISSAO: '2023-09-18',
+      DATA_DEMISSAO: '2026-04-24',
+    };
+
+    const result = await WsFuncionarioModelo2(employee, {
+      lookupKey: 'CPF',
+      overwriteSituacao: 'FERIAS',
+    });
+
+    expect(result.xml).toContain('<dataNascimento>15/02/1982</dataNascimento>');
+    expect(result.xml).toContain('<dataAdmissao>18/09/2023</dataAdmissao>');
+    expect(result.xml).toContain('<dataDemissao>24/04/2026</dataDemissao>');
+  });
 });
