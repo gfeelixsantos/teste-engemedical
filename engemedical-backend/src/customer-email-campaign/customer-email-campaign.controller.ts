@@ -26,6 +26,11 @@ export class CustomerEmailCampaignController {
     return this.campaignService.cancelCampaign(id);
   }
 
+  @Post(':id/retrigger')
+  async retriggerCampaign(@Param('id') id: string) {
+    return this.campaignService.retriggerCampaign(id);
+  }
+
   @Delete(':id')
   async deleteCampaign(@Param('id') id: string) {
     return this.campaignService.deleteCampaign(id);

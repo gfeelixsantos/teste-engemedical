@@ -339,10 +339,25 @@ if (validCustomEmails.length > 0) {
       throw new Error(`Failed to publish campaign: ${error.message}`);
     }
 
-    // Enqueue Orchestration logic
-    this.logger.log(`[CAMPAIGN] Enfileirando orquestração para campanha ${id}`);
-    await this.azureService.filaCustomerEmailCampaignOrchestrate({ campaignId: id });
-    this.logger.log(`[CAMPAIGN] Campanha ${id} publicada e orquestração enfileirada com sucesso`);
+    // 6. Enqueue Orchestration — SE falhar, rollback do status para 'draft'
+    //    para evitar campanha stuck em 'active' sem mensagem na fila.
+    try {
+      this.logger.log(`[CAMPAIGN] Enfileirando orquestração para campanha ${id}`);
+      await this.azureService.filaCustomerEmailCampaignOrchestrate({ campaignId: id });
+      this.logger.log(`[CAMPAIGN] Campanha ${id} publicada e orquestração enfileirada com sucesso`);
+    } catch (enqueueError) {
+      const errMsg = enqueueError instanceof Error ? enqueueError.message : String(enqueueError);
+      this.logger.error(`[CAMPAIGN] Falha ao enfileirar orquestração para campanha ${id}: ${errMsg}. Fazendo rollback do status para draft.`);
+
+      // Rollback: volta status para draft
+      await supabase
+        .from('customer_email_campaigns')
+        .update({ status: 'draft', updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      throw new Error(`Campanha salva mas não foi possível iniciar processamento: ${errMsg}`);
+    }
+
     return data;
   }
 
@@ -463,5 +478,48 @@ if (validCustomEmails.length > 0) {
     const percentage = stats.total > 0 ? Math.round((completed / stats.total) * 100) : 0;
 
     return { ...stats, percentage };
+  }
+
+  /**
+   * Re-enfileira a orquestração de uma campanha que está em status 'active'
+   * mas não tem mensagem na fila (stuck). Útil para recuperação manual.
+   */
+  async retriggerCampaign(id: string) {
+    const supabase = this.supabaseService.getClient();
+
+    const { data: campaign, error: getError } = await supabase
+      .from('customer_email_campaigns')
+      .select('id, status, name')
+      .eq('id', id)
+      .single();
+
+    if (getError || !campaign) throw new NotFoundException('Campaign not found');
+
+    if (campaign.status !== 'active') {
+      throw new BadRequestException(
+        `Campanha "${campaign.name}" está com status "${campaign.status}". Apenas campanhas "active" podem ser retriggered.`,
+      );
+    }
+
+    // Verificar quantas empresas ainda estão pendentes
+    const { data: pendingRows } = await supabase
+      .from('customer_email_campaign_companies')
+      .select('id', { count: 'exact' })
+      .eq('campaign_id', id)
+      .in('status', ['pending', 'processing']);
+
+    const pendingCount = pendingRows?.length || 0;
+    if (pendingCount === 0) {
+      throw new BadRequestException(
+        `Campanha "${campaign.name}" não tem empresas pendentes. Nada a retriggered.`,
+      );
+    }
+
+    this.logger.log(`[CAMPAIGN][RETRIGGER] Reenfileirando orquestração para campanha ${id} "${campaign.name}" (${pendingCount} empresas pendentes)`);
+
+    await this.azureService.filaCustomerEmailCampaignOrchestrate({ campaignId: id });
+
+    this.logger.log(`[CAMPAIGN][RETRIGGER] Orquestração reenfileirada com sucesso para campanha ${id}`);
+    return { success: true, pendingCompanies: pendingCount };
   }
 }
