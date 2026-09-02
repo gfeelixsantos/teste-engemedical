@@ -44,6 +44,7 @@ import { CommitmentsModule } from './commitments/commitments.module';
 import { MuralModule } from './mural/mural.module';
 import { CustomerEmailCampaignModule } from './customer-email-campaign/customer-email-campaign.module';
 import { SftpIntegratorModule } from './sftp-integrator/sftp-integrator.module';
+import { ConvocacaoModule } from './convocacao/convocacao.module';
 
 require('dotenv').config();
 
@@ -87,6 +88,7 @@ require('dotenv').config();
     MuralModule,
     CustomerEmailCampaignModule,
     SftpIntegratorModule,
+    ConvocacaoModule,
   ],
   controllers: [AppController, TicketController, HealthController],
   providers: [AppService],

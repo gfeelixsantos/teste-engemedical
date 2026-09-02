@@ -10,12 +10,14 @@ import {
   CalendarDays,
   Settings,
   LayoutGrid,
+  BarChart3,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { title: "Dashboard", icon: Home, path: "/dashboard" },
   { title: "Atendimento", icon: Stethoscope, path: "/atendimento" },
   { title: "Recepção", icon: Users, path: "/recepcao" },
+  { title: "Dashboards", icon: BarChart3, path: "/dashboards" },
   { title: "Relatórios", icon: ChartNoAxesCombined, path: "/relatorio" },
   { title: "Prontuários", icon: FileText, path: "/prontuarios" },
 ] as const;
