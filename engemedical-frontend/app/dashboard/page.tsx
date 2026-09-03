@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
@@ -9,6 +9,10 @@ import {
   Stethoscope,
   FileText,
   ChartNoAxesCombined,
+  BarChart3,
+  CalendarDays,
+  Settings,
+  LayoutGrid,
   Bell,
   X,
 } from "lucide-react";
@@ -180,37 +184,49 @@ const clearSessionMessage = (): void => {
   }
 };
 
-const dashboardNavItems = [
-  {
-    title: "Atendimento",
-    description: "Fluxo clínico e exames",
-    icon: Stethoscope,
-    path: "/atendimento",
-  },
-  {
-    title: "Recepção",
-    description: "Fila, chegada e triagem",
-    icon: Users,
-    path: "/recepcao",
-  },
-  {
-    title: "Relatórios",
-    description: "Indicadores e documentos",
-    icon: ChartNoAxesCombined,
-    path: "/relatorio",
-  },
-  {
-    title: "Prontuários",
-    description: "Histórico ocupacional",
-    icon: FileText,
-    path: "/prontuarios",
-  },
-] as const;
+const dashboardNavItems = {
+  primary: [
+    {
+      title: "Atendimento",
+      description: "Fluxo clínico e exames",
+      icon: Stethoscope,
+      path: "/atendimento",
+    },
+    {
+      title: "Recepção",
+      description: "Fila, chegada e triagem",
+      icon: Users,
+      path: "/recepcao",
+    },
+    {
+      title: "Relatórios",
+      description: "Indicadores e documentos",
+      icon: ChartNoAxesCombined,
+      path: "/relatorio",
+    },
+    {
+      title: "Prontuários",
+      description: "Histórico ocupacional",
+      icon: FileText,
+      path: "/prontuarios",
+    },
+  ],
+  secondary: [
+    { title: "Dashboards", icon: BarChart3, path: "/dashboard" },
+    { title: "Agenda", icon: CalendarDays, path: "/agenda" },
+    { title: "Configurações", icon: Settings, path: "/configuracoes" },
+    { title: "Serviços", icon: LayoutGrid, path: "/servicos" },
+  ],
+} as const;
 
-const PremiumDashboardSidebar: React.FC<{
+const DashboardNavSidebar: React.FC<{
   onNavigate: (path: string) => void;
 }> = ({ onNavigate }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const pathname = usePathname();
+
+  const isActive = (path: string) =>
+    pathname === path || pathname.startsWith(path + "/");
 
   return (
     <motion.aside
@@ -222,6 +238,7 @@ const PremiumDashboardSidebar: React.FC<{
       onMouseLeave={() => setIsSidebarExpanded(false)}
     >
       <div className="flex h-full flex-col p-3">
+        {/* Logo */}
         <div className="mb-5 flex h-14 items-center gap-3 rounded-xl border border-brand-line/70 bg-brand-mist/70 px-3">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-brand-line bg-white shadow-sm">
             <Image
@@ -248,36 +265,103 @@ const PremiumDashboardSidebar: React.FC<{
           </motion.div>
         </div>
 
+        {/* Primary Nav */}
         <nav className="space-y-2" role="navigation">
-          {dashboardNavItems.map(({ title, description, icon: Icon, path }) => (
-            <button
-              key={title}
-              aria-label={`Acessar ${title}`}
-              className="group/item flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-all duration-200 hover:border-brand-line hover:bg-brand-mist focus:outline-none focus:ring-2 focus:ring-brand-cyan/40"
-              type="button"
-              onClick={() => onNavigate(path)}
-            >
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-brand-line bg-white text-brand-blue shadow-sm transition-all duration-200 group-hover/item:border-brand-green/40 group-hover/item:bg-brand-mist group-hover/item:text-brand-green">
-                <Icon className="h-5 w-5" />
-              </span>
-              <motion.span
-                animate={{
-                  opacity: isSidebarExpanded ? 1 : 0,
-                  width: isSidebarExpanded ? "auto" : 0,
-                }}
-                className="min-w-0 overflow-hidden"
-              >
-                <span className="block whitespace-nowrap text-sm font-semibold text-slate-900">
-                  {title}
-                </span>
-                <span className="block whitespace-nowrap text-xs text-slate-500">
-                  {description}
-                </span>
-              </motion.span>
-            </button>
-          ))}
+          {dashboardNavItems.primary.map(
+            ({ title, description, icon: Icon, path }) => {
+              const active = isActive(path);
+              return (
+                <button
+                  key={title}
+                  aria-label={`Acessar ${title}`}
+                  className={`group/item flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-cyan/40 ${
+                    active
+                      ? "border-brand-500/30 bg-brand-50"
+                      : "border-transparent hover:border-brand-green-300 hover:bg-brand-mist"
+                  }`}
+                  type="button"
+                  onClick={() => onNavigate(path)}
+                >
+                  <span
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg border shadow-sm transition-all duration-200 ${
+                      active
+                        ? "border-brand-500/30 bg-brand-100 text-brand-600"
+                        : "border-brand-line bg-white text-brand-blue group-hover/item:border-brand-green/40 group-hover/item:bg-brand-mist group-hover/item:text-brand-green"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <motion.span
+                    animate={{
+                      opacity: isSidebarExpanded ? 1 : 0,
+                      width: isSidebarExpanded ? "auto" : 0,
+                    }}
+                    className="min-w-0 overflow-hidden"
+                  >
+                    <span className="block whitespace-nowrap text-sm font-semibold text-slate-900">
+                      {title}
+                    </span>
+                    <span className="block whitespace-nowrap text-xs text-slate-500">
+                      {description}
+                    </span>
+                  </motion.span>
+                </button>
+              );
+            },
+          )}
         </nav>
 
+        {/* Separator */}
+        <div className="my-3 mx-2 border-t border-brand-line/50" />
+
+        {/* Secondary Nav */}
+        <nav
+          aria-label="Navegação secundária"
+          className="space-y-1"
+          role="navigation"
+        >
+          {dashboardNavItems.secondary.map(
+            ({ title, icon: Icon, path }) => {
+              const active = isActive(path);
+              return (
+                <button
+                  key={title}
+                  aria-label={`Acessar ${title}`}
+                  className={`group/item flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-cyan/40 ${
+                    active
+                      ? "border-brand-500/30 bg-brand-50"
+                      : "border-transparent hover:border-brand-green-300 hover:bg-brand-mist"
+                  }`}
+                  type="button"
+                  onClick={() => onNavigate(path)}
+                >
+                  <span
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border shadow-sm transition-all duration-200 ${
+                      active
+                        ? "border-brand-500/30 bg-brand-100 text-brand-600"
+                        : "border-brand-line bg-white text-brand-blue group-hover/item:border-brand-green/40 group-hover/item:bg-brand-mist group-hover/item:text-brand-green"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <motion.span
+                    animate={{
+                      opacity: isSidebarExpanded ? 1 : 0,
+                      width: isSidebarExpanded ? "auto" : 0,
+                    }}
+                    className="min-w-0 overflow-hidden"
+                  >
+                    <span className="block whitespace-nowrap text-sm font-medium text-slate-700">
+                      {title}
+                    </span>
+                  </motion.span>
+                </button>
+              );
+            },
+          )}
+        </nav>
+
+        {/* Decorative bar */}
         <div className="mt-auto flex justify-center border-t border-brand-line/70 pt-4">
           <span className="h-1.5 w-8 rounded-full bg-gradient-to-r from-brand-blue to-brand-green" />
         </div>
@@ -545,7 +629,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <PremiumDashboardSidebar onNavigate={(path) => router.push(path)} />
+      <DashboardNavSidebar onNavigate={(path) => router.push(path)} />
 
       <HeaderApp
         onLogout={() => {

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
-test("dashboard replaces access cards with a premium hover sidebar and analytic panels", async () => {
+test("dashboard has DashboardNavSidebar with primary/secondary nav, active route detection, and premium styling", async () => {
   const dashboardPage = await readFile(
     new URL("../app/dashboard/page.tsx", import.meta.url),
     "utf8",
@@ -15,7 +15,7 @@ test("dashboard replaces access cards with a premium hover sidebar and analytic 
     "utf8",
   );
 
-  assert.match(dashboardPage, /PremiumDashboardSidebar/);
+  assert.match(dashboardPage, /DashboardNavSidebar/);
   assert.match(dashboardPage, /isSidebarExpanded/);
   assert.match(dashboardPage, /onMouseEnter/);
   assert.match(dashboardPage, /onMouseLeave/);
@@ -29,6 +29,40 @@ test("dashboard replaces access cards with a premium hover sidebar and analytic 
   ]) {
     assert.match(dashboardPage, new RegExp(label));
   }
+
+  // Secondary nav items
+  for (const label of [
+    "Dashboards",
+    "Agenda",
+    "Configurações",
+    "Serviços",
+  ]) {
+    assert.match(dashboardPage, new RegExp(label));
+  }
+
+  // Active route detection via usePathname
+  assert.match(dashboardPage, /usePathname/);
+
+  // Primary nav items render with description
+  assert.match(dashboardPage, /Fluxo clínico e exames/);
+  assert.match(dashboardPage, /Fila, chegada e triagem/);
+  assert.match(dashboardPage, /Indicadores e documentos/);
+  assert.match(dashboardPage, /Histórico ocupacional/);
+
+  // Secondary nav items render without description (title only)
+  assert.match(dashboardPage, /Navegação secundária/);
+
+  // Active item styling
+  assert.match(dashboardPage, /border-brand-500\/30/);
+  assert.match(dashboardPage, /bg-brand-50/);
+  assert.match(dashboardPage, /bg-brand-100/);
+  assert.match(dashboardPage, /text-brand-600/);
+
+  // Hover styling for green accent
+  assert.match(dashboardPage, /hover:border-brand-green-300/);
+
+  // Visual separator between primary and secondary nav
+  assert.match(dashboardPage, /border-brand-line\/50/);
 
   assert.doesNotMatch(dashboardPage, /MenuCard/);
   assert.doesNotMatch(dashboardPage, /Menu de funcionalidades/);
