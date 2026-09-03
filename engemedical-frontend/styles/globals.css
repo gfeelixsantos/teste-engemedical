@@ -16,3 +16,27 @@
   text-align: left;
   animation: tw-reveal 2.5s steps(30, end) 0.8s forwards;
 }
+
+/* ── Cyber Grid — BrandPanel background grid ─────────── */
+@keyframes grid-drift {
+  0%   { background-position: 0 0, 0 0; }
+  100% { background-position: 72px 72px, 72px 72px; }
+}
+
+.cyber-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 72px 72px;
+  animation: grid-drift 18s linear infinite;
+}
+
+/* ── Brand Card Shine — conic gradient glow on cards ─── */
+@keyframes card-shine-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.brand-card-shine > span[aria-hidden] {
+  animation: card-shine-spin 5.8s linear infinite;
+}
