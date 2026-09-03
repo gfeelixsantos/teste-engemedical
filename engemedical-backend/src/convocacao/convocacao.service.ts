@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { StructuredLogger } from '../../utils/logger';
+import { StructuredLogger } from '../utils/logger';
 import {
   buildSocExportDataUrl,
   getSocExportCredentials,
