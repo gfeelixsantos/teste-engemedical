@@ -6,6 +6,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TicketController } from './ticket/ticket.controller';
 import { MongoModule } from './mongo/mongo.module';
 import { SocModule } from './soc/soc.module';
+import { VolumetriaModule } from './volumetria/volumetria.module';
 import { WebsocketConnectionModule } from './websocket/websocket-connection.module';
 import { TtsModule } from './aws/tts.module';
 import { PainelModule } from './painel/painel.module';
@@ -52,6 +53,7 @@ require('dotenv').config();
   imports: [
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
+    VolumetriaModule,
     WebsocketConnectionModule,
     MongoModule,
     SocModule,
