@@ -18,16 +18,16 @@ import type {
   SituacaoNome,
 } from './volumetria.types';
 
-// Mapeamento de situações do SOC para nomes amigáveis
+// Mapeamento de situacoes do SOC para nomes amigaveis
 const SITUACAO_MAP: Record<string, SituacaoNome> = {
   '1': 'Atendido',
-  '2': 'Não Atendido',
-  '3': 'Aguardando Atendimento',
+  '2': 'NaoAtendido',
+  '3': 'AguardandoAtendimento',
   '4': 'Cancelado',
-  '5': 'Não Compareceu',
+  '5': 'NaoCompareceu',
 };
 
-// Situações em formato numérico do SOC
+// Situacoes em formato numerico do SOC
 const SITUACAO_ATENDIDO = '1';
 const SITUACAO_NAO_ATENDIDO = '2';
 const SITUACAO_AGUARDANDO = '3';
@@ -46,10 +46,6 @@ export class VolumetriaService {
     this.logger.setContext(VolumetriaService.name);
   }
 
-  /**
-   * Busca compromissos via SOC Exporta Dados 216618
-   * Período padrão: últimos 30 dias
-   */
   async fetchCompromissos(
     dataInicial?: string,
     dataFinal?: string,
@@ -92,9 +88,6 @@ export class VolumetriaService {
     }
   }
 
-  /**
-   * Normaliza dados do SOC para o formato interno
-   */
   private normalizeCompromisso(raw: SocCompromisso): CompromissoDetalhe {
     return {
       codigoAgenda: raw.codigoAgenda,
@@ -111,7 +104,7 @@ export class VolumetriaService {
       horaFim: raw.horaFim,
       nomeCompromisso: raw.nomeCompromisso,
       situacao: raw.situacao,
-      situacaoNome: SITUACAO_MAP[raw.situacao] || 'Aguardando Atendimento',
+      situacaoNome: SITUACAO_MAP[raw.situacao] || 'AguardandoAtendimento',
       setorFuncionario: raw.setorFuncionario,
       unidadeFuncionario: raw.unidadeFuncionario,
       cargoFuncionario: raw.cargoFuncionario,
@@ -119,9 +112,6 @@ export class VolumetriaService {
     };
   }
 
-  /**
-   * KPIs principais
-   */
   computeKPIs(compromissos: CompromissoDetalhe[]): VolumetriaKPIs {
     const totalAgendamentos = compromissos.length;
     const totalAtendidos = compromissos.filter((c) => c.situacao === SITUACAO_ATENDIDO).length;
@@ -130,7 +120,7 @@ export class VolumetriaService {
     const totalFuncionarios = new Set(
       compromissos.filter((c) => c.codigoFuncionario).map((c) => c.codigoFuncionario),
     ).size;
-    const totalExames = totalAtendidos; // Estimado para o dashboard Smartrics
+    const totalExames = totalAtendidos;
 
     return {
       totalAgendamentos,
@@ -143,9 +133,6 @@ export class VolumetriaService {
     };
   }
 
-  /**
-   * Barras: Agendamento vs Atendimento por Agenda
-   */
   aggregatePorAgenda(compromissos: CompromissoDetalhe[]): PorAgendaBar[] {
     const map: Record<string, PorAgendaBar> = {};
 
@@ -167,9 +154,6 @@ export class VolumetriaService {
     return Object.values(map).sort((a, b) => b.agendamentos - a.agendamentos).slice(0, 15);
   }
 
-  /**
-   * Barras horizontais: Agendamento vs Atendimento por SubGrupo
-   */
   aggregatePorSubGrupo(compromissos: CompromissoDetalhe[]): PorSubGrupoBar[] {
     const map: Record<string, { agendamentos: number; atendidos: number }> = {};
 
@@ -187,46 +171,40 @@ export class VolumetriaService {
       .sort((a, b) => b.agendamentos - a.agendamentos);
   }
 
-  /**
-   * Barras agrupadas: Tipo de Compromisso × Situação
-   */
   aggregatePorTipoCompromisso(compromissos: CompromissoDetalhe[]): PorTipoCompromissoGrouped[] {
     const map: Record<string, PorTipoCompromissoGrouped> = {};
 
     for (const c of compromissos) {
-      const tipo = c.tipoCompromissoNome || c.tipoCompromisso || 'Não Informado';
+      const tipo = c.tipoCompromissoNome || c.tipoCompromisso || 'Nao Informado';
       if (!map[tipo]) {
         map[tipo] = {
           tipoCompromisso: tipo,
-          'Aguardando Atendimento': 0,
-          'Atendido': 0,
-          'Não Atendido': 0,
+          AguardandoAtendimento: 0,
+          Atendido: 0,
+          NaoAtendido: 0,
         };
       }
 
       switch (c.situacao) {
         case SITUACAO_ATENDIDO:
-          map[tipo]['Atendido']++;
+          map[tipo].Atendido++;
           break;
         case SITUACAO_NAO_ATENDIDO:
-          map[tipo]['Não Atendido']++;
+          map[tipo].NaoAtendido++;
           break;
         case SITUACAO_AGUARDANDO:
-          map[tipo]['Aguardando Atendimento']++;
+          map[tipo].AguardandoAtendimento++;
           break;
       }
     }
 
     return Object.values(map).sort((a, b) => {
-      const totalA = a['Aguardando Atendimento'] + a['Atendido'] + a['Não Atendido'];
-      const totalB = b['Aguardando Atendimento'] + b['Atendido'] + b['Não Atendido'];
+      const totalA = a.AguardandoAtendimento + a.Atendido + a.NaoAtendido;
+      const totalB = b.AguardandoAtendimento + b.Atendido + b.NaoAtendido;
       return totalB - totalA;
     });
   }
 
-  /**
-   * LineChart: Evolução por Ano
-   */
   aggregatePorAno(compromissos: CompromissoDetalhe[]): PorAnoLine[] {
     const map: Record<number, { agendamentos: number; atendidos: number; exames: number }> = {};
 
@@ -252,9 +230,6 @@ export class VolumetriaService {
       .sort((a, b) => a.ano - b.ano);
   }
 
-  /**
-   * KPIs por Empresa
-   */
   aggregatePorEmpresa(compromissos: CompromissoDetalhe[]): PorEmpresaBar[] {
     const map: Record<string, PorEmpresaBar> = {};
 
@@ -271,7 +246,6 @@ export class VolumetriaService {
       map[empresa].agendamentos++;
     }
 
-    // Estimativas de exames/funcionarios
     const funcSet = new Set<string>();
     for (const c of compromissos) {
       if (c.codigoFuncionario) {
@@ -325,7 +299,7 @@ export class VolumetriaService {
       { codigo: '02289144', nome: 'AGENDAMENTO P CLINICAS CREDENCIADAS - GERAL' },
       { codigo: '03593277', nome: 'AGENDAMENTO P/ CREDENCIADAS - BH/CTG' },
       { codigo: '01820242', nome: 'CLINICA ENGEMEDICAL - BH' },
-      { codigo: '01773500', nome: 'CLÍNICA ENGEMEDICAL - CE (MATRIZ)' },
+      { codigo: '01773500', nome: 'CLINICA ENGEMEDICAL - CE (MATRIZ)' },
       { codigo: '02088164', nome: 'CLINICA ENGEMEDICAL - CE2' },
       { codigo: '02979233', nome: 'CLINICA ENGEMEDICAL - CONTAGEM/MG' },
       { codigo: '03719460', nome: 'CLINICA ENGEMEDICAL - PRAIA GRANDE' },
@@ -350,7 +324,7 @@ export class VolumetriaService {
       filtros: {
         agendas: agendasCodigo,
         empresas: empresasDistintas,
-        situacoes: ['Atendido', 'Não Atendido', 'Aguardando Atendimento', 'Cancelado', 'Não Compareceu'] as SituacaoNome[],
+        situacoes: ['Atendido', 'NaoAtendido', 'AguardandoAtendimento', 'Cancelado', 'NaoCompareceu'] as SituacaoNome[],
         tiposCompromisso: tiposDistintos,
       },
     };

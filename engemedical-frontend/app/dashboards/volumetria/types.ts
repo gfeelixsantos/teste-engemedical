@@ -1,4 +1,4 @@
-export type SituacaoCompromisso = 'Atendido' | 'Não Atendido' | 'Aguardando Atendimento' | 'Cancelado' | 'Não Compareceu';
+export type SituacaoCompromisso = 'Atendido' | 'NaoAtendido' | 'AguardandoAtendimento' | 'Cancelado' | 'NaoCompareceu';
 
 export interface TipoCompromisso {
   codigo: number;
@@ -26,7 +26,7 @@ export interface PorTipoCompromissoGrouped {
   tipoCompromisso: string;
   'Aguardando Atendimento': number;
   'Atendido': number;
-  'Não Atendido': number;
+  'Nao Atendido': number;
 }
 
 export interface PorAnoLine {
@@ -34,6 +34,12 @@ export interface PorAnoLine {
   agendamentos: number;
   atendidos: number;
   exames: number;
+}
+
+export interface PorSubGrupoBar {
+  subGrupo: string;
+  agendamentos: number;
+  atendidos: number;
 }
 
 export interface CompromissoDetalhe {
@@ -51,7 +57,7 @@ export interface CompromissoDetalhe {
   horaFim: string;
   nomeCompromisso: string;
   situacao: string;
-  situacaoNome: string;
+  situacaoNome: SituacaoCompromisso;
   setorFuncionario: string;
   unidadeFuncionario: string;
   cargoFuncionario: string;
@@ -61,21 +67,19 @@ export interface CompromissoDetalhe {
 export interface VolumetriaDashboardData {
   kpis: VolumetriaKPIs;
   porAgenda: PorAgendaBar[];
+  porEmpresa: { nomeEmpresa: string; agendamentos: number; funcionarios: number; exames: number }[];
   porTipoCompromisso: PorTipoCompromissoGrouped[];
   porAno: PorAnoLine[];
+  porSubGrupo: PorSubGrupoBar[];
   detalhes: CompromissoDetalhe[];
   agendas: { codigo: string; nome: string }[];
   empresas: string[];
   tiposCompromisso: string[];
+  totalCompromissos: number;
   filtros: {
     agendas: { codigo: string; nome: string }[];
     empresas: string[];
     situacoes: SituacaoCompromisso[];
     tiposCompromisso: string[];
-  };
-  totalPaginacao?: {
-    total: number;
-    pagina: number;
-    totalPaginas: number;
   };
 }

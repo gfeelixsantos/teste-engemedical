@@ -51,20 +51,20 @@ export interface SocCompromisso {
   horaEmail: string;
   email: string;
   statusEmail: string;
-  Videochamada: string;
-  LinkVideochamada: string;
+  videochamada: string;
+  linkVideochamada: string;
   motivoCancelamento: string;
 }
 
-// Situações em formato numérico do SOC
+// Situacoes em formato numerico do SOC
 export const SITUACAO_ATENDIDO = '1';
 export const SITUACAO_NAO_ATENDIDO = '2';
 export const SITUACAO_AGUARDANDO = '3';
 export const SITUACAO_CANCELADO = '4';
 export const SITUACAO_NAO_COMPARECEU = '5';
 
-// Situações amigáveis para a UI
-export type SituacaoNome = 'Atendido' | 'Não Atendido' | 'Aguardando Atendimento' | 'Cancelado' | 'Não Compareceu';
+// Situacoes amigaveis para a UI (usando nomes sem acentos para evitar problemas de tipo)
+export type SituacaoNome = 'Atendido' | 'NaoAtendido' | 'AguardandoAtendimento' | 'Cancelado' | 'NaoCompareceu';
 
 export interface CompromissoDetalhe {
   codigoAgenda: string;
@@ -114,9 +114,9 @@ export interface PorEmpresaBar {
 
 export interface PorTipoCompromissoGrouped {
   tipoCompromisso: string;
-  'Aguardando Atendimento': number;
-  'Atendido': number;
-  'Não Atendido': number;
+  AguardandoAtendimento: number;
+  Atendido: number;
+  NaoAtendido: number;
 }
 
 export interface PorAnoLine {
