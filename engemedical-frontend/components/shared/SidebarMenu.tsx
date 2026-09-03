@@ -14,15 +14,15 @@ import {
 } from "lucide-react";
 
 const NAV_ITEMS = [
-  { title: "Dashboard", icon: Home, path: "/dashboard" },
+  { title: "Página Inicial", icon: Home, path: "/dashboard" },
   { title: "Atendimento", icon: Stethoscope, path: "/atendimento" },
   { title: "Recepção", icon: Users, path: "/recepcao" },
-  { title: "Dashboards", icon: BarChart3, path: "/dashboards" },
   { title: "Relatórios", icon: ChartNoAxesCombined, path: "/relatorio" },
   { title: "Prontuários", icon: FileText, path: "/prontuarios" },
 ] as const;
 
 const SECONDARY_ITEMS = [
+  { title: "Dashboards", icon: BarChart3, path: "/dashboard" },
   { title: "Agenda", icon: CalendarDays, path: "/agenda" },
   { title: "Configurações", icon: Settings, path: "/configuracoes" },
   { title: "Serviços", icon: LayoutGrid, path: "/servicos" },

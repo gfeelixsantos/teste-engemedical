@@ -42,14 +42,15 @@ test("SidebarMenu has all navigation items with brand tokens", async () => {
     "utf8"
   );
 
-  // Primary nav items
-  assert.match(menu, /Dashboard/);
+  // Primary nav items (including renamed "Página Inicial")
+  assert.match(menu, /Página Inicial/);
   assert.match(menu, /Atendimento/);
   assert.match(menu, /Recepção/);
   assert.match(menu, /Relatórios/);
   assert.match(menu, /Prontuários/);
 
   // Secondary nav items
+  assert.match(menu, /Dashboards/);
   assert.match(menu, /Agenda/);
   assert.match(menu, /Configurações/);
   assert.match(menu, /Serviços/);
