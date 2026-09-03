@@ -6,20 +6,36 @@ export class ConvocacaoController {
   constructor(private readonly convocacaoService: ConvocacaoService) {}
 
   @Get('dashboard')
-  async getDashboard() {
-    return this.convocacaoService.getDashboardData();
-  }
-
-  @Get('kpis')
-  async getKPIs() {
+  async getDashboard(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     const data = await this.convocacaoService.getDashboardData();
-    return data.kpis;
+    const pageNum = parseInt(page || '1', 10);
+    const limitNum = parseInt(limit || '200', 10);
+    const start = (pageNum - 1) * limitNum;
+    const end = start + limitNum;
+
+    return {
+      kpis: data.kpis,
+      porSituacao: data.porSituacao,
+      porEmpresa: data.porEmpresa,
+      porUnidade: data.porUnidade,
+      porAno: data.porAno,
+      porTipoExame: data.porTipoExame,
+      filtros: data.filtros,
+      totalDetalhes: data.totalDetalhes,
+      detalhes: data.detalhes.slice(start, end),
+      page: pageNum,
+      totalPages: Math.ceil(data.totalDetalhes / limitNum),
+    };
   }
 
   @Get('detalhes')
   async getDetalhes(
     @Query('empresa') empresa?: string,
     @Query('situacao') situacao?: string,
+    @Query('exame') exame?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
@@ -27,11 +43,11 @@ export class ConvocacaoController {
     let detalhes = data.detalhes;
 
     if (empresa) detalhes = detalhes.filter((d) => d.nomeEmpresa === empresa);
-    if (situacao)
-      detalhes = detalhes.filter((d) => d.situacaoExame === situacao);
+    if (situacao) detalhes = detalhes.filter((d) => d.situacaoExame === situacao);
+    if (exame) detalhes = detalhes.filter((d) => d.exame === exame);
 
     const pageNum = parseInt(page || '1', 10);
-    const limitNum = parseInt(limit || '50', 10);
+    const limitNum = parseInt(limit || '100', 10);
     const start = (pageNum - 1) * limitNum;
 
     return {

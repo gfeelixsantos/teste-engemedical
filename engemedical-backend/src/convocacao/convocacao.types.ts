@@ -103,13 +103,29 @@ export interface ConvocacaoExame {
 export interface ConvocacaoKPIs {
   totalExames: number;
   totalFuncionariosConvocados: number;
-  examesDentroDoPrazo: number;
-  examesForaDoPrazo: number;
-  percentFuncionariosEmDia: number;
-  percentConformidadeTotal: number;
-  funcComExamesAVencer: number;
-  funcComExamesForaDoPrazo: number;
+  examesEmDia: number;
+  examesVencidos: number;
+  examesAVencer: number;
+  examesNuncaRealizado: number;
+  examesSemResultado: number;
   ultimaAtualizacao: Date;
+}
+
+// Agregação por ANO (LineChart — eixo X = anos)
+export interface PorAno {
+  ano: number;
+  funcionarios: number;
+  exames: number;
+}
+
+// Agregação por TIPO DE EXAME e situação (Barras agrupadas)
+export interface PorTipoExame {
+  tipoExame: string;
+  'Em Dia': number;
+  'A Vencer': number;
+  Vencido: number;
+  'Nunca Realizado': number;
+  'Sem Data de Resultado': number;
 }
 
 export interface DashboardData {
@@ -130,13 +146,10 @@ export interface DashboardData {
     exames: number;
     foraDoPrazo: number;
   }>;
-  temporal: Array<{
-    ano: number;
-    mes: string;
-    funcionarios: number;
-    exames: number;
-  }>;
+  porAno: PorAno[];
+  porTipoExame: PorTipoExame[];
   detalhes: ConvocacaoExame[];
+  totalDetalhes: number;
   filtros: {
     empresas: string[];
     unidades: string[];

@@ -81,10 +81,16 @@ export function buildGrupoToraSocPayload(
     NOMESETOR: source.nomeSetor,
     CODIGOCARGO: source.codigoCargo,
     NOMECARGO: source.nomeCargo,
+    CBOCARGO: source.cbo,
+    CCUSTO: source.codigoCentroCusto,
     MATRICULAFUNCIONARIO: source.matriculaRh,
     MATRICULARH: source.matriculaRh,
     CPF: source.cpf,
     SITUACAO: source.situacao,
+    RHUNIDADE: source.codigoUnidadeFt,
+    RHSETOR: source.codigoSetor,
+    RHCARGO: source.codigoCargo,
+    RHCCENTROCUSTOUNIDADE: source.codigoCentroCusto,
   };
 
   return {

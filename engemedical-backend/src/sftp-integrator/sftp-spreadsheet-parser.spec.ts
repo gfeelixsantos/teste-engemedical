@@ -1,7 +1,4 @@
-import {
-  normalizeHeader,
-  parseGrupoToraRows,
-} from './sftp-spreadsheet-parser';
+import { normalizeHeader, parseGrupoToraRows } from './sftp-spreadsheet-parser';
 
 describe('sftp spreadsheet parser', () => {
   it('normalizes headers ignoring accents, spaces and punctuation', () => {
@@ -20,6 +17,8 @@ describe('sftp spreadsheet parser', () => {
         'nomeSetor',
         'codigoCargo',
         'nomeCargo',
+        'cbo',
+        'codigoCentroCusto',
         'matriculaEsocial',
         'nomeFuncionario',
         'situacao',
@@ -36,6 +35,8 @@ describe('sftp spreadsheet parser', () => {
         'SEGUROS',
         '03-0873',
         'ANALISTA',
+        '2521-05',
+        'CC-001',
         '0303009134',
         'Pessoa Teste',
         'ATIVO',
@@ -52,6 +53,8 @@ describe('sftp spreadsheet parser', () => {
         'SEGUROS',
         '03-0873',
         'ANALISTA',
+        '',
+        '',
         '',
         '',
         'ATIVO',
@@ -78,6 +81,8 @@ describe('sftp spreadsheet parser', () => {
         codigoUnidadeFt: '03-02',
         codigoSetor: '03-02-139',
         codigoCargo: '03-0873',
+        cbo: '2521-05',
+        codigoCentroCusto: 'CC-001',
         matriculaEsocial: '0303009134',
         matriculaRh: '009134',
         nomeFuncionario: 'Pessoa Teste',

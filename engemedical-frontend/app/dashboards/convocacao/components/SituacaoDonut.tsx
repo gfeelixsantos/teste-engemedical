@@ -2,37 +2,57 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
+// Cores exatas do Smartrics
 const COLORS: Record<string, string> = {
-  'Em Dia': '#10b981',
-  'A Vencer': '#f59e0b',
-  Vencido: '#ef4444',
-  'Nunca Realizado': '#8b5cf6',
-  'Sem Data de Resultado': '#94a3b8',
+  'A Vencer': '#f97316',       // laranja
+  'Em Dia': '#10b981',         // verde
+  'Nunca Realizado': '#3b82f6', // azul
+  'Sem Data de Resultado': '#94a3b8', // cinza
+  Vencido: '#ef4444',          // vermelho
 };
+
+const SITUACAO_ORDER = [
+  'Em Dia',
+  'A Vencer',
+  'Vencido',
+  'Nunca Realizado',
+  'Sem Data de Resultado',
+];
 
 interface Props {
   data: Array<{ situacao: string; funcionarios: number; exames: number }>;
 }
 
 export function SituacaoDonut({ data }: Props) {
-  const chartData = data.map((d) => ({
+  // Ordenar conforme Smartrics
+  const sorted = [...data].sort((a, b) => {
+    const ia = SITUACAO_ORDER.indexOf(a.situacao);
+    const ib = SITUACAO_ORDER.indexOf(b.situacao);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+
+  const total = sorted.reduce((sum, d) => sum + d.exames, 0);
+
+  const chartData = sorted.map((d) => ({
     name: d.situacao,
     value: d.exames,
-    funcionarios: d.funcionarios,
+    percent: total > 0 ? ((d.exames / total) * 100).toFixed(2) : '0',
   }));
 
   return (
     <div>
-      <ResponsiveContainer width="100%" height={220}>
+      <ResponsiveContainer width="100%" height={250}>
         <PieChart>
           <Pie
             data={chartData}
             cx="50%"
             cy="50%"
-            innerRadius={55}
-            outerRadius={85}
+            innerRadius={60}
+            outerRadius={95}
             paddingAngle={3}
             dataKey="value"
+            label={({ name, percent }) => `${percent}%`}
+            labelLine={false}
           >
             {chartData.map((entry) => (
               <Cell
@@ -42,14 +62,15 @@ export function SituacaoDonut({ data }: Props) {
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number) =>
-              value.toLocaleString('pt-BR')
-            }
+            formatter={(value: number, name: string, props: { payload?: { percent?: string } }) => [
+              `${value.toLocaleString('pt-BR')} (${props.payload?.percent || 0}%)`,
+              name,
+            ]}
           />
         </PieChart>
       </ResponsiveContainer>
 
-      {/* Legend */}
+      {/* Legenda */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center mt-2">
         {chartData.map((entry) => (
           <div key={entry.name} className="flex items-center gap-1.5">
@@ -60,7 +81,7 @@ export function SituacaoDonut({ data }: Props) {
             <span className="text-xs text-gray-600">
               {entry.name}{' '}
               <span className="text-gray-400">
-                ({entry.value.toLocaleString('pt-BR')})
+                ({entry.value.toLocaleString('pt-BR')} — {entry.percent}%)
               </span>
             </span>
           </div>

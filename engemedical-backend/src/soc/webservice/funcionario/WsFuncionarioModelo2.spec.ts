@@ -131,4 +131,45 @@ describe('WsFuncionarioModelo2', () => {
     expect(result.xml).toContain('<dataAdmissao>18/09/2023</dataAdmissao>');
     expect(result.xml).toContain('<dataDemissao>24/04/2026</dataDemissao>');
   });
+
+  it('builds hierarchy update tags using CODIGO_RH mapping', async () => {
+    const result = await WsFuncionarioModelo2(baseEmployee(), {
+      lookupKey: 'CPF',
+      overwriteSituacao: 'FERIAS',
+      hierarchyUpdate: {
+        atualizarCargo: true,
+        atualizarCentroCusto: true,
+        atualizarFuncionario: true,
+        atualizarSetor: true,
+        atualizarUnidade: true,
+        criarHistorico: true,
+        unidade: { tipoBusca: 'CODIGO_RH', codigoRh: '03-02' },
+        setor: { tipoBusca: 'CODIGO_RH', codigoRh: '03-02-139' },
+        cargo: {
+          tipoBusca: 'CODIGO_RH',
+          codigoRh: '03-0873',
+          cbo: '782510',
+        },
+        centroCusto: { tipoBusca: 'CODIGO_RH', codigoRh: 'CC-123' },
+      },
+    });
+
+    expect(result.xml).toContain('<atualizarCargo>true</atualizarCargo>');
+    expect(result.xml).toContain(
+      '<atualizarCentroCusto>true</atualizarCentroCusto>',
+    );
+    expect(result.xml).toContain('<atualizarSetor>true</atualizarSetor>');
+    expect(result.xml).toContain('<atualizarUnidade>true</atualizarUnidade>');
+    expect(result.xml).toContain('<criarHistorico>true</criarHistorico>');
+    expect(result.xml).toContain('<cargoWsVo>');
+    expect(result.xml).toContain('<tipoBusca>CODIGO_RH</tipoBusca>');
+    expect(result.xml).toContain('<codigoRh>03-0873</codigoRh>');
+    expect(result.xml).toContain('<cbo>782510</cbo>');
+    expect(result.xml).toContain('<setorWsVo>');
+    expect(result.xml).toContain('<codigoRh>03-02-139</codigoRh>');
+    expect(result.xml).toContain('<unidadeWsVo>');
+    expect(result.xml).toContain('<codigoRh>03-02</codigoRh>');
+    expect(result.xml).toContain('<centroCustoWsVo>');
+    expect(result.xml).toContain('<codigoRh>CC-123</codigoRh>');
+  });
 });

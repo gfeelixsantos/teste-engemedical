@@ -10,6 +10,16 @@ function payload(rowNumber: number, cpf: string, situationToSend = 'ATIVO') {
       NOME: `Pessoa ${rowNumber}`,
       CPF: cpf,
       CODIGOEMPRESA: '115',
+      CODIGOUNIDADE: '03-02',
+      NOMEUNIDADE: 'MATRIZ',
+      CODIGOSETOR: '03-02-139',
+      NOMESETOR: 'OPERACAO',
+      CODIGOCARGO: '03-0873',
+      NOMECARGO: 'MOTORISTA',
+      CBOCARGO: '782510',
+      CCUSTO: 'CC-123',
+      MATRICULAFUNCIONARIO: 'RH123',
+      MATRICULARH: 'RH123',
     },
   } as GrupoToraSocPayload;
 }
@@ -55,6 +65,22 @@ describe('SftpSocProcessor', () => {
       expect.objectContaining({
         lookupKey: 'CPF',
         overwriteSituacao: 'FERIAS',
+        hierarchyUpdate: {
+          atualizarCargo: true,
+          atualizarCentroCusto: true,
+          atualizarFuncionario: true,
+          atualizarSetor: true,
+          atualizarUnidade: true,
+          criarHistorico: true,
+          unidade: { tipoBusca: 'CODIGO_RH', codigoRh: '03-02' },
+          setor: { tipoBusca: 'CODIGO_RH', codigoRh: '03-02-139' },
+          cargo: {
+            tipoBusca: 'CODIGO_RH',
+            codigoRh: '03-0873',
+            cbo: '782510',
+          },
+          centroCusto: { tipoBusca: 'CODIGO_RH', codigoRh: 'CC-123' },
+        },
         auditObservation: expect.stringMatching(
           /^Integrado Engemedical Connect em \d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}:\d{2}$/,
         ),
@@ -106,7 +132,8 @@ describe('SftpSocProcessor', () => {
   it('treats HTTP 200 with data.encontrouErro as a failed SOC row', async () => {
     const soap = jest.fn(async () => ({
       status: 200,
-      responseText: '<FuncionarioRetorno><encontrouErro>true</encontrouErro></FuncionarioRetorno>',
+      responseText:
+        '<FuncionarioRetorno><encontrouErro>true</encontrouErro></FuncionarioRetorno>',
       xml: '<xml />',
       data: {
         success: false,
@@ -136,7 +163,7 @@ describe('SftpSocProcessor', () => {
     });
   });
 
-  it('uses the latest SOC employee lookup record as SOAP base and preserves the spreadsheet situation', async () => {
+  it('uses SOC lookup as SOAP base and overlays spreadsheet hierarchy mapping', async () => {
     const soap = jest.fn(async () => ({
       status: 200,
       responseText:
@@ -183,6 +210,16 @@ describe('SftpSocProcessor', () => {
         CODIGO: '6716',
         CPF: '01645799581',
         SITUACAO: 'Ferias',
+        CODIGOUNIDADE: '03-02',
+        NOMEUNIDADE: 'MATRIZ',
+        CODIGOSETOR: '03-02-139',
+        NOMESETOR: 'OPERACAO',
+        CODIGOCARGO: '03-0873',
+        NOMECARGO: 'MOTORISTA',
+        CBOCARGO: '782510',
+        CCUSTO: 'CC-123',
+        MATRICULAFUNCIONARIO: 'RH123',
+        MATRICULARH: 'RH123',
       }),
       expect.objectContaining({
         lookupKey: 'CPF',

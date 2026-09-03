@@ -6,23 +6,29 @@ import type { SituacaoExame } from '../types';
 interface Props {
   empresas: string[];
   situacoes: SituacaoExame[];
+  exames: string[];
   filtroEmpresa: string;
   filtroSituacao: string;
+  filtroExame: string;
   onEmpresaChange: (v: string) => void;
   onSituacaoChange: (v: string) => void;
+  onExameChange: (v: string) => void;
   onClear: () => void;
 }
 
 export function ConvocacaoFilters({
   empresas,
   situacoes,
+  exames,
   filtroEmpresa,
   filtroSituacao,
+  filtroExame,
   onEmpresaChange,
   onSituacaoChange,
+  onExameChange,
   onClear,
 }: Props) {
-  const hasFilter = filtroEmpresa || filtroSituacao;
+  const hasFilter = filtroEmpresa || filtroSituacao || filtroExame;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -36,9 +42,7 @@ export function ConvocacaoFilters({
         >
           <option value="">Todas as empresas</option>
           {empresas.map((emp) => (
-            <option key={emp} value={emp}>
-              {emp}
-            </option>
+            <option key={emp} value={emp}>{emp}</option>
           ))}
         </select>
 
@@ -49,9 +53,18 @@ export function ConvocacaoFilters({
         >
           <option value="">Todas as situações</option>
           {situacoes.map((sit) => (
-            <option key={sit} value={sit}>
-              {sit}
-            </option>
+            <option key={sit} value={sit}>{sit}</option>
+          ))}
+        </select>
+
+        <select
+          value={filtroExame}
+          onChange={(e) => onExameChange(e.target.value)}
+          className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/40 max-w-[200px]"
+        >
+          <option value="">Todos os exames</option>
+          {exames.map((ex) => (
+            <option key={ex} value={ex}>{ex}</option>
           ))}
         </select>
 

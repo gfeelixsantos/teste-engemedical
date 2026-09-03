@@ -9,6 +9,8 @@ export type GrupoToraEmployeeRow = {
   nomeSetor: string;
   codigoCargo: string;
   nomeCargo: string;
+  cbo: string;
+  codigoCentroCusto: string;
   matriculaEsocial: string;
   matriculaRh: string;
   nomeFuncionario: string;
@@ -81,14 +83,24 @@ export function parseGrupoToraRows(rows: CellValue[][]): GrupoToraParseResult {
   const parsedRows = bodyRows
     .map((row, index) => {
       const employee: GrupoToraEmployeeRow = {
-        codigoEmpresaProtheus: getByHeader(row, indexes, 'codigoEmpresaProtheus'),
-        codigoUnidadeProtheus: getByHeader(row, indexes, 'codigoUnidadeProtheus'),
+        codigoEmpresaProtheus: getByHeader(
+          row,
+          indexes,
+          'codigoEmpresaProtheus',
+        ),
+        codigoUnidadeProtheus: getByHeader(
+          row,
+          indexes,
+          'codigoUnidadeProtheus',
+        ),
         nomeUnidadeProtheus: getByHeader(row, indexes, 'nomeUnidadeProtheus'),
         codigoUnidadeFt: getByHeader(row, indexes, 'codigoUnidade (FT)'),
         codigoSetor: getByHeader(row, indexes, 'codigoSetor'),
         nomeSetor: getByHeader(row, indexes, 'nomeSetor'),
         codigoCargo: getByHeader(row, indexes, 'codigoCargo'),
         nomeCargo: getByHeader(row, indexes, 'nomeCargo'),
+        cbo: getByHeader(row, indexes, 'cbo'),
+        codigoCentroCusto: getByHeader(row, indexes, 'codigoCentroCusto'),
         matriculaEsocial: getByHeader(row, indexes, 'matriculaEsocial'),
         matriculaRh: getByHeader(row, indexes, 'matriculaRH'),
         nomeFuncionario: getByHeader(row, indexes, 'nomeFuncionario'),

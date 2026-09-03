@@ -10,6 +10,8 @@ import {
   ConvocacaoExame,
   ConvocacaoKPIs,
   SituacaoExame,
+  PorAno,
+  PorTipoExame,
 } from './convocacao.types';
 import type {
   SocFuncionarioContagem,
@@ -21,7 +23,7 @@ import type {
 @Injectable()
 export class ConvocacaoService {
   private cache: { data: DashboardData; expires: number } | null = null;
-  private readonly CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutos
+  private readonly CACHE_TTL_MS = 15 * 60 * 1000;
 
   constructor(
     private readonly configService: ConfigService,
@@ -48,7 +50,7 @@ export class ConvocacaoService {
     );
 
     try {
-      this.logger.debug(`Buscando funcionários da contagem`);
+      this.logger.debug('Buscando funcionários da contagem');
       const response = await fetch(url, {
         signal: AbortSignal.timeout(30000),
       });
@@ -67,13 +69,20 @@ export class ConvocacaoService {
     }
   }
 
+  /**
+   * Busca exames realizados — período amplo (últimos 5 anos) para
+   * popular o gráfico temporal do Smartrics.
+   */
   async fetchExamesRealizados(): Promise<SocExameRealizado[]> {
     const hoje = new Date();
     const dia = String(hoje.getDate()).padStart(2, '0');
     const mes = String(hoje.getMonth() + 1).padStart(2, '0');
     const ano = hoje.getFullYear();
     const dataFim = `${dia}/${mes}/${ano}`;
-    const dataInicio = `01/${mes}/${ano}`;
+
+    // 5 anos atrás para histórico completo
+    const anoInicio = hoje.getFullYear() - 5;
+    const dataInicio = `01/01/${anoInicio}`;
 
     const credentials = getSocExportCredentials(
       'SOC_ED_EXAMES_REALIZADOS',
@@ -86,9 +95,9 @@ export class ConvocacaoService {
     );
 
     try {
-      this.logger.debug(`Buscando exames realizados`);
+      this.logger.debug(`Buscando exames realizados (${dataInicio} a ${dataFim})`);
       const response = await fetch(url, {
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(60000),
       });
       if (!response.ok) {
         this.logger.error(`Falha exames: ${response.status}`);
@@ -117,7 +126,7 @@ export class ConvocacaoService {
     );
 
     try {
-      this.logger.debug(`Buscando unidades`);
+      this.logger.debug('Buscando unidades');
       const response = await fetch(url, {
         signal: AbortSignal.timeout(30000),
       });
@@ -155,7 +164,7 @@ export class ConvocacaoService {
     );
 
     try {
-      this.logger.debug(`Buscando preços`);
+      this.logger.debug('Buscando preços');
       const response = await fetch(url, {
         signal: AbortSignal.timeout(30000),
       });
@@ -188,22 +197,18 @@ export class ConvocacaoService {
       (hoje.getTime() - vencimento.getTime()) / (1000 * 60 * 60 * 24),
     );
     if (diffDias <= 30) return 'Vencido';
-    return 'Nunca Realizado'; // vencido há mais de 30 dias
+    return 'Nunca Realizado';
   }
 
   private parseDateBR(dateStr: string | null): Date | null {
     if (!dateStr) return null;
     const trimmed = dateStr.trim();
     if (!trimmed) return null;
-
-    // DD/MM/YYYY
     const match = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (match) {
       const [, d, m, y] = match;
       return new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
     }
-
-    // ISO or other parseable format
     const parsed = new Date(trimmed);
     return isNaN(parsed.getTime()) ? null : parsed;
   }
@@ -218,7 +223,6 @@ export class ConvocacaoService {
   ): ConvocacaoExame[] {
     const resultado: ConvocacaoExame[] = [];
 
-    // Indexar funcionários por empresa+nome para busca rápida
     const funcMap = new Map<string, SocFuncionarioContagem>();
     for (const f of funcionarios) {
       const key = `${f.CODIGOEMPRESA}|${f.NOMEFUNCIONARIO.trim().toUpperCase()}`;
@@ -227,7 +231,6 @@ export class ConvocacaoService {
       }
     }
 
-    // Indexar preços por empresa
     const precoPorEmpresa = new Map<string, number>();
     for (const p of precos) {
       if (p.valorVidaMes) {
@@ -238,10 +241,7 @@ export class ConvocacaoService {
 
     const hoje = new Date();
 
-    // Para cada exame realizado, tentar encontrar o funcionário correspondente
     for (const exame of exames) {
-      // Tentar match por empresa + nome
-      const key = `${exame.EMPRESA}|${exame.NOMEEMPRESA?.trim().toUpperCase() ?? ''}`;
       const funcByEmpresa = Array.from(funcMap.values()).find(
         (f) =>
           f.CODIGOEMPRESA === exame.EMPRESA ||
@@ -249,7 +249,6 @@ export class ConvocacaoService {
       );
 
       if (!funcByEmpresa) {
-        // Exame sem funcionário vinculado — registrar como "Sem Funcionário"
         resultado.push({
           codigoEmpresa: exame.EMPRESA,
           nomeEmpresa: exame.NOMEEMPRESA,
@@ -277,21 +276,18 @@ export class ConvocacaoService {
         continue;
       }
 
-      // Encontrar unidade
       const unidade = unidades.find(
         (u) =>
           u.CODIGOEMPRESA === funcByEmpresa.CODIGOEMPRESA &&
           u.CODIGOUNIDADE === funcByEmpresa.CODIGOUNIDADE,
       );
 
-      // Periodicidade do exame (default 12 meses = 1 ano)
       const periodicidade =
         precoPorEmpresa.get(funcByEmpresa.CODIGOEMPRESA) || 12;
 
       const dataResultado = this.parseDateBR(exame.DATARESULTADO);
       const dataExame = this.parseDateBR(exame.DATAEXAME);
 
-      // Calcular vencimento: data do exame + periodicidade em meses
       let vencimento: Date | null = null;
       if (dataExame) {
         vencimento = new Date(dataExame);
@@ -351,7 +347,7 @@ export class ConvocacaoService {
     return resultado;
   }
 
-  // ─── KPIs ─────────────────────────────────────────────────────────────────
+  // ─── KPIs (Smartrics: Exames Em Dia + Exames Vencidos) ───────────────────
 
   computeKPIs(data: ConvocacaoExame[]): ConvocacaoKPIs {
     const totalExames = data.length;
@@ -359,49 +355,32 @@ export class ConvocacaoService {
       data.filter((d) => d.codigoFuncionario).map((d) => d.codigoFuncionario),
     ).size;
 
-    const examesDentroDoPrazo = data.filter(
-      (d) => d.situacaoExame === 'Em Dia' || d.situacaoExame === 'A Vencer',
+    const examesEmDia = data.filter(
+      (d) => d.situacaoExame === 'Em Dia',
     ).length;
 
-    const examesForaDoPrazo = data.filter(
+    const examesVencidos = data.filter(
       (d) =>
         d.situacaoExame === 'Vencido' ||
-        d.situacaoExame === 'Nunca Realizado' ||
-        d.situacaoExame === 'Sem Data de Resultado',
+        d.situacaoExame === 'Nunca Realizado',
     ).length;
 
-    const percentFuncionariosEmDia =
-      totalFuncionariosConvocados > 0
-        ? Math.round(
-            (data.filter((d) => d.situacaoExame === 'Em Dia').length /
-              totalFuncionariosConvocados) *
-              100 *
-              100,
-          ) / 100
-        : 0;
-
-    const percentConformidadeTotal =
-      totalExames > 0
-        ? Math.round((examesDentroDoPrazo / totalExames) * 100 * 100) / 100
-        : 0;
-
-    const funcComExamesAVencer = data.filter(
+    const examesAVencer = data.filter(
       (d) => d.situacaoExame === 'A Vencer',
     ).length;
 
-    const funcComExamesForaDoPrazo = data.filter(
-      (d) => d.situacaoExame === 'Vencido',
+    const examesSemResultado = data.filter(
+      (d) => d.situacaoExame === 'Sem Data de Resultado',
     ).length;
 
     return {
       totalExames,
       totalFuncionariosConvocados,
-      examesDentroDoPrazo,
-      examesForaDoPrazo,
-      percentFuncionariosEmDia,
-      percentConformidadeTotal,
-      funcComExamesAVencer,
-      funcComExamesForaDoPrazo,
+      examesEmDia,
+      examesVencidos,
+      examesAVencer,
+      examesNuncaRealizado: examesVencidos - data.filter((d) => d.situacaoExame === 'Vencido').length,
+      examesSemResultado,
       ultimaAtualizacao: new Date(),
     };
   }
@@ -410,19 +389,15 @@ export class ConvocacaoService {
 
   aggregatePorSituacao(data: ConvocacaoExame[]) {
     const map: Record<string, { funcionarios: number; exames: number }> = {};
-
     for (const d of data) {
       if (!map[d.situacaoExame]) {
         map[d.situacaoExame] = { funcionarios: 0, exames: 0 };
       }
       map[d.situacaoExame].exames++;
       if (d.codigoFuncionario) {
-        // Contar funcionários únicos por situação
-        const funcKey = `${d.situacaoExame}|${d.codigoFuncionario}`;
         map[d.situacaoExame].funcionarios++;
       }
     }
-
     return Object.entries(map).map(([situacao, { funcionarios, exames }]) => ({
       situacao,
       funcionarios,
@@ -431,16 +406,12 @@ export class ConvocacaoService {
   }
 
   aggregatePorEmpresa(data: ConvocacaoExame[]) {
-    const map: Record<
-      string,
-      {
-        empresa: string;
-        exames: number;
-        funcionariosAVencer: number;
-        percentAVencer: number;
-      }
-    > = {};
-
+    const map: Record<string, {
+      empresa: string;
+      exames: number;
+      funcionariosAVencer: number;
+      percentAVencer: number;
+    }> = {};
     const funcPorEmpresa = new Map<string, Set<string>>();
 
     for (const d of data) {
@@ -453,7 +424,6 @@ export class ConvocacaoService {
         };
       }
       map[d.nomeEmpresa].exames++;
-
       if (d.codigoFuncionario) {
         if (!funcPorEmpresa.has(d.nomeEmpresa)) {
           funcPorEmpresa.set(d.nomeEmpresa, new Set());
@@ -477,11 +447,7 @@ export class ConvocacaoService {
   }
 
   aggregatePorUnidade(data: ConvocacaoExame[]) {
-    const map: Record<
-      string,
-      { unidade: string; exames: number; foraDoPrazo: number }
-    > = {};
-
+    const map: Record<string, { unidade: string; exames: number; foraDoPrazo: number }> = {};
     for (const d of data) {
       const unidade = d.unidade || 'Sem Unidade';
       if (!map[unidade]) {
@@ -496,50 +462,73 @@ export class ConvocacaoService {
         map[unidade].foraDoPrazo++;
       }
     }
-
     return Object.values(map);
   }
 
-  aggregateTemporal(data: ConvocacaoExame[]) {
-    const map: Record<
-      string,
-      { ano: number; mes: string; funcionarios: number; exames: number }
-    > = {};
+  /**
+   * Agregação por ANO — para o LineChart "Monitoramento de Vencimentos"
+   * Eixo X = anos, linhas Nº Funcionários + Total de Exames
+   */
+  aggregatePorAno(data: ConvocacaoExame[]): PorAno[] {
+    const map: Record<number, { funcionarios: Set<string>; exames: number }> = {};
 
     for (const d of data) {
-      if (!d.ultimopedido) continue;
-
-      const dataRef = d.ultimopedido;
+      const dataRef = d.ultimopedido || d.dataResultado;
+      if (!dataRef) continue;
       const ano = dataRef.getFullYear();
-      const mes = String(dataRef.getMonth() + 1).padStart(2, '0');
-      const chave = `${ano}-${mes}`;
 
-      if (!map[chave]) {
-        map[chave] = {
-          ano,
-          mes: `${mes}/${ano}`,
-          funcionarios: 0,
-          exames: 0,
-        };
+      if (!map[ano]) {
+        map[ano] = { funcionarios: new Set(), exames: 0 };
       }
-
-      map[chave].funcionarios++;
-      map[chave].exames++;
+      map[ano].exames++;
+      if (d.codigoFuncionario) {
+        map[ano].funcionarios.add(d.codigoFuncionario);
+      }
     }
 
-    // Ordenar por data desc e pegar últimos 12 meses
-    const sorted = Object.values(map).sort((a, b) => {
-      if (b.ano !== a.ano) return b.ano - a.ano;
-      return parseInt(b.mes) - parseInt(a.mes);
-    });
+    return Object.entries(map)
+      .map(([ano, { funcionarios, exames }]) => ({
+        ano: parseInt(ano),
+        funcionarios: funcionarios.size,
+        exames,
+      }))
+      .sort((a, b) => a.ano - b.ano);
+  }
 
-    return sorted.slice(0, 12);
+  /**
+   * Agregação por TIPO DE EXAME × Situação — para o grouped bar chart.
+   * Top 6 tipos com mais exames (como no Smartrics).
+   */
+  aggregatePorTipoExame(data: ConvocacaoExame[]): PorTipoExame[] {
+    const map: Record<string, PorTipoExame> = {};
+
+    for (const d of data) {
+      const tipo = d.exame || 'Não Informado';
+      if (!map[tipo]) {
+        map[tipo] = {
+          tipoExame: tipo,
+          'Em Dia': 0,
+          'A Vencer': 0,
+          Vencido: 0,
+          'Nunca Realizado': 0,
+          'Sem Data de Resultado': 0,
+        };
+      }
+      map[tipo][d.situacaoExame]++;
+    }
+
+    // Top 6 por volume total
+    return Object.values(map)
+      .sort((a, b) => {
+        const totalA = a['Em Dia'] + a['A Vencer'] + a.Vencido + a['Nunca Realizado'] + a['Sem Data de Resultado'];
+        const totalB = b['Em Dia'] + b['A Vencer'] + b.Vencido + b['Nunca Realizado'] + b['Sem Data de Resultado'];
+        return totalB - totalA;
+      })
+      .slice(0, 6);
   }
 
   getFiltros(data: ConvocacaoExame[]) {
-    const empresas = Array.from(
-      new Set(data.map((d) => d.nomeEmpresa)),
-    ).sort();
+    const empresas = Array.from(new Set(data.map((d) => d.nomeEmpresa))).sort();
     const unidades = Array.from(
       new Set(data.map((d) => d.unidade).filter(Boolean)),
     ).sort();
@@ -550,7 +539,6 @@ export class ConvocacaoService {
       'Nunca Realizado',
       'Sem Data de Resultado',
     ];
-
     return { empresas, unidades, situacoes };
   }
 
@@ -574,14 +562,13 @@ export class ConvocacaoService {
         this.fetchPrecos(),
       ]);
 
-    const funcionarios =
-      funcRes.status === 'fulfilled' ? funcRes.value : [];
+    const funcionarios = funcRes.status === 'fulfilled' ? funcRes.value : [];
     const exames = exameRes.status === 'fulfilled' ? exameRes.value : [];
     const unidades = unidRes.status === 'fulfilled' ? unidRes.value : [];
     const precos = precoRes.status === 'fulfilled' ? precoRes.value : [];
 
     this.logger.debug(
-      `SOC retornou: ${funcionarios.length} func, ${exames.length} exames, ${unidades.length} unid, ${precos.length} precos`,
+      `SOC: ${funcionarios.length} func, ${exames.length} exames, ${unidades.length} unid, ${precos.length} precos`,
     );
 
     const convocacaoExames = this.buildConvocacaoExames(
@@ -595,7 +582,8 @@ export class ConvocacaoService {
     const porSituacao = this.aggregatePorSituacao(convocacaoExames);
     const porEmpresa = this.aggregatePorEmpresa(convocacaoExames);
     const porUnidade = this.aggregatePorUnidade(convocacaoExames);
-    const temporal = this.aggregateTemporal(convocacaoExames);
+    const porAno = this.aggregatePorAno(convocacaoExames);
+    const porTipoExame = this.aggregatePorTipoExame(convocacaoExames);
     const filtros = this.getFiltros(convocacaoExames);
 
     const dashboardData: DashboardData = {
@@ -603,8 +591,10 @@ export class ConvocacaoService {
       porSituacao,
       porEmpresa,
       porUnidade,
-      temporal,
+      porAno,
+      porTipoExame,
       detalhes: convocacaoExames,
+      totalDetalhes: convocacaoExames.length,
       filtros,
     };
 

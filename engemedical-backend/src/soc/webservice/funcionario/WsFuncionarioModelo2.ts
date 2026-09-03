@@ -35,10 +35,34 @@ function formatSocDate(value: string): string {
   return date;
 }
 
+type HierarchyLookupType = 'CODIGO_RH' | 'NOME';
+
+type FuncionarioModelo2HierarchyReference = {
+  tipoBusca: HierarchyLookupType;
+  codigoRh?: string;
+  codigo?: string;
+  nome?: string;
+  cbo?: string;
+};
+
+export type FuncionarioModelo2HierarchyUpdate = {
+  atualizarCargo?: boolean;
+  atualizarCentroCusto?: boolean;
+  atualizarFuncionario?: boolean;
+  atualizarSetor?: boolean;
+  atualizarUnidade?: boolean;
+  criarHistorico?: boolean;
+  unidade?: FuncionarioModelo2HierarchyReference;
+  setor?: FuncionarioModelo2HierarchyReference;
+  cargo?: FuncionarioModelo2HierarchyReference;
+  centroCusto?: FuncionarioModelo2HierarchyReference;
+};
+
 type WsFuncionarioModelo2Options = {
   overwriteSituacao?: string;
   lookupKey?: 'CODIGO' | 'CPF';
   auditObservation?: string;
+  hierarchyUpdate?: FuncionarioModelo2HierarchyUpdate;
 };
 
 function resolveOptions(
@@ -48,6 +72,52 @@ function resolveOptions(
     return { overwriteSituacao: options };
   }
   return options || {};
+}
+
+function bool(value: boolean | undefined): string {
+  return value ? 'true' : 'false';
+}
+
+function escapeXml(value: string | undefined): string {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function xmlTag(name: string, value: string | undefined): string {
+  return `<${name}>${escapeXml(value)}</${name}>`;
+}
+
+function xmlTagIfValue(name: string, value: string | undefined): string {
+  const normalized = String(value || '').trim();
+  return normalized ? xmlTag(name, normalized) : '';
+}
+
+function hierarchyBlock(
+  tagName: string,
+  reference?: FuncionarioModelo2HierarchyReference,
+): string {
+  if (
+    !reference ||
+    (!reference.codigoRh &&
+      !reference.codigo &&
+      !reference.nome &&
+      !reference.cbo)
+  ) {
+    return '';
+  }
+
+  return `
+            <${tagName}>
+              ${xmlTag('tipoBusca', reference.tipoBusca)}
+              ${xmlTagIfValue('codigoRh', reference.codigoRh)}
+              ${xmlTagIfValue('codigo', reference.codigo)}
+              ${xmlTagIfValue('nome', reference.nome)}
+              ${tagName === 'cargoWsVo' ? xmlTagIfValue('cbo', reference.cbo) : ''}
+            </${tagName}>`;
 }
 
 export async function WsFuncionarioModelo2(
@@ -95,6 +165,38 @@ export async function WsFuncionarioModelo2(
   const auditObservation =
     resolvedOptions.auditObservation ||
     `Inativado via automação Engemedical Connect em ${new Date().toLocaleString('pt-BR')}`;
+  const hierarchyUpdate = resolvedOptions.hierarchyUpdate;
+  const hierarchyBeforeFuncionario = hierarchyUpdate
+    ? `
+            <atualizarCargo>${bool(hierarchyUpdate.atualizarCargo)}</atualizarCargo>
+            <atualizarCentroCusto>${bool(hierarchyUpdate.atualizarCentroCusto)}</atualizarCentroCusto>
+            <atualizarFuncionario>${bool(hierarchyUpdate.atualizarFuncionario)}</atualizarFuncionario>
+            <atualizarMotivoLicenca>false</atualizarMotivoLicenca>
+            <atualizarSetor>${bool(hierarchyUpdate.atualizarSetor)}</atualizarSetor>
+            <atualizarTurno>false</atualizarTurno>
+            <atualizarUnidade>${bool(hierarchyUpdate.atualizarUnidade)}</atualizarUnidade>
+            ${hierarchyBlock('cargoWsVo', hierarchyUpdate.cargo)}
+            ${hierarchyBlock('centroCustoWsVo', hierarchyUpdate.centroCusto)}
+            <criarCargo>false</criarCargo>
+            <criarCentroCusto>false</criarCentroCusto>
+            <criarFuncionario>true</criarFuncionario>
+            <criarHistorico>${bool(hierarchyUpdate.criarHistorico)}</criarHistorico>
+            <criarMotivoLicenca>false</criarMotivoLicenca>
+            <criarSetor>false</criarSetor>
+            <criarTurno>false</criarTurno>
+            <criarUnidade>false</criarUnidade>
+            <criarUnidadeContratante>false</criarUnidadeContratante>
+            <destravarFuncionarioBloqueado>false</destravarFuncionarioBloqueado>`
+    : `
+            <atualizarFuncionario>true</atualizarFuncionario>
+            <atualizarCargo>false</atualizarCargo>`;
+  const hierarchyAfterIdentificacao = hierarchyUpdate
+    ? `
+            <naoImportarFuncionarioSemHierarquia>false</naoImportarFuncionarioSemHierarquia>
+            ${hierarchyBlock('setorWsVo', hierarchyUpdate.setor)}
+            ${hierarchyBlock('unidadeWsVo', hierarchyUpdate.unidade)}
+            <transferirFuncionario>false</transferirFuncionario>`
+    : '';
 
   const xml = `
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://services.soc.age.com/">
@@ -104,42 +206,42 @@ export async function WsFuncionarioModelo2(
       <soapenv:Body>
         <ser:importacaoFuncionario>
           <Funcionario>
-            <atualizarFuncionario>true</atualizarFuncionario>
-            <atualizarCargo>false</atualizarCargo>
+            ${hierarchyBeforeFuncionario}
             <funcionarioWsVo>
               <categoria></categoria>
-              <chaveProcuraFuncionario>${lookupKey}</chaveProcuraFuncionario>
-              <cnpjEmpresaFuncionario>${cleanCnpj}</cnpjEmpresaFuncionario>
-              <codigo>${employee.CODIGO || ''}</codigo>
-              <codigoEmpresa>${employee.CODIGOEMPRESA || ''}</codigoEmpresa>
-              <cpf>${cleanCpf}</cpf>
-              <dataAdmissao>${dataAdmissao}</dataAdmissao>
-              <dataDemissao>${dataDemissao}</dataDemissao>
-              <dataNascimento>${dataNascimento}</dataNascimento>
+              <chaveProcuraFuncionario>${escapeXml(lookupKey)}</chaveProcuraFuncionario>
+              <cnpjEmpresaFuncionario>${escapeXml(cleanCnpj)}</cnpjEmpresaFuncionario>
+              <codigo>${escapeXml(employee.CODIGO)}</codigo>
+              <codigoEmpresa>${escapeXml(employee.CODIGOEMPRESA)}</codigoEmpresa>
+              <cpf>${escapeXml(cleanCpf)}</cpf>
+              <dataAdmissao>${escapeXml(dataAdmissao)}</dataAdmissao>
+              <dataDemissao>${escapeXml(dataDemissao)}</dataDemissao>
+              <dataNascimento>${escapeXml(dataNascimento)}</dataNascimento>
               <descricaoAtividade></descricaoAtividade>
               <estadoCivil>SOLTEIRO</estadoCivil>
-              <matricula>${employee.MATRICULAFUNCIONARIO || employee.MATRICULARH || ''}</matricula>
-              <nomeFuncionario>${(employee.NOME || '').toUpperCase().trim()}</nomeFuncionario>
+              <matricula>${escapeXml(employee.MATRICULAFUNCIONARIO || employee.MATRICULARH)}</matricula>
+              <nomeFuncionario>${escapeXml((employee.NOME || '').toUpperCase().trim())}</nomeFuncionario>
               <observacaoPpp></observacaoPpp>
               <regimeTrabalho>NORMAL</regimeTrabalho>
-              <rg>${rg}</rg>
-              <rgOrgaoEmissor>${rgOrgaoEmissor}</rgOrgaoEmissor>
-              <rgUf>${rgUf}</rgUf>
-              <sexo>${(converterSexo(employee.SEXO) || '').toUpperCase()}</sexo>
-              <situacao>${situacaoFinal.toUpperCase()}</situacao>
+              <rg>${escapeXml(rg)}</rg>
+              <rgOrgaoEmissor>${escapeXml(rgOrgaoEmissor)}</rgOrgaoEmissor>
+              <rgUf>${escapeXml(rgUf)}</rgUf>
+              <sexo>${escapeXml((converterSexo(employee.SEXO) || '').toUpperCase())}</sexo>
+              <situacao>${escapeXml(situacaoFinal.toUpperCase())}</situacao>
               <tipoBuscaEmpresa>CODIGO_SOC</tipoBuscaEmpresa>
               <tipoContratacao>CLT</tipoContratacao>
-              <observacaoFuncionario>${auditObservation}</observacaoFuncionario>
+              <observacaoFuncionario>${escapeXml(auditObservation)}</observacaoFuncionario>
               <codigoCategoriaESocial></codigoCategoriaESocial>
               <tipoVinculo>EMPREGATICIO</tipoVinculo>
               <tipoAdmissao>ADMISSAO</tipoAdmissao>
             </funcionarioWsVo>
             <identificacaoWsVo>
-              <chaveAcesso>${process.env.SOC_WEBSERVICE_PASS}</chaveAcesso>
-              <codigoEmpresaPrincipal>${process.env.SOC_WEBSERVICE_EMPRESA_PRINCIPAL}</codigoEmpresaPrincipal>
-              <codigoResponsavel>${process.env.SOC_WEBSERVICE_CODIGO_RESPONSAVEL}</codigoResponsavel>
-              <codigoUsuario>${process.env.SOC_WEBSERVICE_CODIGO_USUARIO}</codigoUsuario>
+              <chaveAcesso>${escapeXml(process.env.SOC_WEBSERVICE_PASS)}</chaveAcesso>
+              <codigoEmpresaPrincipal>${escapeXml(process.env.SOC_WEBSERVICE_EMPRESA_PRINCIPAL)}</codigoEmpresaPrincipal>
+              <codigoResponsavel>${escapeXml(process.env.SOC_WEBSERVICE_CODIGO_RESPONSAVEL)}</codigoResponsavel>
+              <codigoUsuario>${escapeXml(process.env.SOC_WEBSERVICE_CODIGO_USUARIO)}</codigoUsuario>
             </identificacaoWsVo>
+            ${hierarchyAfterIdentificacao}
           </Funcionario>
         </ser:importacaoFuncionario>
       </soapenv:Body>
