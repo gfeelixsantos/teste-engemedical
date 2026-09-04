@@ -47,6 +47,7 @@ import { CustomerEmailCampaignModule } from './customer-email-campaign/customer-
 import { SftpIntegratorModule } from './sftp-integrator/sftp-integrator.module';
 import { ConvocacaoModule } from './convocacao/convocacao.module';
 import { AbsenteismoModule } from './absenteismo/absenteismo.module';
+import { EsocialModule } from './esocial/esocial.module';
 
 require('dotenv').config();
 
@@ -56,6 +57,7 @@ require('dotenv').config();
     ConfigModule.forRoot({ isGlobal: true }),
     VolumetriaModule,
     AbsenteismoModule,
+    EsocialModule,
     WebsocketConnectionModule,
     MongoModule,
     SocModule,
