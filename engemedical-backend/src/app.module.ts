@@ -46,6 +46,7 @@ import { MuralModule } from './mural/mural.module';
 import { CustomerEmailCampaignModule } from './customer-email-campaign/customer-email-campaign.module';
 import { SftpIntegratorModule } from './sftp-integrator/sftp-integrator.module';
 import { ConvocacaoModule } from './convocacao/convocacao.module';
+import { AbsenteismoModule } from './absenteismo/absenteismo.module';
 
 require('dotenv').config();
 
@@ -54,6 +55,7 @@ require('dotenv').config();
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     VolumetriaModule,
+    AbsenteismoModule,
     WebsocketConnectionModule,
     MongoModule,
     SocModule,
