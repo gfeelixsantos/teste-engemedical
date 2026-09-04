@@ -49,6 +49,7 @@ import { ConvocacaoModule } from './convocacao/convocacao.module';
 import { AbsenteismoModule } from './absenteismo/absenteismo.module';
 import { EsocialModule } from './esocial/esocial.module';
 import { VidasModule } from './vidas/vidas.module';
+import { DocumentosModule } from './documentos/documentos.module';
 
 require('dotenv').config();
 
@@ -97,6 +98,7 @@ require('dotenv').config();
     SftpIntegratorModule,
     ConvocacaoModule,
     VidasModule,
+    DocumentosModule,
   ],
   controllers: [AppController, TicketController, HealthController],
   providers: [AppService],
