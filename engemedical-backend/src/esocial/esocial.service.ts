@@ -5,6 +5,8 @@ import {
   buildSocExportDataUrl,
   getSocExportCredentials,
 } from '../soc/utils/soc-export-data-url';
+import * as fs from 'fs';
+import * as path from 'path';
 import type {
   SocPrecoEmpresa,
   RegistroEsocial,
@@ -23,6 +25,7 @@ import type {
 export class EsocialService {
   private cache: { data: EsocialDashboardData; expires: number } | null = null;
   private readonly CACHE_TTL_MS = 15 * 60 * 1000;
+  private staticData: RegistroEsocial[] | null = null;
 
   constructor(
     private readonly configService: ConfigService,
@@ -31,46 +34,69 @@ export class EsocialService {
     this.logger.setContext(EsocialService.name);
   }
 
-  async fetchEmpresasEsocial(): Promise<SocPrecoEmpresa[]> {
-    const credentials = getSocExportCredentials(
-      'SOC_ED_PRECOS',
-      this.configService,
-    );
-
-    const params: Record<string, string> = {
-      ...credentials,
-      tipoSaida: 'json',
-      codigoEmpresa: '',
-      codigoUnidade: '',
-      codigoProduto: '',
-      codigoGrupoProduto: '',
-    };
-
-    const url = buildSocExportDataUrl(params, this.configService);
+  private loadStaticData(): RegistroEsocial[] {
+    if (this.staticData && this.staticData.length > 0) return this.staticData;
 
     try {
-      this.logger.debug('Buscando empresas eSocial via SOC');
-      const response = await fetch(url, {
-        signal: AbortSignal.timeout(60000),
-      });
+      // Tentar carregar do projeto onboardingengemedical
+      const dataPath = path.join(
+        process.env.HOME || process.env.USERPROFILE || '',
+        'Desktop',
+        'WORKSPACE',
+        'onboardingengemedical',
+        'data',
+        'esocial_data.json',
+      );
 
-      if (!response.ok) {
-        this.logger.error(`Falha ao buscar empresas eSocial: ${response.status}`);
-        return [];
+      if (fs.existsSync(dataPath)) {
+        const raw = fs.readFileSync(dataPath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        this.staticData = parsed.map((r: any) => ({
+          id: r.id,
+          codigoEmpresa: String(r.codigo_empresa || ''),
+          empresa: r.empresa || '',
+          cnpj: r.cnpj || '',
+          unidade: r.unidade || '',
+          evento: r.evento || 'Sem evento identificado',
+          statusEvento: r.status_evento || 'Pendente',
+          dataGeracao: r.data_geracao || '',
+          ano: r.ano || 0,
+          mesNum: r.mes_num || 0,
+          mesNome: r.mes_nome || '',
+          funcionario: r.funcionario || '',
+          nrRecibo: r.nr_recibo || '',
+          codigoGed: r.codigo_ged || '',
+          nomeArquivo: r.nome_arquivo || '',
+          erro: r.erro || '',
+        }));
+        const data = this.staticData as RegistroEsocial[];
+        this.logger.debug(`Carregados ${data.length} registros eSocial do arquivo estatico`);
+        return data;
       }
-
-      const buffer = await response.arrayBuffer();
-      const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const data: SocPrecoEmpresa[] = JSON.parse(decoded);
-      this.logger.debug(`Retornadas ${data.length} empresas`);
-      return data;
     } catch (error) {
-      this.logger.error('Erro ao buscar empresas eSocial:', error);
-      return [];
+      this.logger.warn('Arquivo estatico eSocial nao encontrado, usando mock');
     }
+
+    // Fallback: gerar dados mock
+    return this.generateMockRegistros();
   }
 
-  private generateMockRegistros(empresas: SocPrecoEmpresa[]): RegistroEsocial[] {
+  private generateMockRegistros(): RegistroEsocial[] {
+    const empresas = [
+      { nome: 'GRUPO TORA', cnpj: '12.345.678/0001-90' },
+      { nome: 'INSTITUTO MIRANTE DE CULTURA E ARTE', cnpj: '23.456.789/0001-01' },
+      { nome: 'ASO AVULSO - TORA TRANSPORTES', cnpj: '34.567.890/0001-12' },
+      { nome: 'IMPACTO SERVICOS E TERCEIRIZACAO LTDA', cnpj: '45.678.901/0001-23' },
+      { nome: 'NORTEARH SERVICES LOCACAO DE MAO DE OBRA LTDA', cnpj: '56.789.012/0001-34' },
+      { nome: 'MCD SERVICOS DE BUFFET LTDA', cnpj: '67.890.123/0001-45' },
+      { nome: 'MISPA SEGURANCA LTDA', cnpj: '78.901.234/0001-56' },
+      { nome: 'GO COMERCIO DE ARTIGOS ELETRONICOS E ACESSORIOS LTDA', cnpj: '89.012.345/0001-67' },
+      { nome: 'ELETRICAL SERVICE AUTOMACAO LTDA', cnpj: '48.780.133/0001-54' },
+      { nome: 'GRISOLIA E FILHAS LTDA', cnpj: '90.123.456/0001-78' },
+      { nome: 'HERC COMERCIO DE EQUIPAMENTOS E SERVICOS', cnpj: '01.234.567/0001-89' },
+      { nome: 'IRISTECH AUTOMACAO E TECNOLOGIA LTDA', cnpj: '11.223.344/0001-99' },
+    ];
+
     const eventos: Array<'S2210' | 'S2220' | 'S2230' | 'S2240' | 'Sem evento identificado'> = [
       'S2240', 'S2220', 'S2230', 'S2210', 'Sem evento identificado',
     ];
@@ -100,10 +126,10 @@ export class EsocialService {
 
       rows.push({
         id: idCounter++,
-        codigoEmpresa: emp?.codigoEmpresa || '',
-        empresa: emp?.nomeEmpresa || 'Empresa Nao Informada',
-        cnpj: '',
-        unidade: emp?.nomeUnidade || '',
+        codigoEmpresa: String(100 + Math.floor(Math.random() * 900)),
+        empresa: emp.nome,
+        cnpj: emp.cnpj,
+        unidade: ['MATRIZ', 'FILIAL FORTALEZA', 'UNIDADE REGIONAL JUAZEIRO', 'UNIDADE SOBRAL'][Math.floor(Math.random() * 4)],
         evento: ev,
         statusEvento: st,
         dataGeracao: `${yr}-${String(mNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
@@ -277,10 +303,6 @@ export class EsocialService {
         ev.empresas.push(emp);
       }
 
-      const increment = (target: Record<string, number>, field: string) => {
-        target[field] = (target[field] || 0) + 1;
-      };
-
       switch (r.statusEvento) {
         case 'Concluido':
           year.concluido++; mes.concluido++; ev.concluido++; emp.concluido++; break;
@@ -330,8 +352,8 @@ export class EsocialService {
     eventoFiltro?: string,
     statusFiltro?: string,
   ): Promise<EsocialDashboardData> {
-    const empresas = await this.fetchEmpresasEsocial();
-    let registros = this.generateMockRegistros(empresas);
+    // Carregar dados do arquivo estatico ou mock
+    let registros = this.loadStaticData();
 
     // Aplicar filtros
     if (dataInicial) {
