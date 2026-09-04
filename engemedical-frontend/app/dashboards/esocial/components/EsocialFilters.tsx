@@ -4,12 +4,10 @@ import { Filter } from 'lucide-react';
 
 interface Props {
   empresas: string[];
-  eventos: string[];
+  layouts: string[];
   status: string[];
   dataInicio: string;
   dataFim: string;
-  eventoFiltro: string;
-  statusFiltro: string;
   onFilterChange: (dataInicio: string, dataFim: string) => void;
 }
 

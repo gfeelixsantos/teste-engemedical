@@ -2,7 +2,7 @@
 
 import CountUp from 'react-countup';
 import type { EsocialKPIs } from '../types';
-import { Building2, FileCode, DollarSign, TrendingUp } from 'lucide-react';
+import { Building2, FileCode, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 
 interface Props {
   kpis?: EsocialKPIs;
@@ -13,49 +13,61 @@ export function KpiCards({ kpis }: Props) {
 
   const cards = [
     {
-      label: 'No. de Empresas (eSocial)',
-      value: kpis.empresasComEventos,
-      format: 'number' as const,
-      icon: Building2,
-      color: 'bg-blue-500',
-      sub: `de ${kpis.empresasFaturamento} no faturamento`,
-    },
-    {
-      label: 'Total Eventos eSocial',
-      value: kpis.totalRegistrosXml,
-      format: 'number' as const,
+      label: 'No. de Registros',
+      value: kpis.totalRegistros,
       icon: FileCode,
-      color: 'bg-green-500',
-      sub: 'eventos registrados',
+      color: 'bg-blue-500',
     },
     {
-      label: 'Valor Total Eventos',
-      value: kpis.valorTotalEventos,
-      format: 'currency' as const,
-      icon: DollarSign,
-      color: 'bg-purple-500',
-      sub: 'valor faturado',
+      label: 'No. de Empresas',
+      value: kpis.totalEmpresas,
+      icon: Building2,
+      color: 'bg-green-500',
+    },
+    {
+      label: 'Concluidos',
+      value: kpis.concluidos,
+      icon: CheckCircle,
+      color: 'bg-emerald-500',
+    },
+    {
+      label: 'Inconsistencias',
+      value: kpis.inconsistencias,
+      icon: AlertTriangle,
+      color: 'bg-red-500',
+    },
+    {
+      label: 'Pendentes',
+      value: kpis.pendentes,
+      icon: Clock,
+      color: 'bg-orange-500',
+    },
+    {
+      label: 'Taxa Conclusao',
+      value: kpis.taxaConclusao,
+      format: 'percent' as const,
+      icon: CheckCircle,
+      color: 'bg-teal-500',
     },
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-3 lg:grid-cols-6 gap-4">
       {cards.map((card) => (
         <div key={card.label} className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <div className={`p-2 rounded-lg ${card.color}`}>
-              <card.icon className="w-5 h-5 text-white" />
+              <card.icon className="w-4 h-4 text-white" />
             </div>
             <div>
               <p className="text-xs text-gray-500">{card.label}</p>
-              <p className="text-xl font-bold text-gray-900">
-                {card.format === 'currency' ? (
-                  <>R$ <CountUp end={card.value} decimals={0} separator="." /></>
+              <p className="text-lg font-bold text-gray-900">
+                {card.format === 'percent' ? (
+                  <CountUp end={card.value} decimals={1} suffix="%" />
                 ) : (
                   <CountUp end={card.value} />
                 )}
               </p>
-              {card.sub && <p className="text-xs text-gray-400">{card.sub}</p>}
             </div>
           </div>
         </div>

@@ -9,10 +9,11 @@ export class EsocialController {
   async getDashboard(
     @Query('dataInicio') dataInicio?: string,
     @Query('dataFim') dataFim?: string,
-    @Query('evento') evento?: string,
+    @Query('empresa') empresa?: string,
     @Query('status') status?: string,
+    @Query('layout') layout?: string,
   ) {
-    return this.esocialService.getDashboardData(dataInicio, dataFim, evento, status);
+    return this.esocialService.getDashboardData(dataInicio, dataFim, empresa, status, layout);
   }
 
   @Get('refresh')

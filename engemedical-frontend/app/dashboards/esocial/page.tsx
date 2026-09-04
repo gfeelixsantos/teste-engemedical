@@ -6,6 +6,7 @@ import { logout } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { HeaderApp } from '@/components/shared/HeaderApp';
 import { KpiCards } from './components/KpiCards';
+import { StatusXmlChart } from './components/StatusXmlChart';
 import { EventosDonut } from './components/EventosDonut';
 import { EvolucaoMensal } from './components/EvolucaoMensal';
 import { ComparativoEmpresas } from './components/ComparativoEmpresas';
@@ -74,7 +75,7 @@ export default function EsocialPage() {
             Painel de Registros eSocial
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Fonte: Exporta Dados FATURAMENTO (186376) + PREÇO (218761)
+            Fonte: SOC Exporta Dados 186601 - Eventos eSocial
           </p>
         </div>
 
@@ -82,13 +83,11 @@ export default function EsocialPage() {
 
         <div className="mt-6">
           <EsocialFilters
-            empresas={data?.empresas || []}
-            eventos={data?.filtros?.eventos || []}
+            empresas={data?.filtros?.empresas || []}
+            layouts={data?.filtros?.layouts || []}
             status={data?.filtros?.status || []}
             dataInicio={dataInicio}
             dataFim={dataFim}
-            eventoFiltro="Todos"
-            statusFiltro="Todos"
             onFilterChange={(ini, fim) => {
               setDataInicio(ini);
               setDataFim(fim);
@@ -97,17 +96,18 @@ export default function EsocialPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <EventosDonut data={data?.eventosDonut} />
-          <EvolucaoMensal data={data?.evolucaoMensal} />
+          <StatusXmlChart data={data?.charts?.por_status} />
+          <EventosDonut data={data?.charts?.por_layout} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <ComparativoEmpresas data={data?.comparativoEmpresas} />
-          <NaoConcluidosEmpresa data={data?.naoConcluidosEmpresa} />
+          <EvolucaoMensal data={data?.charts?.por_mes} />
+          <StatusPorMes data={data?.charts?.por_mes_status} />
         </div>
 
-        <div className="mt-6">
-          <StatusPorMes data={data?.statusPorMes} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <ComparativoEmpresas data={data?.charts?.por_empresa} />
+          <NaoConcluidosEmpresa data={data?.charts?.por_empresa_status} />
         </div>
       </main>
     </div>

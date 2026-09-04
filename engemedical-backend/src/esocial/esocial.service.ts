@@ -6,16 +6,16 @@ import {
   getSocExportCredentials,
 } from '../soc/utils/soc-export-data-url';
 import type {
-  SocFaturamento,
-  SocPrecoEmpresa,
+  SocEventoEsocial,
+  RegistroEsocial,
   EsocialKPIs,
-  StatusXmlItem,
-  EventoDonutItem,
+  StatusItem,
+  LayoutItem,
   EvolucaoMensalItem,
   StatusMesItem,
-  ComparativoEmpresaItem,
-  NaoConcluidoEmpresaItem,
+  EmpresaStatusItem,
   EsocialDashboardData,
+  LayoutEvento,
 } from './esocial.types';
 
 @Injectable()
@@ -31,315 +31,250 @@ export class EsocialService {
   }
 
   /**
-   * Busca FATURAMENTO (186376) - contem QUANTIDADE_EVENTOS_ESOCIAL e VALOR_EVENTO
+   * Busca Eventos eSocial via SOC Exporta Dados 186601
    */
-  private async fetchFaturamento(dataInicio?: string, dataFim?: string): Promise<SocFaturamento[]> {
-    const credentials = getSocExportCredentials('SOC_ED_FATURAMENTO', this.configService);
+  private async fetchEventosEsocial(
+    dataInicio: string,
+    dataFim: string,
+    empresaTrabalho?: string,
+    status?: string,
+    layout?: string,
+  ): Promise<RegistroEsocial[]> {
+    const credentials = getSocExportCredentials('SOC_ED_ESOCIAL_EVENTOS', this.configService);
 
     const params: Record<string, string> = {
       ...credentials,
       tipoSaida: 'json',
+      dataInicio,
+      dataFim,
+      empresaTrabalho: empresaTrabalho || '',
+      status: status || '99',
+      layout: layout || '0',
+      unidade: '0',
+      ambiente: '1',
+      funcionario: '',
     };
-    if (dataInicio) params.dataInicio = dataInicio;
-    if (dataFim) params.dataFim = dataFim;
 
     const url = buildSocExportDataUrl(params, this.configService);
 
     try {
-      this.logger.debug('Buscando faturamento via SOC (186376)');
-      const response = await fetch(url, { signal: AbortSignal.timeout(60000) });
+      this.logger.debug(`Buscando eventos eSocial SOC 186601 | ${dataInicio} a ${dataFim}`);
+      const response = await fetch(url, { signal: AbortSignal.timeout(120000) });
       if (!response.ok) {
-        this.logger.error(`Falha ao buscar faturamento: ${response.status}`);
+        this.logger.error(`Falha ao buscar eventos eSocial: ${response.status}`);
         return [];
       }
       const buffer = await response.arrayBuffer();
       const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const data: SocFaturamento[] = JSON.parse(decoded);
-      this.logger.debug(`Retornadas ${data.length} linhas de faturamento`);
-      return data;
+      const raw: SocEventoEsocial[] = JSON.parse(decoded);
+      this.logger.debug(`Retornados ${raw.length} registros do SOC`);
+
+      return raw.map((r) => this.mapRow(r)).filter((r) => r !== null) as RegistroEsocial[];
     } catch (error) {
-      this.logger.error('Erro ao buscar faturamento:', error);
+      this.logger.error('Erro ao buscar eventos eSocial:', error);
       return [];
     }
   }
 
-  /**
-   * Busca PREÇO (218761) - identifica empresas que fazem eSocial via tipoCobranca
-   */
-  private async fetchPrecoEmpresas(): Promise<SocPrecoEmpresa[]> {
-    const credentials = getSocExportCredentials('SOC_ED_PRECOS', this.configService);
+  private mapRow(row: SocEventoEsocial): RegistroEsocial | null {
+    const layout = this.normalizeLayout(row['COD EVENTO'] || row.EVENTO || '');
+    const status = this.normalizeStatus(row.STATUSEVENTO || '');
+    const empresa = row.EMPRESA || row.CODIGOEMPRESA || 'Sem empresa';
+    const funcionario = row.NOMEFUNCIONARIO || row.FUNCIONARIO || '';
+    const dataGeracao = this.parseDate(row.DATAGERACAO || '');
 
-    const params: Record<string, string> = {
-      ...credentials,
-      tipoSaida: 'json',
-      codigoEmpresa: '',
-      codigoUnidade: '',
-      codigoProduto: '',
-      codigoGrupoProduto: '',
-    };
-
-    const url = buildSocExportDataUrl(params, this.configService);
-
-    try {
-      this.logger.debug('Buscando precos via SOC (218761)');
-      const response = await fetch(url, { signal: AbortSignal.timeout(60000) });
-      if (!response.ok) {
-        this.logger.error(`Falha ao buscar precos: ${response.status}`);
-        return [];
-      }
-      const buffer = await response.arrayBuffer();
-      const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const data: SocPrecoEmpresa[] = JSON.parse(decoded);
-      this.logger.debug(`Retornadas ${data.length} linhas de preco`);
-      return data;
-    } catch (error) {
-      this.logger.error('Erro ao buscar precos:', error);
-      return [];
+    if (layout === 'Sem evento identificado' && status === '' && !empresa && !funcionario && !dataGeracao) {
+      return null;
     }
-  }
-
-  /**
-   * Busca FUNCIONÁRIOS MOVIMENTADOS (215452) - para headcount
-   */
-  private async fetchFuncionarios(): Promise<any[]> {
-    const credentials = getSocExportCredentials('SOC_ED_FUNCIONARIOS_MOVIMENTADO', this.configService);
-
-    const params: Record<string, string> = {
-      ...credentials,
-      tipoSaida: 'json',
-    };
-
-    const url = buildSocExportDataUrl(params, this.configService);
-
-    try {
-      this.logger.debug('Buscando funcionarios movimentados via SOC (215452)');
-      const response = await fetch(url, { signal: AbortSignal.timeout(60000) });
-      if (!response.ok) return [];
-      const buffer = await response.arrayBuffer();
-      const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      return JSON.parse(decoded);
-    } catch (error) {
-      this.logger.error('Erro ao buscar funcionarios:', error);
-      return [];
-    }
-  }
-
-  private parseMoney(val: string | number): number {
-    if (typeof val === 'number') return val;
-    if (!val) return 0;
-    // SOC retorna como "1.234,56" ou "1234.56"
-    const cleaned = String(val).replace(/\./g, '').replace(',', '.');
-    return parseFloat(cleaned) || 0;
-  }
-
-  private aggregateKPIs(faturamento: SocFaturamento[], precoEmpresas: SocPrecoEmpresa[]): EsocialKPIs {
-    // Filtrar empresas que fazem eSocial (tipoCobranca indica eSocial)
-    const empresasEsocial = new Set<string>();
-    for (const p of precoEmpresas) {
-      if (p.tipoCobranca && (p.tipoCobranca.toLowerCase().includes('esocial') || p.tipoCobranca !== '')) {
-        empresasEsocial.add(p.codigoEmpresa);
-      }
-    }
-
-    // Agregar eventos eSocial do faturamento
-    let totalEventosEsocial = 0;
-    let totalValorEventos = 0;
-    const empresasComEventos = new Set<string>();
-
-    for (const f of faturamento) {
-      const qtd = parseInt(String(f.quantidadeEventosEsocial || '0'), 10);
-      if (qtd > 0) {
-        totalEventosEsocial += qtd;
-        totalValorEventos += this.parseMoney(f.valorEvento || '0');
-        empresasComEventos.add(f.codigoEmpresa);
-      }
-    }
-
-    // Total de empresas unicas no faturamento
-    const totalEmpresasFaturamento = new Set(faturamento.map((f) => f.codigoEmpresa)).size;
 
     return {
-      totalEmpresas: empresasComEventos.size,
-      pctInconsistentes: 0, // Sem dados de inconsistencias no export
-      totalRegistrosXml: totalEventosEsocial,
-      conclusao: { qtd: 0, pct: 0 },
-      inconsistencias: { qtd: 0, pct: 0 },
-      pendente: { qtd: 0, pct: 0 },
-      excluido: { qtd: 0, pct: 0 },
-      assinado: { qtd: 0, pct: 0 },
-      ultimaAtualizacao: new Date().toISOString(),
-      valorTotalEventos: totalValorEventos,
-      empresasEsocial: empresasEsocial.size,
-      empresasComEventos: empresasComEventos.size,
-      empresasFaturamento: totalEmpresasFaturamento,
+      codigoEmpresa: row.CODIGOEMPRESA || '',
+      empresa,
+      cnpj: row.CNPJ || '',
+      subgrupo: row.SUBGRUPO || '',
+      unidade: row.NOMEUNIDADE || '',
+      classificacaoEmpresa: row.ClassificacaoEmpresa || '',
+      layout,
+      evento: row.EVENTO || '',
+      dataGeracao,
+      codigoGed: row.CODIGOGED || '',
+      nomeArquivo: row.NOMEARQUIVO || '',
+      codigoFuncionario: row.FUNCIONARIO || '',
+      funcionario,
+      statusEvento: (status as any) || 'Sem status',
+      nrRecibo: row.NRRECIBO || '',
+      erro: row.ERRO || '',
+      codigoErroEsocial: row.CODIGOERROESOCIAL || '',
+      ambiente: row.AMBIENTEPRODUCAO || '',
+      cargaInicial: row.CARGAINICIAL || '',
+      solucaoEsocial: row['Solucao eSocial'] || '',
     };
   }
 
-  private aggregateEventosPorEmpresa(faturamento: SocFaturamento[]): ComparativoEmpresaItem[] {
-    const map: Record<string, { empresa: string; total: number; valor: number }> = {};
-
-    for (const f of faturamento) {
-      const qtd = parseInt(String(f.quantidadeEventosEsocial || '0'), 10);
-      if (qtd <= 0) continue;
-
-      const key = f.empresa || f.codigoEmpresa;
-      if (!map[key]) map[key] = { empresa: key, total: 0, valor: 0 };
-      map[key].total += qtd;
-      map[key].valor += this.parseMoney(f.valorEvento || '0');
-    }
-
-    return Object.values(map)
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 15)
-      .map((item) => ({
-        empresa: item.empresa,
-        totalRegistros: item.total,
-        pctConcluido: 0,
-        valor: item.valor,
-      }));
+  private normalizeLayout(value: string): LayoutEvento {
+    const upper = value.toUpperCase().trim();
+    const match = upper.match(/S?-?(22(?:10|20|21|30|40))/);
+    if (match) return ('S' + match[1]) as LayoutEvento;
+    if (upper.includes('2221')) return 'S2221';
+    return 'Sem evento identificado' as LayoutEvento;
   }
 
-  private aggregateEventosPorMes(faturamento: SocFaturamento[]): EvolucaoMensalItem[] {
-    const map: Record<string, number> = {};
-
-    for (const f of faturamento) {
-      const qtd = parseInt(String(f.quantidadeEventosEsocial || '0'), 10);
-      if (qtd <= 0) continue;
-
-      const key = `${f.mesCobranca || '00'}`;
-      map[key] = (map[key] || 0) + qtd;
-    }
-
-    const meses = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-
-    return Object.entries(map)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, qtd]) => ({
-        label: meses[parseInt(key, 10)] || key,
-        qtd,
-      }));
+  private normalizeStatus(status: string): string {
+    const upper = status.toUpperCase().trim();
+    if (upper.includes('CONCLUID')) return 'Concluido';
+    if (upper.includes('ERRO') || upper.includes('INCONSIST')) return 'Inconsistencias';
+    if (upper.includes('PENDENTE')) return 'Pendente';
+    if (upper.includes('EXCLUID')) return 'Excluido';
+    if (upper.includes('ASSINADO')) return 'Assinado';
+    if (upper.includes('PROCESS')) return 'Processando';
+    if (upper.includes('REPROCESS')) return 'Reprocessar';
+    if (upper.includes('IGNORADO')) return 'Ignorado';
+    if (upper.includes('APTO')) return 'Apto para envio';
+    if (upper.includes('INTEGRACAO')) return 'Integracao';
+    return status;
   }
 
-  private aggregateValorPorEmpresa(faturamento: SocFaturamento[]): NaoConcluidoEmpresaItem[] {
-    const map: Record<string, { empresa: string; valor: number }> = {};
-
-    for (const f of faturamento) {
-      const valor = this.parseMoney(f.valorEvento || '0');
-      if (valor <= 0) continue;
-
-      const key = f.empresa || f.codigoEmpresa;
-      if (!map[key]) map[key] = { empresa: key, valor: 0 };
-      map[key].valor += valor;
+  private parseDate(raw: string): string {
+    if (!raw) return '';
+    // SOC pode retornar como DD/MM/YYYY ou YYYY-MM-DD ou /Date(timestamp)/
+    if (raw.startsWith('/Date(')) {
+      const ts = parseInt(raw.replace(/\/Date\((\d+).*\//, '$1'), 10);
+      return new Date(ts).toISOString().split('T')[0];
     }
-
-    return Object.values(map)
-      .sort((a, b) => b.valor - a.valor)
-      .slice(0, 10)
-      .map((item) => ({
-        empresa: item.empresa,
-        inconsistencias: 0,
-        pendente: 0,
-        assinado: 0,
-        excluido: 0,
-        valor: item.valor,
-      }));
+    if (raw.includes('/')) {
+      const parts = raw.split('/');
+      if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return raw;
   }
 
-  private aggregateEventosPorProduto(faturamento: SocFaturamento[]): EventoDonutItem[] {
-    const map: Record<string, number> = {};
-
-    for (const f of faturamento) {
-      const qtd = parseInt(String(f.quantidadeEventosEsocial || '0'), 10);
-      if (qtd <= 0) continue;
-
-      const produto = f.produto || 'Sem Produto';
-      map[produto] = (map[produto] || 0) + qtd;
-    }
-
-    const total = Object.values(map).reduce((s, v) => s + v, 0);
-
-    return Object.entries(map)
-      .map(([evento, qtd]) => ({
-        evento,
-        qtd,
-        pct: total > 0 ? Math.round((qtd / total) * 10000) / 100 : 0,
-      }))
-      .sort((a, b) => b.qtd - a.qtd);
+  private monthKey(dataGeracao: string): string {
+    if (!dataGeracao || dataGeracao.length < 7) return '';
+    return dataGeracao.substring(0, 7); // YYYY-MM
   }
 
-  private aggregateVidasPorEmpresa(faturamento: SocFaturamento[]): StatusMesItem[] {
-    const map: Record<string, StatusMesItem> = {};
+  private buildDashboard(rows: RegistroEsocial[], dataInicio: string, dataFim: string): EsocialDashboardData {
+    const empresasSet = new Set<string>();
+    let concluidos = 0;
+    let inconsistencias = 0;
+    let pendentes = 0;
 
-    for (const f of faturamento) {
-      const key = f.empresa || f.codigoEmpresa;
-      if (!map[key]) {
-        map[key] = { mes: key, concluido: 0, inconsistencias: 0, pendente: 0, assinado: 0, excluido: 0 };
+    const layouts: Record<string, number> = {};
+    const porStatus: Record<string, number> = {};
+    const porLayout: Record<string, number> = {};
+    const porMes: Record<string, number> = {};
+    const porMesStatus: Record<string, any> = {};
+    const porEmpresa: Record<string, number> = {};
+    const porEmpresaStatus: Record<string, any> = {};
+    const porErro: Record<string, number> = {};
+
+    for (const row of rows) {
+      empresasSet.add(row.empresa);
+
+      if (row.statusEvento === 'Concluido') concluidos++;
+      else if (row.statusEvento === 'Inconsistencias') inconsistencias++;
+      else if (row.statusEvento === 'Pendente') pendentes++;
+
+      layouts[row.layout] = (layouts[row.layout] || 0) + 1;
+      porStatus[row.statusEvento] = (porStatus[row.statusEvento] || 0) + 1;
+      porLayout[row.layout] = (porLayout[row.layout] || 0) + 1;
+
+      const mes = this.monthKey(row.dataGeracao);
+      if (mes) {
+        porMes[mes] = (porMes[mes] || 0) + 1;
+        if (!porMesStatus[mes]) porMesStatus[mes] = { concluido: 0, inconsistencias: 0, pendente: 0, excluido: 0, assinado: 0, outros: 0 };
+        this.incrementStatus(porMesStatus[mes], row.statusEvento);
       }
-      map[key].concluido += parseInt(String(f.quantidadeVidas || '0'), 10);
-      map[key].inconsistencias += parseInt(String(f.quantidadeEventosEsocial || '0'), 10);
+
+      porEmpresa[row.empresa] = (porEmpresa[row.empresa] || 0) + 1;
+      if (!porEmpresaStatus[row.empresa]) {
+        porEmpresaStatus[row.empresa] = { empresa: row.empresa, totalRegistros: 0, concluido: 0, inconsistencias: 0, pendente: 0, excluido: 0, assinado: 0 };
+      }
+      porEmpresaStatus[row.empresa].totalRegistros++;
+      this.incrementStatus(porEmpresaStatus[row.empresa], row.statusEvento);
+
+      const erro = row.codigoErroEsocial || row.erro;
+      if (erro) porErro[erro] = (porErro[erro] || 0) + 1;
     }
 
-    return Object.values(map)
-      .sort((a, b) => b.concluido - a.concluido)
-      .slice(0, 15);
-  }
+    const total = rows.length;
+    const taxaConclusao = total > 0 ? Math.round((concluidos / total) * 10000) / 100 : 0;
 
-  getDashboardData(
-    dataInicial?: string,
-    dataFinal?: string,
-    eventoFiltro?: string,
-    statusFiltro?: string,
-  ): Promise<EsocialDashboardData> {
-    const now = Date.now();
-    if (this.cache && this.cache.expires > now) {
-      return Promise.resolve(this.cache.data);
-    }
-    return this.buildDashboard(dataInicial, dataFinal, eventoFiltro, statusFiltro);
-  }
+    const sortedMeses = Object.keys(porMes).sort();
+    const sortedEmpresas = Object.entries(porEmpresa).sort((a, b) => b[1] - a[1]).slice(0, 12);
 
-  private async buildDashboard(
-    dataInicial?: string,
-    dataFinal?: string,
-    eventoFiltro?: string,
-    statusFiltro?: string,
-  ): Promise<EsocialDashboardData> {
-    // Buscar dados dos exports SOC
-    const [faturamento, precoEmpresas] = await Promise.all([
-      this.fetchFaturamento(dataInicial, dataFinal),
-      this.fetchPrecoEmpresas(),
-    ]);
-
-    const kpis = this.aggregateKPIs(faturamento, precoEmpresas);
-    const eventosPorEmpresa = this.aggregateEventosPorEmpresa(faturamento);
-    const eventosPorMes = this.aggregateEventosPorMes(faturamento);
-    const valorPorEmpresa = this.aggregateValorPorEmpresa(faturamento);
-    const eventosPorProduto = this.aggregateEventosPorProduto(faturamento);
-    const vidasPorEmpresa = this.aggregateVidasPorEmpresa(faturamento);
-
-    const empresasList = [...new Set(faturamento.map((f) => f.empresa || f.codigoEmpresa))].sort();
-
-    const data: EsocialDashboardData = {
-      kpis,
-      statusXml: [],
-      eventosDonut: eventosPorProduto,
-      evolucaoMensal: eventosPorMes,
-      statusPorMes: vidasPorEmpresa,
-      comparativoEmpresas: eventosPorEmpresa,
-      naoConcluidosEmpresa: valorPorEmpresa,
-      registros: [],
-      empresas: empresasList,
-      totalRegistros: faturamento.length,
+    return {
+      success: true,
+      kpis: {
+        totalRegistros: total,
+        totalEmpresas: empresasSet.size,
+        concluidos,
+        inconsistencias,
+        pendentes,
+        taxaConclusao,
+      },
+      layouts,
+      charts: {
+        por_status: Object.entries(porStatus).map(([status, qtd]) => ({ status, qtd })).sort((a, b) => b.qtd - a.qtd),
+        por_layout: Object.entries(porLayout).map(([layout, qtd]) => ({ layout, qtd })).sort((a, b) => b.qtd - a.qtd),
+        por_mes: sortedMeses.map((mes) => ({ mes, qtd: porMes[mes] })),
+        por_mes_status: sortedMeses.map((mes) => ({ mes, ...porMesStatus[mes] })),
+        por_empresa: sortedEmpresas.map(([empresa, qtd]) => ({ status: empresa, qtd })),
+        por_empresa_status: Object.values(porEmpresaStatus).slice(0, 12),
+        por_erro: Object.entries(porErro).map(([erro, qtd]) => ({ status: erro, qtd })).sort((a, b) => b.qtd - a.qtd).slice(0, 10),
+      },
+      matrix: {},
+      rows: rows.slice(0, 1000),
+      meta: {
+        periodo: { dataInicio, dataFim },
+        dataBase: new Date().toISOString(),
+        fonte: 'SOC Exporta Dados 186601 - Eventos eSocial',
+      },
       filtros: {
-        empresas: empresasList,
-        eventos: [],
-        status: [],
-        dataInicio: dataInicial || '',
-        dataFim: dataFinal || '',
+        empresas: [...empresasSet].sort(),
+        layouts: ['S2210', 'S2220', 'S2230', 'S2240', 'Sem evento identificado'],
+        status: ['Concluido', 'Inconsistencias', 'Pendente', 'Excluido', 'Assinado'],
       },
     };
+  }
 
-    this.cache = { data, expires: Date.now() + this.CACHE_TTL_MS };
-    return data;
+  private incrementStatus(obj: any, status: string): void {
+    switch (status) {
+      case 'Concluido': obj.concluido++; break;
+      case 'Inconsistencias': obj.inconsistencias++; break;
+      case 'Pendente': obj.pendente++; break;
+      case 'Excluido': obj.excluido++; break;
+      case 'Assinado': obj.assinado++; break;
+      default: obj.outros = (obj.outros || 0) + 1;
+    }
+  }
+
+  async getDashboardData(
+    dataInicio?: string,
+    dataFim?: string,
+    empresaTrabalho?: string,
+    status?: string,
+    layout?: string,
+  ): Promise<EsocialDashboardData> {
+    const now = Date.now();
+    if (this.cache && this.cache.expires > now && !dataInicio && !dataFim) {
+      return this.cache.data;
+    }
+
+    // Default: ultimos 365 dias
+    if (!dataInicio || !dataFim) {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - 365);
+      dataInicio = dataInicio || start.toISOString().split('T')[0];
+      dataFim = dataFim || end.toISOString().split('T')[0];
+    }
+
+    const rows = await this.fetchEventosEsocial(dataInicio, dataFim, empresaTrabalho, status, layout);
+    const dashboard = this.buildDashboard(rows, dataInicio, dataFim);
+
+    this.cache = { data: dashboard, expires: Date.now() + this.CACHE_TTL_MS };
+    return dashboard;
   }
 
   clearCache(): void {

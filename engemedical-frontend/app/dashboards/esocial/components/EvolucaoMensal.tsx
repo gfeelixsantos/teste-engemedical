@@ -26,10 +26,16 @@ export function EvolucaoMensal({ data }: Props) {
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="label" />
+          <XAxis dataKey="mes" />
           <YAxis />
           <Tooltip />
-          <Line type="monotone" dataKey="qtd" name="Registros" stroke="#1f2937" strokeWidth={2} />
+          <Line
+            type="monotone"
+            dataKey="qtd"
+            stroke="#2563eb"
+            strokeWidth={2}
+            dot={{ fill: '#2563eb' }}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>

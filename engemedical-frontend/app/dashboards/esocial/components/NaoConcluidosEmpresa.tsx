@@ -10,33 +10,38 @@ import {
   ResponsiveContainer,
   LabelList,
 } from 'recharts';
-import type { NaoConcluidoEmpresaItem } from '../types';
+import type { EmpresaStatusItem } from '../types';
 
 interface Props {
-  data?: NaoConcluidoEmpresaItem[];
+  data?: EmpresaStatusItem[];
 }
 
 export function NaoConcluidosEmpresa({ data }: Props) {
   if (!data || data.length === 0) return null;
 
+  const chartData = data.map((d) => ({
+    name: d.empresa.length > 25 ? d.empresa.substring(0, 25) + '...' : d.empresa,
+    Inconsistencias: d.inconsistencias,
+    Pendente: d.pendente,
+    Assinado: d.assinado,
+    Excluido: d.excluido,
+  }));
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-        Valor de Eventos eSocial por Empresa
+        Analise de Registros por Empresa (Nao Concluidos)
       </h3>
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={data} layout="vertical">
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" />
-          <YAxis type="category" dataKey="empresa" width={200} />
-          <Tooltip formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR')}`} />
-          <Bar dataKey="valor" name="Valor (R$)" fill="#8b5cf6">
-            <LabelList
-              dataKey="valor"
-              position="right"
-              formatter={(value: number) => `R$ ${(value / 1000).toFixed(0)}k`}
-            />
-          </Bar>
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="Inconsistencias" stackId="a" fill="#991b1b" />
+          <Bar dataKey="Pendente" stackId="a" fill="#f97316" />
+          <Bar dataKey="Assinado" stackId="a" fill="#0d9488" />
+          <Bar dataKey="Excluido" stackId="a" fill="#374151" />
         </BarChart>
       </ResponsiveContainer>
     </div>
