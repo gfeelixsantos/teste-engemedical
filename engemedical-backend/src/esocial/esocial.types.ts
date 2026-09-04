@@ -1,4 +1,20 @@
-// Raw type from SOC "Preco" (codigo 218761) - filtered for eSocial
+// Raw type from SOC "Faturamento" (codigo 186376)
+export interface SocFaturamento {
+  codigoEmpresa: string;
+  empresa: string;
+  codigoUnidade: string;
+  unidade: string;
+  codigoProduto: string;
+  produto: string;
+  mesCobranca: string;
+  quantidadeVidas: string;
+  valorVida: string;
+  valorTotal: string;
+  quantidadeEventosEsocial: string;
+  valorEvento: string;
+}
+
+// Raw type from SOC "Preco" (codigo 218761)
 export interface SocPrecoEmpresa {
   codigoEmpresa: string;
   situacaoEmpresa: string;
@@ -55,29 +71,6 @@ export interface SocPrecoEmpresa {
 // Status possiveis dos registros eSocial
 export type StatusEvento = 'Concluido' | 'Inconsistencias' | 'Pendente' | 'Excluido' | 'Assinado';
 
-// Eventos eSocial
-export type CodigoEvento = 'S2210' | 'S2220' | 'S2230' | 'S2240' | 'Sem evento identificado';
-
-// Registro individual de evento eSocial
-export interface RegistroEsocial {
-  id: number;
-  codigoEmpresa: string;
-  empresa: string;
-  cnpj: string;
-  unidade: string;
-  evento: CodigoEvento;
-  statusEvento: StatusEvento;
-  dataGeracao: string;
-  ano: number;
-  mesNum: number;
-  mesNome: string;
-  funcionario: string;
-  nrRecibo: string;
-  codigoGed: string;
-  nomeArquivo: string;
-  erro: string;
-}
-
 // KPIs do dashboard
 export interface EsocialKPIs {
   totalEmpresas: number;
@@ -89,6 +82,10 @@ export interface EsocialKPIs {
   excluido: { qtd: number; pct: number };
   assinado: { qtd: number; pct: number };
   ultimaAtualizacao: string;
+  valorTotalEventos: number;
+  empresasEsocial: number;
+  empresasComEventos: number;
+  empresasFaturamento: number;
 }
 
 // Status XML para grafico
@@ -126,6 +123,7 @@ export interface ComparativoEmpresaItem {
   empresa: string;
   totalRegistros: number;
   pctConcluido: number;
+  valor?: number;
 }
 
 // Nao concluidos por empresa
@@ -135,47 +133,20 @@ export interface NaoConcluidoEmpresaItem {
   pendente: number;
   assinado: number;
   excluido: number;
+  valor?: number;
 }
 
-// Matriz hierarquica
-export interface MatrizAnoItem {
-  ano: number;
-  concluido: number;
-  inconsistencias: number;
-  pendente: number;
-  assinado: number;
-  excluido: number;
-  meses: MatrizMesItem[];
-}
-
-export interface MatrizMesItem {
-  mes: string;
-  mesNum: number;
-  concluido: number;
-  inconsistencias: number;
-  pendente: number;
-  assinado: number;
-  excluido: number;
-  eventos: MatrizEventoItem[];
-}
-
-export interface MatrizEventoItem {
+// Registro detalhado
+export interface RegistroEsocial {
+  id: number;
+  empresa: string;
+  unidade: string;
   evento: string;
-  concluido: number;
-  inconsistencias: number;
-  pendente: number;
-  assinado: number;
-  excluido: number;
-  empresas: MatrizEmpresaItem[];
-}
-
-export interface MatrizEmpresaItem {
-  nome: string;
-  concluido: number;
-  inconsistencias: number;
-  pendente: number;
-  assinado: number;
-  excluido: number;
+  statusEvento: StatusEvento;
+  dataGeracao: string;
+  funcionario: string;
+  nomeArquivo: string;
+  erro: string;
 }
 
 // Dashboard completo
@@ -187,11 +158,6 @@ export interface EsocialDashboardData {
   statusPorMes: StatusMesItem[];
   comparativoEmpresas: ComparativoEmpresaItem[];
   naoConcluidosEmpresa: NaoConcluidoEmpresaItem[];
-  matriz: {
-    ano: number;
-    totais: { concluido: number; inconsistencias: number; pendente: number; assinado: number; excluido: number };
-    anos: MatrizAnoItem[];
-  };
   registros: RegistroEsocial[];
   empresas: string[];
   totalRegistros: number;

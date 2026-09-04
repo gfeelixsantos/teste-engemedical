@@ -10,17 +10,12 @@ interface Props {
   dataFim: string;
   eventoFiltro: string;
   statusFiltro: string;
-  onFilterChange: (dataInicio: string, dataFim: string, evento: string, status: string) => void;
+  onFilterChange: (dataInicio: string, dataFim: string) => void;
 }
 
 export function EsocialFilters({
-  empresas,
-  eventos,
-  status,
   dataInicio,
   dataFim,
-  eventoFiltro,
-  statusFiltro,
   onFilterChange,
 }: Props) {
   return (
@@ -36,7 +31,7 @@ export function EsocialFilters({
           <input
             type="date"
             value={dataInicio}
-            onChange={(e) => onFilterChange(e.target.value, dataFim, eventoFiltro, statusFiltro)}
+            onChange={(e) => onFilterChange(e.target.value, dataFim)}
             className="w-full border rounded-lg px-3 py-2"
           />
         </div>
@@ -45,45 +40,11 @@ export function EsocialFilters({
           <input
             type="date"
             value={dataFim}
-            onChange={(e) => onFilterChange(dataInicio, e.target.value, eventoFiltro, statusFiltro)}
+            onChange={(e) => onFilterChange(dataInicio, e.target.value)}
             className="w-full border rounded-lg px-3 py-2"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Evento</label>
-          <select
-            value={eventoFiltro}
-            onChange={(e) => onFilterChange(dataInicio, dataFim, e.target.value, statusFiltro)}
-            className="w-full border rounded-lg px-3 py-2"
-          >
-            <option value="Todos">Todos</option>
-            {eventos.map((ev) => (
-              <option key={ev} value={ev}>{ev}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <select
-            value={statusFiltro}
-            onChange={(e) => onFilterChange(dataInicio, dataFim, eventoFiltro, e.target.value)}
-            className="w-full border rounded-lg px-3 py-2"
-          >
-            <option value="Todos">Todos</option>
-            {status.map((st) => (
-              <option key={st} value={st}>{st}</option>
-            ))}
-          </select>
-        </div>
       </div>
-
-      {empresas.length > 0 && (
-        <div className="mt-4">
-          <p className="text-sm text-gray-600">
-            Empresas: {empresas.length} empresas no sistema
-          </p>
-        </div>
-      )}
     </div>
   );
 }

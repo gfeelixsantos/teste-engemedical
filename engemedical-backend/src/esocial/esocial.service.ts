@@ -5,11 +5,9 @@ import {
   buildSocExportDataUrl,
   getSocExportCredentials,
 } from '../soc/utils/soc-export-data-url';
-import * as fs from 'fs';
-import * as path from 'path';
 import type {
+  SocFaturamento,
   SocPrecoEmpresa,
-  RegistroEsocial,
   EsocialKPIs,
   StatusXmlItem,
   EventoDonutItem,
@@ -17,7 +15,6 @@ import type {
   StatusMesItem,
   ComparativoEmpresaItem,
   NaoConcluidoEmpresaItem,
-  MatrizAnoItem,
   EsocialDashboardData,
 } from './esocial.types';
 
@@ -25,7 +22,6 @@ import type {
 export class EsocialService {
   private cache: { data: EsocialDashboardData; expires: number } | null = null;
   private readonly CACHE_TTL_MS = 15 * 60 * 1000;
-  private staticData: RegistroEsocial[] | null = null;
 
   constructor(
     private readonly configService: ConfigService,
@@ -34,173 +30,234 @@ export class EsocialService {
     this.logger.setContext(EsocialService.name);
   }
 
-  private loadStaticData(): RegistroEsocial[] {
-    if (this.staticData && this.staticData.length > 0) return this.staticData;
+  /**
+   * Busca FATURAMENTO (186376) - contem QUANTIDADE_EVENTOS_ESOCIAL e VALOR_EVENTO
+   */
+  private async fetchFaturamento(dataInicio?: string, dataFim?: string): Promise<SocFaturamento[]> {
+    const credentials = getSocExportCredentials('SOC_ED_FATURAMENTO', this.configService);
+
+    const params: Record<string, string> = {
+      ...credentials,
+      tipoSaida: 'json',
+    };
+    if (dataInicio) params.dataInicio = dataInicio;
+    if (dataFim) params.dataFim = dataFim;
+
+    const url = buildSocExportDataUrl(params, this.configService);
 
     try {
-      // Tentar carregar do projeto onboardingengemedical
-      const dataPath = path.join(
-        process.env.HOME || process.env.USERPROFILE || '',
-        'Desktop',
-        'WORKSPACE',
-        'onboardingengemedical',
-        'data',
-        'esocial_data.json',
-      );
-
-      if (fs.existsSync(dataPath)) {
-        const raw = fs.readFileSync(dataPath, 'utf-8');
-        const parsed = JSON.parse(raw);
-        this.staticData = parsed.map((r: any) => ({
-          id: r.id,
-          codigoEmpresa: String(r.codigo_empresa || ''),
-          empresa: r.empresa || '',
-          cnpj: r.cnpj || '',
-          unidade: r.unidade || '',
-          evento: r.evento || 'Sem evento identificado',
-          statusEvento: r.status_evento || 'Pendente',
-          dataGeracao: r.data_geracao || '',
-          ano: r.ano || 0,
-          mesNum: r.mes_num || 0,
-          mesNome: r.mes_nome || '',
-          funcionario: r.funcionario || '',
-          nrRecibo: r.nr_recibo || '',
-          codigoGed: r.codigo_ged || '',
-          nomeArquivo: r.nome_arquivo || '',
-          erro: r.erro || '',
-        }));
-        const data = this.staticData as RegistroEsocial[];
-        this.logger.debug(`Carregados ${data.length} registros eSocial do arquivo estatico`);
-        return data;
+      this.logger.debug('Buscando faturamento via SOC (186376)');
+      const response = await fetch(url, { signal: AbortSignal.timeout(60000) });
+      if (!response.ok) {
+        this.logger.error(`Falha ao buscar faturamento: ${response.status}`);
+        return [];
       }
+      const buffer = await response.arrayBuffer();
+      const decoded = new TextDecoder('iso-8859-1').decode(buffer);
+      const data: SocFaturamento[] = JSON.parse(decoded);
+      this.logger.debug(`Retornadas ${data.length} linhas de faturamento`);
+      return data;
     } catch (error) {
-      this.logger.warn('Arquivo estatico eSocial nao encontrado, usando mock');
+      this.logger.error('Erro ao buscar faturamento:', error);
+      return [];
     }
-
-    // Fallback: gerar dados mock
-    return this.generateMockRegistros();
   }
 
-  private generateMockRegistros(): RegistroEsocial[] {
-    const empresas = [
-      { nome: 'GRUPO TORA', cnpj: '12.345.678/0001-90' },
-      { nome: 'INSTITUTO MIRANTE DE CULTURA E ARTE', cnpj: '23.456.789/0001-01' },
-      { nome: 'ASO AVULSO - TORA TRANSPORTES', cnpj: '34.567.890/0001-12' },
-      { nome: 'IMPACTO SERVICOS E TERCEIRIZACAO LTDA', cnpj: '45.678.901/0001-23' },
-      { nome: 'NORTEARH SERVICES LOCACAO DE MAO DE OBRA LTDA', cnpj: '56.789.012/0001-34' },
-      { nome: 'MCD SERVICOS DE BUFFET LTDA', cnpj: '67.890.123/0001-45' },
-      { nome: 'MISPA SEGURANCA LTDA', cnpj: '78.901.234/0001-56' },
-      { nome: 'GO COMERCIO DE ARTIGOS ELETRONICOS E ACESSORIOS LTDA', cnpj: '89.012.345/0001-67' },
-      { nome: 'ELETRICAL SERVICE AUTOMACAO LTDA', cnpj: '48.780.133/0001-54' },
-      { nome: 'GRISOLIA E FILHAS LTDA', cnpj: '90.123.456/0001-78' },
-      { nome: 'HERC COMERCIO DE EQUIPAMENTOS E SERVICOS', cnpj: '01.234.567/0001-89' },
-      { nome: 'IRISTECH AUTOMACAO E TECNOLOGIA LTDA', cnpj: '11.223.344/0001-99' },
-    ];
+  /**
+   * Busca PREÇO (218761) - identifica empresas que fazem eSocial via tipoCobranca
+   */
+  private async fetchPrecoEmpresas(): Promise<SocPrecoEmpresa[]> {
+    const credentials = getSocExportCredentials('SOC_ED_PRECOS', this.configService);
 
-    const eventos: Array<'S2210' | 'S2220' | 'S2230' | 'S2240' | 'Sem evento identificado'> = [
-      'S2240', 'S2220', 'S2230', 'S2210', 'Sem evento identificado',
-    ];
-    const status: Array<'Concluido' | 'Inconsistencias' | 'Pendente' | 'Excluido' | 'Assinado'> = [
-      'Concluido', 'Inconsistencias', 'Pendente', 'Excluido', 'Assinado',
-    ];
-    const weightsEvento = [60, 39, 1, 0.5, 0.5];
-    const weightsStatus = [64, 33, 2, 0.5, 0.5];
-    const meses = [
-      '', 'janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho',
-      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
-    ];
+    const params: Record<string, string> = {
+      ...credentials,
+      tipoSaida: 'json',
+      codigoEmpresa: '',
+      codigoUnidade: '',
+      codigoProduto: '',
+      codigoGrupoProduto: '',
+    };
 
-    const rows: RegistroEsocial[] = [];
-    let idCounter = 1;
-    const targetCount = 2500;
+    const url = buildSocExportDataUrl(params, this.configService);
 
-    for (let i = 0; i < targetCount; i++) {
-      const emp = empresas[Math.floor(Math.random() * empresas.length)];
-      const yr = 2023 + Math.floor(Math.random() * 4);
-      const maxM = yr === 2026 ? 8 : 12;
-      const mNum = 1 + Math.floor(Math.random() * maxM);
-      const day = 1 + Math.floor(Math.random() * 28);
-
-      const ev = this.weightedRandom(eventos, weightsEvento);
-      const st = this.weightedRandom(status, weightsStatus);
-
-      rows.push({
-        id: idCounter++,
-        codigoEmpresa: String(100 + Math.floor(Math.random() * 900)),
-        empresa: emp.nome,
-        cnpj: emp.cnpj,
-        unidade: ['MATRIZ', 'FILIAL FORTALEZA', 'UNIDADE REGIONAL JUAZEIRO', 'UNIDADE SOBRAL'][Math.floor(Math.random() * 4)],
-        evento: ev,
-        statusEvento: st,
-        dataGeracao: `${yr}-${String(mNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-        ano: yr,
-        mesNum: mNum,
-        mesNome: meses[mNum] || '',
-        funcionario: `COLABORADOR ${1000 + Math.floor(Math.random() * 9000)}`,
-        nrRecibo: st === 'Concluido' ? `1.${1000000 + Math.floor(Math.random() * 9000000)}` : '',
-        codigoGed: `GED-${10000 + Math.floor(Math.random() * 90000)}`,
-        nomeArquivo: `${ev}_${String(day).padStart(2, '0')}${String(mNum).padStart(2, '0')}${yr}.xml`,
-        erro: st === 'Inconsistencias' ? 'Codigo de erro eSocial 1002: Inconsistencia nos dados cadastrais ou ambiente.' : '',
-      });
+    try {
+      this.logger.debug('Buscando precos via SOC (218761)');
+      const response = await fetch(url, { signal: AbortSignal.timeout(60000) });
+      if (!response.ok) {
+        this.logger.error(`Falha ao buscar precos: ${response.status}`);
+        return [];
+      }
+      const buffer = await response.arrayBuffer();
+      const decoded = new TextDecoder('iso-8859-1').decode(buffer);
+      const data: SocPrecoEmpresa[] = JSON.parse(decoded);
+      this.logger.debug(`Retornadas ${data.length} linhas de preco`);
+      return data;
+    } catch (error) {
+      this.logger.error('Erro ao buscar precos:', error);
+      return [];
     }
-
-    return rows;
   }
 
-  private weightedRandom<T>(arr: T[], weights: number[]): T {
-    const total = weights.reduce((s, w) => s + w, 0);
-    let r = Math.random() * total;
-    let acc = 0;
-    for (let i = 0; i < arr.length; i++) {
-      acc += weights[i];
-      if (r <= acc) return arr[i];
+  /**
+   * Busca FUNCIONÁRIOS MOVIMENTADOS (215452) - para headcount
+   */
+  private async fetchFuncionarios(): Promise<any[]> {
+    const credentials = getSocExportCredentials('SOC_ED_FUNCIONARIOS_MOVIMENTADO', this.configService);
+
+    const params: Record<string, string> = {
+      ...credentials,
+      tipoSaida: 'json',
+    };
+
+    const url = buildSocExportDataUrl(params, this.configService);
+
+    try {
+      this.logger.debug('Buscando funcionarios movimentados via SOC (215452)');
+      const response = await fetch(url, { signal: AbortSignal.timeout(60000) });
+      if (!response.ok) return [];
+      const buffer = await response.arrayBuffer();
+      const decoded = new TextDecoder('iso-8859-1').decode(buffer);
+      return JSON.parse(decoded);
+    } catch (error) {
+      this.logger.error('Erro ao buscar funcionarios:', error);
+      return [];
     }
-    return arr[arr.length - 1];
   }
 
-  private computeKPIs(registros: RegistroEsocial[]): EsocialKPIs {
-    const empresasSet = new Set(registros.map((r) => r.empresa));
-    const total = registros.length;
-    const conc = registros.filter((r) => r.statusEvento === 'Concluido').length;
-    const inc = registros.filter((r) => r.statusEvento === 'Inconsistencias').length;
-    const pen = registros.filter((r) => r.statusEvento === 'Pendente').length;
-    const exc = registros.filter((r) => r.statusEvento === 'Excluido').length;
-    const asi = registros.filter((r) => r.statusEvento === 'Assinado').length;
+  private parseMoney(val: string | number): number {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    // SOC retorna como "1.234,56" ou "1234.56"
+    const cleaned = String(val).replace(/\./g, '').replace(',', '.');
+    return parseFloat(cleaned) || 0;
+  }
+
+  private aggregateKPIs(faturamento: SocFaturamento[], precoEmpresas: SocPrecoEmpresa[]): EsocialKPIs {
+    // Filtrar empresas que fazem eSocial (tipoCobranca indica eSocial)
+    const empresasEsocial = new Set<string>();
+    for (const p of precoEmpresas) {
+      if (p.tipoCobranca && (p.tipoCobranca.toLowerCase().includes('esocial') || p.tipoCobranca !== '')) {
+        empresasEsocial.add(p.codigoEmpresa);
+      }
+    }
+
+    // Agregar eventos eSocial do faturamento
+    let totalEventosEsocial = 0;
+    let totalValorEventos = 0;
+    const empresasComEventos = new Set<string>();
+
+    for (const f of faturamento) {
+      const qtd = parseInt(String(f.quantidadeEventosEsocial || '0'), 10);
+      if (qtd > 0) {
+        totalEventosEsocial += qtd;
+        totalValorEventos += this.parseMoney(f.valorEvento || '0');
+        empresasComEventos.add(f.codigoEmpresa);
+      }
+    }
+
+    // Total de empresas unicas no faturamento
+    const totalEmpresasFaturamento = new Set(faturamento.map((f) => f.codigoEmpresa)).size;
 
     return {
-      totalEmpresas: empresasSet.size,
-      pctInconsistentes: total > 0 ? Math.round((inc / total) * 10000) / 100 : 0,
-      totalRegistrosXml: total,
-      conclusao: { qtd: conc, pct: total > 0 ? Math.round((conc / total) * 10000) / 100 : 0 },
-      inconsistencias: { qtd: inc, pct: total > 0 ? Math.round((inc / total) * 10000) / 100 : 0 },
-      pendente: { qtd: pen, pct: total > 0 ? Math.round((pen / total) * 10000) / 100 : 0 },
-      excluido: { qtd: exc, pct: total > 0 ? Math.round((exc / total) * 10000) / 100 : 0 },
-      assinado: { qtd: asi, pct: total > 0 ? Math.round((asi / total) * 10000) / 100 : 0 },
+      totalEmpresas: empresasComEventos.size,
+      pctInconsistentes: 0, // Sem dados de inconsistencias no export
+      totalRegistrosXml: totalEventosEsocial,
+      conclusao: { qtd: 0, pct: 0 },
+      inconsistencias: { qtd: 0, pct: 0 },
+      pendente: { qtd: 0, pct: 0 },
+      excluido: { qtd: 0, pct: 0 },
+      assinado: { qtd: 0, pct: 0 },
       ultimaAtualizacao: new Date().toISOString(),
+      valorTotalEventos: totalValorEventos,
+      empresasEsocial: empresasEsocial.size,
+      empresasComEventos: empresasComEventos.size,
+      empresasFaturamento: totalEmpresasFaturamento,
     };
   }
 
-  private aggregateStatusXml(registros: RegistroEsocial[]): StatusXmlItem[] {
-    const map: Record<string, number> = {};
-    for (const r of registros) {
-      map[r.statusEvento] = (map[r.statusEvento] || 0) + 1;
+  private aggregateEventosPorEmpresa(faturamento: SocFaturamento[]): ComparativoEmpresaItem[] {
+    const map: Record<string, { empresa: string; total: number; valor: number }> = {};
+
+    for (const f of faturamento) {
+      const qtd = parseInt(String(f.quantidadeEventosEsocial || '0'), 10);
+      if (qtd <= 0) continue;
+
+      const key = f.empresa || f.codigoEmpresa;
+      if (!map[key]) map[key] = { empresa: key, total: 0, valor: 0 };
+      map[key].total += qtd;
+      map[key].valor += this.parseMoney(f.valorEvento || '0');
     }
-    const total = registros.length;
-    return Object.entries(map)
-      .map(([status, qtd]) => ({
-        status,
-        qtd,
-        pct: total > 0 ? Math.round((qtd / total) * 10000) / 100 : 0,
-      }))
-      .sort((a, b) => b.qtd - a.qtd);
+
+    return Object.values(map)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 15)
+      .map((item) => ({
+        empresa: item.empresa,
+        totalRegistros: item.total,
+        pctConcluido: 0,
+        valor: item.valor,
+      }));
   }
 
-  private aggregateEventosDonut(registros: RegistroEsocial[]): EventoDonutItem[] {
+  private aggregateEventosPorMes(faturamento: SocFaturamento[]): EvolucaoMensalItem[] {
     const map: Record<string, number> = {};
-    for (const r of registros) {
-      map[r.evento] = (map[r.evento] || 0) + 1;
+
+    for (const f of faturamento) {
+      const qtd = parseInt(String(f.quantidadeEventosEsocial || '0'), 10);
+      if (qtd <= 0) continue;
+
+      const key = `${f.mesCobranca || '00'}`;
+      map[key] = (map[key] || 0) + qtd;
     }
-    const total = registros.length;
+
+    const meses = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+    return Object.entries(map)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, qtd]) => ({
+        label: meses[parseInt(key, 10)] || key,
+        qtd,
+      }));
+  }
+
+  private aggregateValorPorEmpresa(faturamento: SocFaturamento[]): NaoConcluidoEmpresaItem[] {
+    const map: Record<string, { empresa: string; valor: number }> = {};
+
+    for (const f of faturamento) {
+      const valor = this.parseMoney(f.valorEvento || '0');
+      if (valor <= 0) continue;
+
+      const key = f.empresa || f.codigoEmpresa;
+      if (!map[key]) map[key] = { empresa: key, valor: 0 };
+      map[key].valor += valor;
+    }
+
+    return Object.values(map)
+      .sort((a, b) => b.valor - a.valor)
+      .slice(0, 10)
+      .map((item) => ({
+        empresa: item.empresa,
+        inconsistencias: 0,
+        pendente: 0,
+        assinado: 0,
+        excluido: 0,
+        valor: item.valor,
+      }));
+  }
+
+  private aggregateEventosPorProduto(faturamento: SocFaturamento[]): EventoDonutItem[] {
+    const map: Record<string, number> = {};
+
+    for (const f of faturamento) {
+      const qtd = parseInt(String(f.quantidadeEventosEsocial || '0'), 10);
+      if (qtd <= 0) continue;
+
+      const produto = f.produto || 'Sem Produto';
+      map[produto] = (map[produto] || 0) + qtd;
+    }
+
+    const total = Object.values(map).reduce((s, v) => s + v, 0);
+
     return Object.entries(map)
       .map(([evento, qtd]) => ({
         evento,
@@ -210,127 +267,21 @@ export class EsocialService {
       .sort((a, b) => b.qtd - a.qtd);
   }
 
-  private aggregateEvolucaoMensal(registros: RegistroEsocial[]): EvolucaoMensalItem[] {
-    const map: Record<string, number> = {};
-    for (const r of registros) {
-      const key = `${r.ano}-${String(r.mesNum).padStart(2, '0')}`;
-      map[key] = (map[key] || 0) + 1;
-    }
-    return Object.entries(map)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([label, qtd]) => ({ label, qtd }));
-  }
-
-  private aggregateStatusPorMes(registros: RegistroEsocial[]): StatusMesItem[] {
+  private aggregateVidasPorEmpresa(faturamento: SocFaturamento[]): StatusMesItem[] {
     const map: Record<string, StatusMesItem> = {};
-    for (const r of registros) {
-      const key = `${r.ano} ${r.mesNome}`;
+
+    for (const f of faturamento) {
+      const key = f.empresa || f.codigoEmpresa;
       if (!map[key]) {
         map[key] = { mes: key, concluido: 0, inconsistencias: 0, pendente: 0, assinado: 0, excluido: 0 };
       }
-      switch (r.statusEvento) {
-        case 'Concluido': map[key].concluido++; break;
-        case 'Inconsistencias': map[key].inconsistencias++; break;
-        case 'Pendente': map[key].pendente++; break;
-        case 'Assinado': map[key].assinado++; break;
-        case 'Excluido': map[key].excluido++; break;
-      }
+      map[key].concluido += parseInt(String(f.quantidadeVidas || '0'), 10);
+      map[key].inconsistencias += parseInt(String(f.quantidadeEventosEsocial || '0'), 10);
     }
-    return Object.values(map).sort((a, b) => b.concluido - a.concluido);
-  }
 
-  private aggregateComparativoEmpresas(registros: RegistroEsocial[]): ComparativoEmpresaItem[] {
-    const map: Record<string, { total: number; concluidos: number }> = {};
-    for (const r of registros) {
-      if (!map[r.empresa]) map[r.empresa] = { total: 0, concluidos: 0 };
-      map[r.empresa].total++;
-      if (r.statusEvento === 'Concluido') map[r.empresa].concluidos++;
-    }
-    return Object.entries(map)
-      .map(([empresa, data]) => ({
-        empresa,
-        totalRegistros: data.total,
-        pctConcluido: data.total > 0 ? Math.round((data.concluidos / data.total) * 10000) / 100 : 0,
-      }))
-      .sort((a, b) => b.totalRegistros - a.totalRegistros)
-      .slice(0, 10);
-  }
-
-  private aggregateNaoConcluidosEmpresa(registros: RegistroEsocial[]): NaoConcluidoEmpresaItem[] {
-    const map: Record<string, NaoConcluidoEmpresaItem> = {};
-    for (const r of registros) {
-      if (r.statusEvento === 'Concluido') continue;
-      if (!map[r.empresa]) {
-        map[r.empresa] = { empresa: r.empresa, inconsistencias: 0, pendente: 0, assinado: 0, excluido: 0 };
-      }
-      switch (r.statusEvento) {
-        case 'Inconsistencias': map[r.empresa].inconsistencias++; break;
-        case 'Pendente': map[r.empresa].pendente++; break;
-        case 'Assinado': map[r.empresa].assinado++; break;
-        case 'Excluido': map[r.empresa].excluido++; break;
-      }
-    }
     return Object.values(map)
-      .sort((a, b) => (b.inconsistencias + b.pendente + b.assinado + b.excluido) - (a.inconsistencias + a.pendente + a.assinado + a.excluido))
-      .slice(0, 10);
-  }
-
-  private aggregateMatriz(registros: RegistroEsocial[]) {
-    const years: Record<number, MatrizAnoItem> = {};
-
-    for (const r of registros) {
-      const yr = r.ano;
-      if (!years[yr]) {
-        years[yr] = { ano: yr, concluido: 0, inconsistencias: 0, pendente: 0, assinado: 0, excluido: 0, meses: [] };
-      }
-      const year = years[yr];
-
-      let mes = year.meses.find((m) => m.mesNum === r.mesNum);
-      if (!mes) {
-        mes = { mes: r.mesNome, mesNum: r.mesNum, concluido: 0, inconsistencias: 0, pendente: 0, assinado: 0, excluido: 0, eventos: [] };
-        year.meses.push(mes);
-      }
-
-      let ev = mes.eventos.find((e) => e.evento === r.evento);
-      if (!ev) {
-        ev = { evento: r.evento, concluido: 0, inconsistencias: 0, pendente: 0, assinado: 0, excluido: 0, empresas: [] };
-        mes.eventos.push(ev);
-      }
-
-      let emp = ev.empresas.find((e) => e.nome === r.empresa);
-      if (!emp) {
-        emp = { nome: r.empresa, concluido: 0, inconsistencias: 0, pendente: 0, assinado: 0, excluido: 0 };
-        ev.empresas.push(emp);
-      }
-
-      switch (r.statusEvento) {
-        case 'Concluido':
-          year.concluido++; mes.concluido++; ev.concluido++; emp.concluido++; break;
-        case 'Inconsistencias':
-          year.inconsistencias++; mes.inconsistencias++; ev.inconsistencias++; emp.inconsistencias++; break;
-        case 'Pendente':
-          year.pendente++; mes.pendente++; ev.pendente++; emp.pendente++; break;
-        case 'Assinado':
-          year.assinado++; mes.assinado++; ev.assinado++; emp.assinado++; break;
-        case 'Excluido':
-          year.excluido++; mes.excluido++; ev.excluido++; emp.excluido++; break;
-      }
-    }
-
-    const totais = { concluido: 0, inconsistencias: 0, pendente: 0, assinado: 0, excluido: 0 };
-    for (const y of Object.values(years)) {
-      totais.concluido += y.concluido;
-      totais.inconsistencias += y.inconsistencias;
-      totais.pendente += y.pendente;
-      totais.assinado += y.assinado;
-      totais.excluido += y.excluido;
-    }
-
-    return {
-      ano: new Date().getFullYear(),
-      totais,
-      anos: Object.values(years).sort((a, b) => a.ano - b.ano),
-    };
+      .sort((a, b) => b.concluido - a.concluido)
+      .slice(0, 15);
   }
 
   getDashboardData(
@@ -352,50 +303,36 @@ export class EsocialService {
     eventoFiltro?: string,
     statusFiltro?: string,
   ): Promise<EsocialDashboardData> {
-    // Carregar dados do arquivo estatico ou mock
-    let registros = this.loadStaticData();
+    // Buscar dados dos exports SOC
+    const [faturamento, precoEmpresas] = await Promise.all([
+      this.fetchFaturamento(dataInicial, dataFinal),
+      this.fetchPrecoEmpresas(),
+    ]);
 
-    // Aplicar filtros
-    if (dataInicial) {
-      registros = registros.filter((r) => r.dataGeracao >= dataInicial);
-    }
-    if (dataFinal) {
-      registros = registros.filter((r) => r.dataGeracao <= dataFinal);
-    }
-    if (eventoFiltro && eventoFiltro !== 'Todos') {
-      registros = registros.filter((r) => r.evento === eventoFiltro);
-    }
-    if (statusFiltro && statusFiltro !== 'Todos') {
-      registros = registros.filter((r) => r.statusEvento === statusFiltro);
-    }
+    const kpis = this.aggregateKPIs(faturamento, precoEmpresas);
+    const eventosPorEmpresa = this.aggregateEventosPorEmpresa(faturamento);
+    const eventosPorMes = this.aggregateEventosPorMes(faturamento);
+    const valorPorEmpresa = this.aggregateValorPorEmpresa(faturamento);
+    const eventosPorProduto = this.aggregateEventosPorProduto(faturamento);
+    const vidasPorEmpresa = this.aggregateVidasPorEmpresa(faturamento);
 
-    const kpis = this.computeKPIs(registros);
-    const statusXml = this.aggregateStatusXml(registros);
-    const eventosDonut = this.aggregateEventosDonut(registros);
-    const evolucaoMensal = this.aggregateEvolucaoMensal(registros);
-    const statusPorMes = this.aggregateStatusPorMes(registros);
-    const comparativoEmpresas = this.aggregateComparativoEmpresas(registros);
-    const naoConcluidosEmpresa = this.aggregateNaoConcluidosEmpresa(registros);
-    const matriz = this.aggregateMatriz(registros);
-
-    const empresasList = [...new Set(registros.map((r) => r.empresa))].sort();
+    const empresasList = [...new Set(faturamento.map((f) => f.empresa || f.codigoEmpresa))].sort();
 
     const data: EsocialDashboardData = {
       kpis,
-      statusXml,
-      eventosDonut,
-      evolucaoMensal,
-      statusPorMes,
-      comparativoEmpresas,
-      naoConcluidosEmpresa,
-      matriz,
-      registros: registros.slice(0, 500),
+      statusXml: [],
+      eventosDonut: eventosPorProduto,
+      evolucaoMensal: eventosPorMes,
+      statusPorMes: vidasPorEmpresa,
+      comparativoEmpresas: eventosPorEmpresa,
+      naoConcluidosEmpresa: valorPorEmpresa,
+      registros: [],
       empresas: empresasList,
-      totalRegistros: registros.length,
+      totalRegistros: faturamento.length,
       filtros: {
         empresas: empresasList,
-        eventos: ['S2210', 'S2220', 'S2230', 'S2240', 'Sem evento identificado'],
-        status: ['Concluido', 'Inconsistencias', 'Pendente', 'Excluido', 'Assinado'],
+        eventos: [],
+        status: [],
         dataInicio: dataInicial || '',
         dataFim: dataFinal || '',
       },

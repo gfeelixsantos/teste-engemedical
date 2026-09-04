@@ -1,5 +1,4 @@
 export type StatusEvento = 'Concluido' | 'Inconsistencias' | 'Pendente' | 'Excluido' | 'Assinado';
-export type CodigoEvento = 'S2210' | 'S2220' | 'S2230' | 'S2240' | 'Sem evento identificado';
 
 export interface EsocialKPIs {
   totalEmpresas: number;
@@ -11,6 +10,10 @@ export interface EsocialKPIs {
   excluido: { qtd: number; pct: number };
   assinado: { qtd: number; pct: number };
   ultimaAtualizacao: string;
+  valorTotalEventos: number;
+  empresasEsocial: number;
+  empresasComEventos: number;
+  empresasFaturamento: number;
 }
 
 export interface StatusXmlItem {
@@ -43,6 +46,7 @@ export interface ComparativoEmpresaItem {
   empresa: string;
   totalRegistros: number;
   pctConcluido: number;
+  valor?: number;
 }
 
 export interface NaoConcluidoEmpresaItem {
@@ -51,58 +55,19 @@ export interface NaoConcluidoEmpresaItem {
   pendente: number;
   assinado: number;
   excluido: number;
+  valor?: number;
 }
 
 export interface RegistroEsocial {
   id: number;
   empresa: string;
   unidade: string;
-  evento: CodigoEvento;
+  evento: string;
   statusEvento: StatusEvento;
   dataGeracao: string;
   funcionario: string;
   nomeArquivo: string;
   erro: string;
-}
-
-export interface MatrizEmpresaItem {
-  nome: string;
-  concluido: number;
-  inconsistencias: number;
-  pendente: number;
-  assinado: number;
-  excluido: number;
-}
-
-export interface MatrizEventoItem {
-  evento: string;
-  concluido: number;
-  inconsistencias: number;
-  pendente: number;
-  assinado: number;
-  excluido: number;
-  empresas: MatrizEmpresaItem[];
-}
-
-export interface MatrizMesItem {
-  mes: string;
-  mesNum: number;
-  concluido: number;
-  inconsistencias: number;
-  pendente: number;
-  assinado: number;
-  excluido: number;
-  eventos: MatrizEventoItem[];
-}
-
-export interface MatrizAnoItem {
-  ano: number;
-  concluido: number;
-  inconsistencias: number;
-  pendente: number;
-  assinado: number;
-  excluido: number;
-  meses: MatrizMesItem[];
 }
 
 export interface EsocialDashboardData {
@@ -113,11 +78,6 @@ export interface EsocialDashboardData {
   statusPorMes: StatusMesItem[];
   comparativoEmpresas: ComparativoEmpresaItem[];
   naoConcluidosEmpresa: NaoConcluidoEmpresaItem[];
-  matriz: {
-    ano: number;
-    totais: { concluido: number; inconsistencias: number; pendente: number; assinado: number; excluido: number };
-    anos: MatrizAnoItem[];
-  };
   registros: RegistroEsocial[];
   empresas: string[];
   totalRegistros: number;

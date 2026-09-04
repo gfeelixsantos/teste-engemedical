@@ -2,7 +2,7 @@
 
 import CountUp from 'react-countup';
 import type { EsocialKPIs } from '../types';
-import { Building2, AlertTriangle, FileCode } from 'lucide-react';
+import { Building2, FileCode, DollarSign, TrendingUp } from 'lucide-react';
 
 interface Props {
   kpis?: EsocialKPIs;
@@ -13,25 +13,28 @@ export function KpiCards({ kpis }: Props) {
 
   const cards = [
     {
-      label: 'No. de Empresas',
-      value: kpis.totalEmpresas,
+      label: 'No. de Empresas (eSocial)',
+      value: kpis.empresasComEventos,
       format: 'number' as const,
       icon: Building2,
       color: 'bg-blue-500',
+      sub: `de ${kpis.empresasFaturamento} no faturamento`,
     },
     {
-      label: '% Registros Inconsistentes',
-      value: kpis.pctInconsistentes,
-      format: 'percent' as const,
-      icon: AlertTriangle,
-      color: 'bg-red-500',
-    },
-    {
-      label: 'No. de Registros (XML)',
+      label: 'Total Eventos eSocial',
       value: kpis.totalRegistrosXml,
       format: 'number' as const,
       icon: FileCode,
       color: 'bg-green-500',
+      sub: 'eventos registrados',
+    },
+    {
+      label: 'Valor Total Eventos',
+      value: kpis.valorTotalEventos,
+      format: 'currency' as const,
+      icon: DollarSign,
+      color: 'bg-purple-500',
+      sub: 'valor faturado',
     },
   ];
 
@@ -46,12 +49,13 @@ export function KpiCards({ kpis }: Props) {
             <div>
               <p className="text-xs text-gray-500">{card.label}</p>
               <p className="text-xl font-bold text-gray-900">
-                {card.format === 'percent' ? (
-                  <CountUp end={card.value} decimals={1} suffix="%" />
+                {card.format === 'currency' ? (
+                  <>R$ <CountUp end={card.value} decimals={0} separator="." /></>
                 ) : (
                   <CountUp end={card.value} />
                 )}
               </p>
+              {card.sub && <p className="text-xs text-gray-400">{card.sub}</p>}
             </div>
           </div>
         </div>
