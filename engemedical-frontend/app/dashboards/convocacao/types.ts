@@ -35,6 +35,9 @@ export interface ConvocacaoKPIs {
   examesNuncaRealizado: number;
   examesSemResultado: number;
   ultimaAtualizacao: string;
+  tendenciaExamesEmDia?: number;
+  tendenciaExamesAVencer?: number;
+  tendenciaExamesVencidos?: number;
 }
 
 export interface PorAno {
