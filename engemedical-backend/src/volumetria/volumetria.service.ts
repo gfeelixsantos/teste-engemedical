@@ -74,12 +74,21 @@ export class VolumetriaService {
 
     this.logger.debug(`Buscando compromissos SOC: ${di} a ${df}`);
 
+    // SOC exige pelo menos codigosAgendamentos — se não informado, enviar todas
+    const DEFAULT_AGENDAS = [
+      '02222202', '03781287', '02787023', '03781265',
+      '02289144', '03593277', '01820242', '01773500',
+      '02088164', '02979233', '03719460', '03357588',
+    ];
+
     const params: Record<string, string> = {
       ...credentials,
       tipoSaida: 'json',
       dataInicioCriacaoCompromissoBusca: di,
       dataFimCriacaoCompromissoBusca: df,
-      codigosAgendamentos: codigosAgenda ? codigosAgenda.join(',') : '',
+      codigosAgendamentos: codigosAgenda && codigosAgenda.length > 0
+        ? codigosAgenda.join(',')
+        : DEFAULT_AGENDAS.join(','),
     };
 
     const url = buildSocExportDataUrl(params, this.configService);
