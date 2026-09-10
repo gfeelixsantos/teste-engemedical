@@ -15,6 +15,7 @@ import {
   LayoutGrid,
   Bell,
   X,
+  ChevronDown,
 } from "lucide-react";
 import {
   Button,
@@ -184,6 +185,15 @@ const clearSessionMessage = (): void => {
   }
 };
 
+const DASHBOARDS_PREMIUM = [
+  { title: "Convocação de Exames", path: "/dashboards/convocacao" },
+  { title: "Volumetria", path: "/dashboards/volumetria" },
+  { title: "Absenteísmo", path: "/dashboards/absenteismo" },
+  { title: "eSocial", path: "/dashboards/esocial" },
+  { title: "Gestão de Vidas", path: "/dashboards/vidas" },
+  { title: "Documentos SST", path: "/dashboards/documentos" },
+] as const;
+
 const dashboardNavItems = {
   primary: [
     {
@@ -212,7 +222,7 @@ const dashboardNavItems = {
     },
   ],
   secondary: [
-    { title: "Dashboards", icon: BarChart3, path: "/dashboard" },
+    { title: "Dashboards Premium", icon: BarChart3, path: "/dashboards" },
     { title: "Agenda", icon: CalendarDays, path: "/agenda" },
     { title: "Configurações", icon: Settings, path: "/configuracoes" },
     { title: "Serviços", icon: LayoutGrid, path: "/servicos" },
@@ -223,6 +233,7 @@ const DashboardNavSidebar: React.FC<{
   onNavigate: (path: string) => void;
 }> = ({ onNavigate }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [dashboardsExpanded, setDashboardsExpanded] = useState(false);
   const pathname = usePathname();
 
   const isActive = (path: string) =>
@@ -323,39 +334,70 @@ const DashboardNavSidebar: React.FC<{
           {dashboardNavItems.secondary.map(
             ({ title, icon: Icon, path }) => {
               const active = isActive(path);
+              const isDashboards = title === "Dashboards Premium";
               return (
-                <button
-                  key={title}
-                  aria-label={`Acessar ${title}`}
-                  className={`group/item flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-cyan/40 ${
-                    active
-                      ? "border-brand-500/30 bg-brand-50"
-                      : "border-transparent hover:border-brand-green-300 hover:bg-brand-mist"
-                  }`}
-                  type="button"
-                  onClick={() => onNavigate(path)}
-                >
-                  <span
-                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border shadow-sm transition-all duration-200 ${
+                <div key={title}>
+                  <button
+                    aria-label={`Acessar ${title}`}
+                    className={`group/item flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-cyan/40 ${
                       active
-                        ? "border-brand-500/30 bg-brand-100 text-brand-600"
-                        : "border-brand-line bg-white text-brand-blue group-hover/item:border-brand-green/40 group-hover/item:bg-brand-mist group-hover/item:text-brand-green"
+                        ? "border-brand-500/30 bg-brand-50"
+                        : "border-transparent hover:border-brand-green-300 hover:bg-brand-mist"
                     }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <motion.span
-                    animate={{
-                      opacity: isSidebarExpanded ? 1 : 0,
-                      width: isSidebarExpanded ? "auto" : 0,
+                    type="button"
+                    onClick={() => {
+                      if (isDashboards) {
+                        setDashboardsExpanded(!dashboardsExpanded);
+                      } else {
+                        onNavigate(path);
+                      }
                     }}
-                    className="min-w-0 overflow-hidden"
                   >
-                    <span className="block whitespace-nowrap text-sm font-medium text-slate-700">
-                      {title}
+                    <span
+                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border shadow-sm transition-all duration-200 ${
+                        active
+                          ? "border-brand-500/30 bg-brand-100 text-brand-600"
+                          : "border-brand-line bg-white text-brand-blue group-hover/item:border-brand-green/40 group-hover/item:bg-brand-mist group-hover/item:text-brand-green"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
                     </span>
-                  </motion.span>
-                </button>
+                    <motion.span
+                      animate={{
+                        opacity: isSidebarExpanded ? 1 : 0,
+                        width: isSidebarExpanded ? "auto" : 0,
+                      }}
+                      className="min-w-0 overflow-hidden"
+                    >
+                      <span className="block whitespace-nowrap text-sm font-medium text-slate-700">
+                        {title}
+                      </span>
+                    </motion.span>
+                    {isDashboards && isSidebarExpanded && (
+                      <ChevronDown className={`h-3 w-3 shrink-0 ml-auto transition-transform ${dashboardsExpanded ? "rotate-180" : ""}`} />
+                    )}
+                  </button>
+
+                  {/* Sub-menu dos dashboards premium */}
+                  {isDashboards && dashboardsExpanded && isSidebarExpanded && (
+                    <div className="ml-11 mt-0.5 space-y-0.5 border-l-2 border-gray-200 pl-2">
+                      {DASHBOARDS_PREMIUM.map(({ title: dashTitle, path: dashPath }) => (
+                        <button
+                          key={dashPath}
+                          type="button"
+                          onClick={() => onNavigate(dashPath)}
+                          className={`flex w-full items-center rounded-lg px-2 py-1 text-left text-[11px] font-medium transition-all ${
+                            isActive(dashPath)
+                              ? "bg-brand-50 text-brand-700"
+                              : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                          }`}
+                        >
+                          <span className="truncate">{dashTitle}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             },
           )}

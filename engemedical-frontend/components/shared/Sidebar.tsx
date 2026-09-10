@@ -294,7 +294,7 @@ export function SidebarRecepcao({
           /* ---- MODO MENU: Navegação ---- */
           <SidebarMenu />
         ) : (
-          /* ---- MODO CONTROLES: Filtros e ações ---- */
+          /* ---- MODO CONTROLES: Filtros + Navegação sempre visível ---- */
           <>
             {/* Filtros */}
             <section className="space-y-2 mb-3">
@@ -403,6 +403,12 @@ export function SidebarRecepcao({
                 />
               </aside>
             )}
+
+            {/* Navegação sempre visível no modo controles */}
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Navegação</p>
+              <SidebarMenu />
+            </div>
           </>
         )}
       </main>
