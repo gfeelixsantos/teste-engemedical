@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Stethoscope, Lock, BarChart3 } from 'lucide-react';
+import { Activity, TrendingUp, UserX, Globe, HeartPulse, FileCheck } from 'lucide-react';
 import { HeaderApp } from '@/components/shared/HeaderApp';
 import { logout } from '@/lib/utils';
 
@@ -10,26 +10,44 @@ const dashboards = [
   {
     title: 'Convocação de Exames',
     description: 'Acompanhamento de convocações de exames médicos',
-    icon: Stethoscope,
+    icon: Activity,
     path: '/dashboards/convocacao',
     color: 'bg-blue-500',
-    available: true,
   },
   {
     title: 'Volumetria',
     description: 'Dados de agenda e volumetria de atendimentos',
-    icon: Lock,
-    path: '',
-    color: 'bg-gray-400',
-    available: false,
+    icon: TrendingUp,
+    path: '/dashboards/volumetria',
+    color: 'bg-indigo-500',
   },
   {
-    title: 'Faturamento',
-    description: 'Análise financeira e faturamento por empresa',
-    icon: Lock,
-    path: '',
-    color: 'bg-gray-400',
-    available: false,
+    title: 'Absenteísmo',
+    description: 'Análise de afastamentos e atestados médicos',
+    icon: UserX,
+    path: '/dashboards/absenteismo',
+    color: 'bg-orange-500',
+  },
+  {
+    title: 'eSocial',
+    description: 'Eventos eSocial e status de envio',
+    icon: Globe,
+    path: '/dashboards/esocial',
+    color: 'bg-purple-500',
+  },
+  {
+    title: 'Gestão de Vidas',
+    description: 'Custos, produtos e vidas ativas por empresa',
+    icon: HeartPulse,
+    path: '/dashboards/vidas',
+    color: 'bg-green-500',
+  },
+  {
+    title: 'Documentos SST',
+    description: 'Controle de vencimento de PGR e PCMSO',
+    icon: FileCheck,
+    path: '/dashboards/documentos',
+    color: 'bg-teal-500',
   },
 ];
 
@@ -40,14 +58,14 @@ export default function DashboardsPage() {
     <div className="flex flex-col h-full">
       <HeaderApp onLogout={logout}>
         <div className="flex items-center gap-3">
-          <BarChart3 className="h-6 w-6 text-brand-600" />
-          <h1 className="text-xl font-bold text-gray-900">Dashboards</h1>
+          <Activity className="h-6 w-6 text-brand-600" />
+          <h1 className="text-xl font-bold text-gray-900">Dashboards Premium</h1>
         </div>
       </HeaderApp>
 
       <div className="flex-1 overflow-auto p-6">
         <p className="text-sm text-gray-500 mb-6">
-          Selecione um dashboard para visualizar os dados.
+          Selecione um dashboard para visualizar os dados em tempo real.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -60,13 +78,8 @@ export default function DashboardsPage() {
             >
               <button
                 type="button"
-                disabled={!dash.available}
-                onClick={() => dash.available && router.push(dash.path)}
-                className={`w-full text-left rounded-xl border p-5 transition-all duration-200 ${
-                  dash.available
-                    ? 'border-brand-200 bg-white hover:border-brand-400 hover:shadow-md cursor-pointer'
-                    : 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
-                }`}
+                onClick={() => router.push(dash.path)}
+                className="w-full text-left rounded-xl border border-brand-200 bg-white p-5 transition-all duration-200 hover:border-brand-400 hover:shadow-md cursor-pointer"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div
@@ -76,9 +89,6 @@ export default function DashboardsPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">{dash.title}</h3>
-                    {!dash.available && (
-                      <span className="text-xs text-gray-400">Em breve</span>
-                    )}
                   </div>
                 </div>
                 <p className="text-sm text-gray-500">{dash.description}</p>
