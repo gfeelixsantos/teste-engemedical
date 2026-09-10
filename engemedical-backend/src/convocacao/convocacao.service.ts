@@ -53,7 +53,7 @@ export class ConvocacaoService {
     try {
       this.logger.debug('Buscando funcionários da contagem');
       const response = await fetch(url, {
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(60000),
       });
       if (!response.ok) {
         this.logger.error(`Falha funcionários: ${response.status}`);
@@ -81,9 +81,13 @@ export class ConvocacaoService {
     const ano = hoje.getFullYear();
     const dataFim = `${dia}/${mes}/${ano}`;
 
-    // 5 anos atrás para histórico completo
-    const anoInicio = hoje.getFullYear() - 5;
-    const dataInicio = `01/01/${anoInicio}`;
+    // SOC limita periodo a ~30 dias — buscar ultimo mes
+    const mesInicio = new Date(hoje);
+    mesInicio.setMonth(hoje.getMonth() - 1);
+    const diaInicio = String(mesInicio.getDate()).padStart(2, '0');
+    const mesInicioNum = String(mesInicio.getMonth() + 1).padStart(2, '0');
+    const anoInicio = mesInicio.getFullYear();
+    const dataInicio = `${diaInicio}/${mesInicioNum}/${anoInicio}`;
 
     const credentials = getSocExportCredentials(
       'SOC_ED_EXAMES_REALIZADOS',
@@ -129,7 +133,7 @@ export class ConvocacaoService {
     try {
       this.logger.debug('Buscando unidades');
       const response = await fetch(url, {
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(60000),
       });
       if (!response.ok) {
         this.logger.error(`Falha unidades: ${response.status}`);
@@ -167,7 +171,7 @@ export class ConvocacaoService {
     try {
       this.logger.debug('Buscando preços');
       const response = await fetch(url, {
-        signal: AbortSignal.timeout(30000),
+        signal: AbortSignal.timeout(90000),
       });
       if (!response.ok) {
         this.logger.error(`Falha preços: ${response.status}`);
