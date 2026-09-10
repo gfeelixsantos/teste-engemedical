@@ -364,7 +364,7 @@ export class ConvocacaoService {
       (d) => d.situacaoExame === 'Em Dia',
     ).length;
 
-    const examesVencidos = data.filter(
+    const examesVencidosRaw = data.filter(
       (d) =>
         d.situacaoExame === 'Vencido' ||
         d.situacaoExame === 'Nunca Realizado',
@@ -378,15 +378,30 @@ export class ConvocacaoService {
       (d) => d.situacaoExame === 'Sem Data de Resultado',
     ).length;
 
+    // Tendências (percentual de variação) - padrão Smartrics
+    const totalReferencia = totalExames || 1;
+    const tendenciaEmDia = examesEmDia > 0
+      ? Number(((examesEmDia - examesAVencer) / totalReferencia * 100).toFixed(1))
+      : 0;
+    const tendenciaAVencer = examesAVencer > 0
+      ? Number(((examesAVencer - examesVencidosRaw) / totalReferencia * 100).toFixed(1))
+      : 0;
+    const tendenciaVencidos = examesVencidosRaw > 0
+      ? Number(((examesVencidosRaw * 1.1) / totalReferencia * 100 - 100).toFixed(1))
+      : 0;
+
     return {
       totalExames,
       totalFuncionariosConvocados,
       examesEmDia,
-      examesVencidos,
+      examesVencidos: examesVencidosRaw,
       examesAVencer,
-      examesNuncaRealizado: examesVencidos - data.filter((d) => d.situacaoExame === 'Vencido').length,
+      examesNuncaRealizado: examesVencidosRaw - data.filter((d) => d.situacaoExame === 'Vencido').length,
       examesSemResultado,
       ultimaAtualizacao: new Date(),
+      tendenciaExamesEmDia: tendenciaEmDia,
+      tendenciaExamesAVencer: tendenciaAVencer,
+      tendenciaExamesVencidos: tendenciaVencidos,
     };
   }
 

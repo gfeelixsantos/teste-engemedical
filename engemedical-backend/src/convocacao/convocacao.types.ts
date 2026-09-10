@@ -68,6 +68,9 @@ export interface SocPreco {
   vidasAtivasUltimaContagem: number;
   flagClienteInadimplente: string;
   valorMensal: string;
+  tipoCobranca?: string;
+  nomeSubgrupo?: string;
+  nomeGrupoProduto?: string;
 }
 
 // ─── Computed Dashboard Types ────────────────────────────────────────────────
@@ -109,6 +112,10 @@ export interface ConvocacaoKPIs {
   examesNuncaRealizado: number;
   examesSemResultado: number;
   ultimaAtualizacao: Date;
+  // Tendências percentuais (Smartrics padrão)
+  tendenciaExamesEmDia?: number;
+  tendenciaExamesAVencer?: number;
+  tendenciaExamesVencidos?: number;
 }
 
 // Agregação por ANO (LineChart — eixo X = anos)
