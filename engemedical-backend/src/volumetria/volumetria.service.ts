@@ -94,7 +94,8 @@ export class VolumetriaService {
     const url = buildSocExportDataUrl(params, this.configService);
 
     try {
-      this.logger.debug('Buscando compromissos do SOC');
+      this.logger.debug(`Buscando compromissos do SOC (${dataInicial || 'default'} a ${dataFinal || 'default'})`);
+      this.logger.debug(`URL SOC (primeiros 200): ${url.substring(0, 200)}...`);
       const response = await fetch(url, {
         signal: AbortSignal.timeout(60000),
       });
@@ -110,8 +111,9 @@ export class VolumetriaService {
       const data = safeParseSocJson<SocCompromisso>(decoded, 'compromissos', this.logger);
       this.logger.debug(`Retornados ${data.length} compromissos`);
       return data;
-    } catch (error) {
-      this.logger.error('Erro ao buscar compromissos:', error);
+    } catch (error: any) {
+      this.logger.error('Erro ao buscar compromissos:', error?.message || error);
+      if (error?.cause) this.logger.error('Causa:', error.cause);
       return [];
     }
   }
