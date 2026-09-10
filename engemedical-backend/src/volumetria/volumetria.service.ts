@@ -57,14 +57,20 @@ export class VolumetriaService {
       this.configService,
     );
 
-    // SOC exige datas válidas — se não informadas, usar últimos 30 dias
+    // SOC exige datas no formato DD/MM/YYYY
     const hoje = new Date();
     const defaultInicio = new Date(hoje);
     defaultInicio.setDate(hoje.getDate() - 30);
-    const defaultFim = new Date(hoje);
 
-    const di = dataInicial || defaultInicio.toISOString().slice(0, 10);
-    const df = dataFinal || defaultFim.toISOString().slice(0, 10);
+    const formatBR = (d: Date) => {
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    };
+
+    const di = dataInicial || formatBR(defaultInicio);
+    const df = dataFinal || formatBR(hoje);
 
     this.logger.debug(`Buscando compromissos SOC: ${di} a ${df}`);
 
