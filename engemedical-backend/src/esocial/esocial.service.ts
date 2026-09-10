@@ -4,6 +4,7 @@ import { StructuredLogger } from '../utils/logger';
 import {
   buildSocExportDataUrl,
   getSocExportCredentials,
+  safeParseSocJson,
 } from '../soc/utils/soc-export-data-url';
 import type {
   SocEventoEsocial,
@@ -66,7 +67,7 @@ export class EsocialService {
       }
       const buffer = await response.arrayBuffer();
       const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const raw: SocEventoEsocial[] = JSON.parse(decoded);
+      const raw = safeParseSocJson<SocEventoEsocial>(decoded, 'eventos esocial', this.logger);
       this.logger.debug(`Retornados ${raw.length} registros do SOC`);
 
       return raw.map((r) => this.mapRow(r)).filter((r) => r !== null) as RegistroEsocial[];

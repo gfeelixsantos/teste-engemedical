@@ -4,6 +4,7 @@ import { StructuredLogger } from '../utils/logger';
 import {
   buildSocExportDataUrl,
   getSocExportCredentials,
+  safeParseSocJson,
 } from '../soc/utils/soc-export-data-url';
 import type {
   SocCompromisso,
@@ -56,11 +57,22 @@ export class VolumetriaService {
       this.configService,
     );
 
+    // SOC exige datas válidas — se não informadas, usar últimos 30 dias
+    const hoje = new Date();
+    const defaultInicio = new Date(hoje);
+    defaultInicio.setDate(hoje.getDate() - 30);
+    const defaultFim = new Date(hoje);
+
+    const di = dataInicial || defaultInicio.toISOString().slice(0, 10);
+    const df = dataFinal || defaultFim.toISOString().slice(0, 10);
+
+    this.logger.debug(`Buscando compromissos SOC: ${di} a ${df}`);
+
     const params: Record<string, string> = {
       ...credentials,
       tipoSaida: 'json',
-      dataInicioCriacaoCompromissoBusca: dataInicial || '',
-      dataFimCriacaoCompromissoBusca: dataFinal || '',
+      dataInicioCriacaoCompromissoBusca: di,
+      dataFimCriacaoCompromissoBusca: df,
       codigosAgendamentos: codigosAgenda ? codigosAgenda.join(',') : '',
     };
 
@@ -79,7 +91,8 @@ export class VolumetriaService {
 
       const buffer = await response.arrayBuffer();
       const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const data: SocCompromisso[] = JSON.parse(decoded);
+
+      const data = safeParseSocJson<SocCompromisso>(decoded, 'compromissos', this.logger);
       this.logger.debug(`Retornados ${data.length} compromissos`);
       return data;
     } catch (error) {

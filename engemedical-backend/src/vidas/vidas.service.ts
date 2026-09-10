@@ -4,6 +4,7 @@ import { StructuredLogger } from '../utils/logger';
 import {
   buildSocExportDataUrl,
   getSocExportCredentials,
+  safeParseSocJson,
 } from '../soc/utils/soc-export-data-url';
 import type {
   SocFaturamento,
@@ -54,7 +55,7 @@ export class VidasService {
       }
       const buffer = await response.arrayBuffer();
       const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const raw: SocFaturamento[] = JSON.parse(decoded);
+      const raw = safeParseSocJson<SocFaturamento>(decoded, 'faturamento', this.logger);
       this.logger.debug(`Retornados ${raw.length} registros do faturamento`);
       return raw;
     } catch (error) {
@@ -89,7 +90,7 @@ export class VidasService {
       }
       const buffer = await response.arrayBuffer();
       const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const raw: SocPreco[] = JSON.parse(decoded);
+      const raw = safeParseSocJson<SocPreco>(decoded, 'precos vidas', this.logger);
       this.logger.debug(`Retornados ${raw.length} registros de precos`);
       return raw;
     } catch (error) {

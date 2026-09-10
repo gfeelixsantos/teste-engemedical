@@ -4,6 +4,7 @@ import { StructuredLogger } from '../utils/logger';
 import {
   buildSocExportDataUrl,
   getSocExportCredentials,
+  safeParseSocJson,
 } from '../soc/utils/soc-export-data-url';
 import type {
   SocControleVencimento,
@@ -61,7 +62,7 @@ export class DocumentosService {
       }
       const buffer = await response.arrayBuffer();
       const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const raw: SocControleVencimento[] = JSON.parse(decoded);
+      const raw = safeParseSocJson<SocControleVencimento>(decoded, 'vencimentos', this.logger);
       this.logger.debug(`Retornados ${raw.length} registros de documentos`);
       return raw;
     } catch (error) {

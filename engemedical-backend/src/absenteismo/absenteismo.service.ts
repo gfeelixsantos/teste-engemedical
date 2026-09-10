@@ -4,6 +4,7 @@ import { StructuredLogger } from '../utils/logger';
 import {
   buildSocExportDataUrl,
   getSocExportCredentials,
+  safeParseSocJson,
 } from '../soc/utils/soc-export-data-url';
 import type {
   SocLicencaMedica,
@@ -63,7 +64,7 @@ export class AbsenteismoService {
 
       const buffer = await response.arrayBuffer();
       const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const data: SocLicencaMedica[] = JSON.parse(decoded);
+      const data = safeParseSocJson<SocLicencaMedica>(decoded, 'licencas', this.logger);
       this.logger.debug(`Retornadas ${data.length} licencas`);
       return data;
     } catch (error) {

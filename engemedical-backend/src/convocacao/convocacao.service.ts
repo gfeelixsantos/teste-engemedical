@@ -4,6 +4,7 @@ import { StructuredLogger } from '../utils/logger';
 import {
   buildSocExportDataUrl,
   getSocExportCredentials,
+  safeParseSocJson,
 } from '../soc/utils/soc-export-data-url';
 import {
   DashboardData,
@@ -60,7 +61,7 @@ export class ConvocacaoService {
       }
       const buffer = await response.arrayBuffer();
       const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const data: SocFuncionarioContagem[] = JSON.parse(decoded);
+      const data = safeParseSocJson<SocFuncionarioContagem>(decoded, 'funcionarios', this.logger);
       this.logger.debug(`Retornados ${data.length} funcionários`);
       return data;
     } catch (error) {
@@ -105,7 +106,7 @@ export class ConvocacaoService {
       }
       const buffer = await response.arrayBuffer();
       const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const data: SocExameRealizado[] = JSON.parse(decoded);
+      const data = safeParseSocJson<SocExameRealizado>(decoded, 'exames', this.logger);
       this.logger.debug(`Retornados ${data.length} exames`);
       return data;
     } catch (error) {
@@ -136,7 +137,7 @@ export class ConvocacaoService {
       }
       const buffer = await response.arrayBuffer();
       const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const data: SocUnidade[] = JSON.parse(decoded);
+      const data = safeParseSocJson<SocUnidade>(decoded, 'unidades', this.logger);
       this.logger.debug(`Retornadas ${data.length} unidades`);
       return data;
     } catch (error) {
@@ -174,7 +175,7 @@ export class ConvocacaoService {
       }
       const buffer = await response.arrayBuffer();
       const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const data: SocPreco[] = JSON.parse(decoded);
+      const data = safeParseSocJson<SocPreco>(decoded, 'precos', this.logger);
       this.logger.debug(`Retornados ${data.length} preços`);
       return data;
     } catch (error) {
