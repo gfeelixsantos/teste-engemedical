@@ -73,6 +73,8 @@ export interface EsocialKPIs {
   concluidos: number;
   inconsistencias: number;
   pendentes: number;
+  xmlsValidos: number;
+  xmlsInvalidos: number;
   taxaConclusao: number;
 }
 

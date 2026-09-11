@@ -159,6 +159,8 @@ export class EsocialService {
     let concluidos = 0;
     let inconsistencias = 0;
     let pendentes = 0;
+    let xmlsValidos = 0;
+    let xmlsInvalidos = 0;
 
     const layouts: Record<string, number> = {};
     const porStatus: Record<string, number> = {};
@@ -175,6 +177,10 @@ export class EsocialService {
       if (row.statusEvento === 'Concluido') concluidos++;
       else if (row.statusEvento === 'Inconsistencias') inconsistencias++;
       else if (row.statusEvento === 'Pendente') pendentes++;
+
+      // Xmls válidos = Concluido + Assinado; inválidos = Inconsistencias
+      if (row.statusEvento === 'Concluido' || row.statusEvento === 'Assinado') xmlsValidos++;
+      else if (row.statusEvento === 'Inconsistencias') xmlsInvalidos++;
 
       layouts[row.layout] = (layouts[row.layout] || 0) + 1;
       porStatus[row.statusEvento] = (porStatus[row.statusEvento] || 0) + 1;
@@ -212,6 +218,8 @@ export class EsocialService {
         concluidos,
         inconsistencias,
         pendentes,
+        xmlsValidos,
+        xmlsInvalidos,
         taxaConclusao,
       },
       layouts,
