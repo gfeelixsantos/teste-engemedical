@@ -25,6 +25,11 @@ export interface VigenciaPorUnidadeItem {
   vencidos: number;
 }
 
+export interface StatusDocumentoItem {
+  status: string;
+  quantidade: number;
+}
+
 export interface RegistroDocumento {
   codigoEmpresa: string;
   empresa: string;
@@ -51,6 +56,9 @@ export interface DocumentosDashboardData {
   documentosPorTipo: { tipo: string; qtd: number }[];
   vigenciaPorTipo: VigenciaPorTipoItem[];
   vigenciaPorUnidade: VigenciaPorUnidadeItem[];
+  vigenciaPorUnidadePGR: VigenciaPorUnidadeItem[];
+  vigenciaPorUnidadePCMSO: VigenciaPorUnidadeItem[];
+  statusDocumentos: StatusDocumentoItem[];
   registros: RegistroDocumento[];
   meta: { dataBase: string; fonte: string };
   filtros: { empresas: string[]; unidades: string[]; tipos: string[] };

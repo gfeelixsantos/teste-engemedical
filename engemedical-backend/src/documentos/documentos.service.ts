@@ -12,6 +12,7 @@ import type {
   DocumentosKPIs,
   VigenciaPorTipoItem,
   VigenciaPorUnidadeItem,
+  StatusDocumentoItem,
   DocumentosDashboardData,
   TipoDocumento,
   StatusVigencia,
@@ -188,6 +189,46 @@ export class DocumentosService {
       .sort((a, b) => (b.vigentes + b.aVencer + b.vencidos) - (a.vigentes + a.aVencer + a.vencidos))
       .slice(0, 15);
 
+    // Vigência por unidade - PGR only
+    const vigUnidadePGRMap = new Map<string, { vigentes: number; aVencer: number; vencidos: number }>();
+    for (const r of registros.filter((r) => r.tipoDocumento === 'PGR')) {
+      const key = r.unidade || r.codigoUnidade;
+      const existing = vigUnidadePGRMap.get(key) || { vigentes: 0, aVencer: 0, vencidos: 0 };
+      if (r.vigenciaContrato === 'Vigente') existing.vigentes++;
+      else if (r.vigenciaContrato === 'AVencer') existing.aVencer++;
+      else existing.vencidos++;
+      vigUnidadePGRMap.set(key, existing);
+    }
+    const vigenciaPorUnidadePGR: VigenciaPorUnidadeItem[] = [...vigUnidadePGRMap.entries()]
+      .map(([unidade, v]) => ({ unidade, ...v }))
+      .sort((a, b) => (b.vigentes + b.aVencer + b.vencidos) - (a.vigentes + a.aVencer + a.vencidos))
+      .slice(0, 15);
+
+    // Vigência por unidade - PCMSO only
+    const vigUnidadePCMSOMap = new Map<string, { vigentes: number; aVencer: number; vencidos: number }>();
+    for (const r of registros.filter((r) => r.tipoDocumento === 'PCMSO')) {
+      const key = r.unidade || r.codigoUnidade;
+      const existing = vigUnidadePCMSOMap.get(key) || { vigentes: 0, aVencer: 0, vencidos: 0 };
+      if (r.vigenciaContrato === 'Vigente') existing.vigentes++;
+      else if (r.vigenciaContrato === 'AVencer') existing.aVencer++;
+      else existing.vencidos++;
+      vigUnidadePCMSOMap.set(key, existing);
+    }
+    const vigenciaPorUnidadePCMSO: VigenciaPorUnidadeItem[] = [...vigUnidadePCMSOMap.entries()]
+      .map(([unidade, v]) => ({ unidade, ...v }))
+      .sort((a, b) => (b.vigentes + b.aVencer + b.vencidos) - (a.vigentes + a.aVencer + a.vencidos))
+      .slice(0, 15);
+
+    // Status dos documentos
+    const statusMap = new Map<string, number>();
+    for (const r of registros) {
+      const status = r.situacao || 'Ativo';
+      statusMap.set(status, (statusMap.get(status) || 0) + 1);
+    }
+    const statusDocumentos: StatusDocumentoItem[] = [...statusMap.entries()]
+      .map(([status, quantidade]) => ({ status, quantidade }))
+      .sort((a, b) => b.quantidade - a.quantidade);
+
     // Filtros
     const empresas = [...new Set(registros.map((r) => r.empresa))].sort();
     const unidades = [...new Set(registros.map((r) => r.unidade))].sort();
@@ -200,6 +241,9 @@ export class DocumentosService {
       documentosPorTipo,
       vigenciaPorTipo,
       vigenciaPorUnidade,
+      vigenciaPorUnidadePGR,
+      vigenciaPorUnidadePCMSO,
+      statusDocumentos,
       registros: registros.slice(0, 1000),
       meta: {
         dataBase: new Date().toISOString(),

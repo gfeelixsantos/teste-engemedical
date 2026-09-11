@@ -9,11 +9,11 @@ interface Props {
 }
 
 const CARDS = [
-  { key: 'totalDocumentos', label: 'Documentos Ativos', icon: FileText, color: 'bg-blue-500' },
-  { key: 'totalPGR', label: 'Total PGR', icon: Shield, color: 'bg-indigo-500' },
-  { key: 'totalPCMSO', label: 'Total PCMSO', icon: HeartPulse, color: 'bg-violet-500' },
+  { key: 'totalDocumentos', label: 'Total Documentos', icon: FileText, color: 'bg-blue-500' },
+  { key: 'totalPGR', label: 'PGR Total', icon: Shield, color: 'bg-indigo-500' },
+  { key: 'totalPCMSO', label: 'PCMSO Total', icon: HeartPulse, color: 'bg-violet-500' },
   { key: 'vigentes', label: 'Vigentes', icon: CheckCircle, color: 'bg-green-500' },
-  { key: 'aVencer', label: 'A Vencer', icon: AlertTriangle, color: 'bg-yellow-500' },
+  { key: 'aVencer', label: 'À Vencer', icon: AlertTriangle, color: 'bg-yellow-500' },
   { key: 'vencidos', label: 'Vencidos', icon: XCircle, color: 'bg-red-500' },
 ];
 
