@@ -61,7 +61,7 @@ export interface SocLicencaMedica {
   dataUltimaAlteracao: string;
 }
 
-// Backend types
+// Backend normalized type
 export interface LicencaNormalizada {
   codigoSequencial: string;
   codigoFuncionario: string;
@@ -93,6 +93,10 @@ export interface AbsenteismoKPIs {
   custoIndireto: number;
   custoTotal: number;
   ultimaAtualizacao: string;
+  // Smartrics layout fields
+  totalFuncionariosAfetados: number;
+  mediaDiasPorLicenca: number;
+  custoMensal: number;
 }
 
 export interface PorMesLinha {
@@ -115,11 +119,18 @@ export interface PorCidBar {
   atestados: number;
 }
 
+export interface PorTipoAfastamento {
+  tipo: string;
+  atestados: number;
+  diasPerdidos: number;
+}
+
 export interface AbsenteismoDashboardData {
   kpis: AbsenteismoKPIs;
   porMes: PorMesLinha[];
   porEmpresa: PorEmpresaBar[];
   porCid: PorCidBar[];
+  porTipoAfastamento: PorTipoAfastamento[];
   detalhes: LicencaNormalizada[];
   empresas: string[];
   totalRegistros: number;

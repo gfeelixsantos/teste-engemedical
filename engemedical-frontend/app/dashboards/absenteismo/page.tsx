@@ -9,6 +9,7 @@ import { KpiCards } from './components/KpiCards';
 import { EvolucaoMensal } from './components/EvolucaoMensal';
 import { CustosEmpresa } from './components/CustosEmpresa';
 import { CidsChart } from './components/CidsChart';
+import { PorTipoAtestado } from './components/PorTipoAtestado';
 import { DetalhesTable } from './components/DetalhesTable';
 import { AbsenteismoFilters } from './components/AbsenteismoFilters';
 import type { AbsenteismoDashboardData } from './types';
@@ -37,17 +38,6 @@ export default function AbsenteismoPage() {
     router.push('/login');
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando dados...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -64,7 +54,7 @@ export default function AbsenteismoPage() {
       <HeaderApp onLogout={handleLogout}>
         <div className="text-center">
           <h1 className="text-xl font-bold text-gray-900">
-            Absenteismo
+            Absenteísmo
           </h1>
         </div>
       </HeaderApp>
@@ -72,19 +62,27 @@ export default function AbsenteismoPage() {
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
-            Analise de Indice de Absenteismo e Impacto Financeiro
+            Análise de Índice de Absenteísmo e Impacto Financeiro
           </h1>
         </div>
 
-        <KpiCards kpis={data?.kpis} />
+        {/* ROW 1: 6 KPI cards — 3×2 grid */}
+        <KpiCards kpis={data?.kpis} isLoading={isLoading} />
 
+        {/* ROW 2: Evolução Mensal (left) + Custo por Empresa (right) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <EvolucaoMensal data={data?.porMes} />
-          <CustosEmpresa data={data?.porEmpresa} />
+          <EvolucaoMensal data={data?.porMes} isLoading={isLoading} />
+          <CustosEmpresa data={data?.porEmpresa} isLoading={isLoading} />
         </div>
 
+        {/* ROW 3: Distribuição CID donut (left) + Por Tipo Atestado (right) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <CidsChart data={data?.porCid} />
+          <CidsChart data={data?.porCid} isLoading={isLoading} />
+          <PorTipoAtestado data={data?.porTipo} isLoading={isLoading} />
+        </div>
+
+        {/* Filters row */}
+        <div className="mt-6">
           <AbsenteismoFilters
             empresas={data?.empresas || []}
             dataInicio={dataInicio}
@@ -96,8 +94,13 @@ export default function AbsenteismoPage() {
           />
         </div>
 
+        {/* Table with pagination */}
         <div className="mt-6">
-          <DetalhesTable data={data?.detalhes} total={data?.totalRegistros} />
+          <DetalhesTable
+            data={data?.detalhes}
+            total={data?.totalRegistros}
+            isLoading={isLoading}
+          />
         </div>
       </main>
     </div>

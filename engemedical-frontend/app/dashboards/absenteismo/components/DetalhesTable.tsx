@@ -6,19 +6,41 @@ import type { LicencaDetalhe } from '../types';
 interface Props {
   data?: LicencaDetalhe[];
   total?: number;
+  isLoading?: boolean;
 }
 
-export function DetalhesTable({ data, total }: Props) {
+function SkeletonTable() {
+  return (
+    <div className="bg-white rounded-lg shadow p-6 animate-pulse">
+      <div className="flex items-center justify-between mb-4">
+        <div className="h-5 bg-gray-200 rounded w-56" />
+        <div className="h-9 bg-gray-200 rounded w-40" />
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="grid grid-cols-5 gap-4">
+            {Array.from({ length: 5 }).map((__, j) => (
+              <div key={j} className="h-4 bg-gray-200 rounded" />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function DetalhesTable({ data, total, isLoading }: Props) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const perPage = 20;
 
-  if (!data) return null;
+  if (isLoading || !data) return <SkeletonTable />;
 
   const filtered = data.filter((d) => {
     if (!search) return true;
     const term = search.toLowerCase();
     return (
+      d.empresaCodigo?.toLowerCase().includes(term) ||
       d.codigoFuncionario?.toLowerCase().includes(term) ||
       d.cid?.toLowerCase().includes(term) ||
       d.descricaoMotivo?.toLowerCase().includes(term)
@@ -51,25 +73,16 @@ export function DetalhesTable({ data, total }: Props) {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Codigo
+                Empresa
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Funcionario
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Inicio
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Fim
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Dias
+                Funcionário
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 CID
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Motivo
+                Dias
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Custo
@@ -79,13 +92,16 @@ export function DetalhesTable({ data, total }: Props) {
           <tbody className="divide-y divide-gray-200">
             {paginated.map((row) => (
               <tr key={row.codigoSequencial} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm text-gray-900">{row.codigoSequencial}</td>
-                <td className="px-4 py-3 text-sm text-gray-900">{row.codigoFuncionario}</td>
-                <td className="px-4 py-3 text-sm text-gray-900">{row.dataInicio}</td>
-                <td className="px-4 py-3 text-sm text-gray-900">{row.dataFim}</td>
-                <td className="px-4 py-3 text-sm text-gray-900">{row.diasPerdidos}</td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {row.empresaCodigo}
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {row.codigoFuncionario}
+                </td>
                 <td className="px-4 py-3 text-sm text-gray-900">{row.cid}</td>
-                <td className="px-4 py-3 text-sm text-gray-900">{row.descricaoMotivo}</td>
+                <td className="px-4 py-3 text-sm text-gray-900">
+                  {row.diasPerdidos}
+                </td>
                 <td className="px-4 py-3 text-sm text-gray-900">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
@@ -101,7 +117,7 @@ export function DetalhesTable({ data, total }: Props) {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
           <p className="text-sm text-gray-600">
-            Pagina {page} de {totalPages}
+            Página {page} de {totalPages}
           </p>
           <div className="flex gap-2">
             <button
@@ -116,7 +132,7 @@ export function DetalhesTable({ data, total }: Props) {
               disabled={page === totalPages}
               className="px-3 py-1 border rounded disabled:opacity-50"
             >
-              Proximo
+              Próximo
             </button>
           </div>
         </div>

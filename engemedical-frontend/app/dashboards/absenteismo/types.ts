@@ -33,6 +33,11 @@ export interface PorCidBar {
   atestados: number;
 }
 
+export interface PorTipoBar {
+  tipo: string;
+  atestados: number;
+}
+
 export interface LicencaDetalhe {
   codigoSequencial: string;
   codigoFuncionario: string;
@@ -58,6 +63,7 @@ export interface AbsenteismoDashboardData {
   porMes: PorMesLinha[];
   porEmpresa: PorEmpresaBar[];
   porCid: PorCidBar[];
+  porTipo: PorTipoBar[];
   detalhes: LicencaDetalhe[];
   empresas: string[];
   totalRegistros: number;
