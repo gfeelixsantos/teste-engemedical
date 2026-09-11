@@ -24,9 +24,9 @@ export interface PorAgendaBar {
 
 export interface PorTipoCompromissoGrouped {
   tipoCompromisso: string;
-  'Aguardando Atendimento': number;
-  'Atendido': number;
-  'Nao Atendido': number;
+  AguardandoAtendimento: number;
+  Atendido: number;
+  NaoAtendido: number;
 }
 
 export interface PorAnoLine {
@@ -40,6 +40,11 @@ export interface PorSubGrupoBar {
   subGrupo: string;
   agendamentos: number;
   atendidos: number;
+}
+
+export interface PorSituacaoItem {
+  situacao: string;
+  quantidade: number;
 }
 
 export interface CompromissoDetalhe {
@@ -64,10 +69,17 @@ export interface CompromissoDetalhe {
   codigoSequencialFicha: string;
 }
 
+export interface PorEmpresaRow {
+  nomeEmpresa: string;
+  agendamentos: number;
+  funcionarios: number;
+  exames: number;
+}
+
 export interface VolumetriaDashboardData {
   kpis: VolumetriaKPIs;
   porAgenda: PorAgendaBar[];
-  porEmpresa: { nomeEmpresa: string; agendamentos: number; funcionarios: number; exames: number }[];
+  porEmpresa: PorEmpresaRow[];
   porTipoCompromisso: PorTipoCompromissoGrouped[];
   porAno: PorAnoLine[];
   porSubGrupo: PorSubGrupoBar[];

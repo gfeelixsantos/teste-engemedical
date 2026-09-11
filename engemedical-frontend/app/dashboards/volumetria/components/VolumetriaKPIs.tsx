@@ -1,107 +1,115 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Calendar, Users, CalendarCheck, CalendarX, Hourglass } from 'lucide-react';
+import { Calendar, CalendarCheck, Percent, TrendingUp, TrendingDown } from 'lucide-react';
 import CountUp from 'react-countup';
+import { motion } from 'framer-motion';
 import type { VolumetriaKPIs } from '../types';
 
-export function VolumetriaKPIs({ kpis }: { kpis: VolumetriaKPIs }) {
+/* ── Smartrics brand palette ── */
+const BRAND = {
+  primary: '#0698C2', // ENGE Blue
+  accent: '#a6ce39',  // ENGE Green
+  primaryLight: '#E6F5FA',
+  accentLight: '#f0f9e4',
+};
+
+function TrendBadge({ percent }: { percent: number | null }) {
+  if (percent === null) return null;
+  const positive = percent >= 0;
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-      {/* Total Agendamentos */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-xl border border-gray-200 p-4 text-center"
-      >
-        <div className="grid h-10 w-10 place-items-center rounded-lg bg-teal-100 mx-auto mb-2">
-          <Calendar className="h-5 w-5 text-teal-600" />
-        </div>
-        <span className="text-xs text-gray-500 block mb-1">Agendamentos</span>
-        <div className="text-2xl font-bold text-teal-600">
-          <CountUp end={kpis.totalAgendamentos} duration={1} separator="." />
-        </div>
-      </motion.div>
+    <span
+      className="inline-flex items-center gap-0.5 text-xs font-semibold px-1.5 py-0.5 rounded-full"
+      style={{
+        color: positive ? '#16a34a' : '#dc2626',
+        backgroundColor: positive ? '#dcfce7' : '#fef2f2',
+      }}
+    >
+      {positive ? (
+        <TrendingUp className="h-3 w-3" />
+      ) : (
+        <TrendingDown className="h-3 w-3" />
+      )}
+      {Math.abs(percent).toFixed(1)}%
+    </span>
+  );
+}
 
-      {/* Total Funcionários */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.05 }}
-        className="bg-white rounded-xl border border-gray-200 p-4 text-center"
-      >
-        <div className="grid h-10 w-10 place-items-center rounded-lg bg-emerald-100 mx-auto mb-2">
-          <Users className="h-5 w-5 text-emerald-600" />
-        </div>
-        <span className="text-xs text-gray-500 block mb-1">Funcionários</span>
-        <div className="text-2xl font-bold text-emerald-600">
-          <CountUp end={kpis.totalFuncionarios} duration={1} separator="." />
-        </div>
-      </motion.div>
+export function VolumetriaKPIs({ kpis }: { kpis: VolumetriaKPIs }) {
+  const indiceAtendidos =
+    kpis.totalAgendamentos > 0
+      ? Math.round((kpis.totalAtendidos / kpis.totalAgendamentos) * 1000) / 10
+      : 0;
 
-      {/* Total Atendidos */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white rounded-xl border border-gray-200 p-4 text-center"
-      >
-        <div className="grid h-10 w-10 place-items-center rounded-lg bg-green-100 mx-auto mb-2">
-          <CalendarCheck className="h-5 w-5 text-green-600" />
-        </div>
-        <span className="text-xs text-gray-500 block mb-1">Atendidos</span>
-        <div className="text-2xl font-bold text-green-600">
-          <CountUp end={kpis.totalAtendidos} duration={1} separator="." />
-        </div>
-      </motion.div>
+  const cards = [
+    {
+      label: 'Agendamentos',
+      value: kpis.totalAgendamentos,
+      icon: Calendar,
+      color: BRAND.primary,
+      bg: BRAND.primaryLight,
+      trend: null as number | null,
+    },
+    {
+      label: 'Atendimentos',
+      value: kpis.totalAtendidos,
+      icon: CalendarCheck,
+      color: BRAND.accent,
+      bg: BRAND.accentLight,
+      trend: null as number | null,
+    },
+    {
+      label: 'Índice Atendimento',
+      value: indiceAtendidos,
+      suffix: '%',
+      icon: Percent,
+      color: '#16a34a',
+      bg: '#dcfce7',
+      trend: null as number | null,
+    },
+  ];
 
-      {/* Não Atendidos */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.15 }}
-        className="bg-white rounded-xl border border-gray-200 p-4 text-center"
-      >
-        <div className="grid h-10 w-10 place-items-center rounded-lg bg-red-100 mx-auto mb-2">
-          <CalendarX className="h-5 w-5 text-red-600" />
-        </div>
-        <span className="text-xs text-gray-500 block mb-1">Não Atendidos</span>
-        <div className="text-2xl font-bold text-red-600">
-          <CountUp end={kpis.totalNaoAtendidos} duration={1} separator="." />
-        </div>
-      </motion.div>
-
-      {/* Aguardando */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-        className="bg-white rounded-xl border border-gray-200 p-4 text-center"
-      >
-        <div className="grid h-10 w-10 place-items-center rounded-lg bg-amber-100 mx-auto mb-2">
-          <Hourglass className="h-5 w-5 text-amber-600" />
-        </div>
-        <span className="text-xs text-gray-500 block mb-1">Aguardando</span>
-        <div className="text-2xl font-bold text-amber-600">
-          <CountUp end={kpis.totalAguardando} duration={1} separator="." />
-        </div>
-      </motion.div>
-
-      {/* Exames */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.25 }}
-        className="bg-white rounded-xl border border-gray-200 p-4 text-center"
-      >
-        <div className="grid h-10 w-10 place-items-center rounded-lg bg-indigo-100 mx-auto mb-2">
-          <Calendar className="h-5 w-5 text-indigo-600" />
-        </div>
-        <span className="text-xs text-gray-500 block mb-1">Exames</span>
-        <div className="text-2xl font-bold text-indigo-600">
-          <CountUp end={kpis.totalExames} duration={1} separator="." />
-        </div>
-      </motion.div>
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {cards.map((card, i) => (
+        <motion.div
+          key={card.label}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: i * 0.05 }}
+          className="rounded-xl border p-4"
+          style={{ backgroundColor: card.bg, borderColor: `${card.color}30` }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className="grid h-10 w-10 place-items-center rounded-lg border bg-white"
+                style={{ borderColor: `${card.color}40` }}
+              >
+                <card.icon className="h-5 w-5" style={{ color: card.color }} />
+              </div>
+              <div>
+                <span className="text-xs font-medium text-gray-600 block">
+                  {card.label}
+                </span>
+                <div className="text-xl font-bold text-gray-900">
+                  {card.suffix ? (
+                    <CountUp
+                      end={card.value}
+                      duration={1.2}
+                      decimals={1}
+                      decimal=","
+                      suffix={card.suffix}
+                    />
+                  ) : (
+                    <CountUp end={card.value} duration={1.2} separator="." />
+                  )}
+                </div>
+              </div>
+            </div>
+            <TrendBadge percent={card.trend} />
+          </div>
+        </motion.div>
+      ))}
     </div>
   );
 }
