@@ -18,8 +18,15 @@ export default function RegistrosTable({ data }: Props) {
   if (!data || data.length === 0) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Tabela Geral</h3>
-        <div className="h-48 bg-gray-100 rounded animate-pulse" />
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Registros de Faturamento</h3>
+        <div className="space-y-2">
+          <div className="h-10 bg-gray-100 rounded animate-pulse" />
+          <div className="h-10 bg-gray-100 rounded animate-pulse" />
+          <div className="h-10 bg-gray-100 rounded animate-pulse" />
+          <div className="h-10 bg-gray-100 rounded animate-pulse" />
+          <div className="h-10 bg-gray-100 rounded animate-pulse" />
+          <div className="h-10 bg-gray-50 rounded animate-pulse w-3/4" />
+        </div>
       </div>
     );
   }
@@ -30,7 +37,9 @@ export default function RegistrosTable({ data }: Props) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-700">Tabela Geral ({data.length} registros)</h3>
+        <h3 className="text-sm font-semibold text-gray-700">
+          Registros de Faturamento ({data.length} registros)
+        </h3>
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <button
             onClick={() => setPage(Math.max(0, page - 1))}
@@ -55,20 +64,20 @@ export default function RegistrosTable({ data }: Props) {
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="px-3 py-2 text-left font-medium text-gray-600">Empresa</th>
-              <th className="px-3 py-2 text-left font-medium text-gray-600">Produto</th>
               <th className="px-3 py-2 text-left font-medium text-gray-600">Unidade</th>
+              <th className="px-3 py-2 text-left font-medium text-gray-600">Produto</th>
               <th className="px-3 py-2 text-right font-medium text-gray-600">Vidas</th>
               <th className="px-3 py-2 text-right font-medium text-gray-600">Valor/Vida</th>
               <th className="px-3 py-2 text-right font-medium text-gray-600">Total</th>
-              <th className="px-3 py-2 text-left font-medium text-gray-600">Mês</th>
+              <th className="px-3 py-2 text-left font-medium text-gray-600">Mes</th>
             </tr>
           </thead>
           <tbody>
             {pageData.map((r, i) => (
               <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="px-3 py-2 max-w-[200px] truncate" title={r.empresa}>{r.empresa}</td>
-                <td className="px-3 py-2 max-w-[180px] truncate" title={r.produto}>{r.produto}</td>
                 <td className="px-3 py-2 max-w-[150px] truncate" title={r.unidade}>{r.unidade}</td>
+                <td className="px-3 py-2 max-w-[180px] truncate" title={r.produto}>{r.produto}</td>
                 <td className="px-3 py-2 text-right font-medium">{r.qtdVidas.toLocaleString('pt-BR')}</td>
                 <td className="px-3 py-2 text-right">{formatCurrency(r.valorVida)}</td>
                 <td className="px-3 py-2 text-right font-medium">{formatCurrency(r.valorTotal)}</td>

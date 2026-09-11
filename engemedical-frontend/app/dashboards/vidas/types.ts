@@ -3,7 +3,7 @@ export interface VidasKPIs {
   totalEmpresas: number;
   totalVidas: number;
   valorTotalFaturado: number;
-  mediaVidasPorEmpresa: number;
+  mediaValorPorVida: number;
   empresasComPlano: number;
   empresasSemPlano: number;
 }

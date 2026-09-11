@@ -59,7 +59,7 @@ export default function VidasPage() {
           </div>
         )}
 
-        {/* KPIs */}
+        {/* KPIs: 4 + 3 layout */}
         <KpiCards kpis={data?.kpis} />
 
         {/* Filters */}
@@ -71,16 +71,44 @@ export default function VidasPage() {
           onChange={(e, p) => { setEmpresaSel(e); setProdutoSel(p); }}
         />
 
-        {/* Charts row 1 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <CustoPorVida data={data?.custoPorVida} />
-          <VidasPorProduto data={data?.vidasPorProduto} />
-        </div>
+        {/* Loading skeleton for charts */}
+        {isLoading && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mb-4" />
+                <div className="h-[350px] bg-gray-100 rounded animate-pulse" />
+              </div>
+              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <div className="h-4 w-40 bg-gray-200 rounded animate-pulse mb-4" />
+                <div className="h-[350px] bg-gray-100 rounded animate-pulse" />
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <div className="h-4 w-44 bg-gray-200 rounded animate-pulse mb-4" />
+              <div className="h-[350px] bg-gray-100 rounded animate-pulse" />
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <div className="h-4 w-56 bg-gray-200 rounded animate-pulse mb-4" />
+              <div className="h-48 bg-gray-100 rounded animate-pulse" />
+            </div>
+          </div>
+        )}
 
-        {/* Charts row 2 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <VidasPorEmpresa data={data?.vidasPorEmpresa} />
-        </div>
+        {/* Charts row 1: Custo por Vida + Vidas por Produto */}
+        {!isLoading && (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <CustoPorVida data={data?.custoPorVida} />
+              <VidasPorProduto data={data?.vidasPorProduto} />
+            </div>
+
+            {/* Charts row 2: Vidas por Empresa (full width) */}
+            <div className="grid grid-cols-1 gap-6">
+              <VidasPorEmpresa data={data?.vidasPorEmpresa} />
+            </div>
+          </>
+        )}
 
         {/* Table */}
         <RegistrosTable data={filteredRegistros} />
