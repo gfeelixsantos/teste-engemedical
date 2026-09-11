@@ -11,6 +11,7 @@ import {
   EyeOff,
   LayoutDashboard,
   Lock,
+  Mail,
   ShieldCheck,
   User,
 } from "lucide-react";
@@ -124,21 +125,15 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({ isLoading, disabled }) => (
 const brandPillars = [
   {
     icon: ShieldCheck,
-    title: "Atendimento com inteligência",
-    description:
-      "Filas, exames, status e pendências organizados para acelerar a rotina sem perder controle técnico.",
+    title: "Confiança para decidir",
   },
   {
     icon: LayoutDashboard,
-    title: "Evidência em cada etapa",
-    description:
-      "Registros digitais, documentos e assinaturas fortalecem a segurança operacional e a confiança do cliente.",
+    title: "SST sem retrabalho",
   },
   {
     icon: BarChart3,
-    title: "Gestão SST em tempo real",
-    description:
-      "Indicadores e integrações dão visibilidade para agir antes que atrasos, falhas ou pendências cresçam.",
+    title: "Visibilidade em tempo real",
   },
 ];
 
@@ -175,11 +170,21 @@ const TypewriterTitle = ({ text }: { text: string }) => {
 
 const ConnectSignal = () => (
   <div aria-hidden className="absolute inset-0">
-    <div className="absolute inset-x-8 top-[66%] h-px bg-gradient-to-r from-transparent via-brand-lime/65 to-transparent shadow-[0_0_22px_rgba(94,225,122,0.38)]" />
+    <div className="connect-line-primary absolute inset-x-0 top-[66%] h-px bg-gradient-to-r from-transparent via-brand-lime/75 to-transparent shadow-[0_0_26px_rgba(94,225,122,0.42)]" />
     <motion.div
       animate={{ x: ["-18%", "118%"], opacity: [0, 1, 0] }}
-      className="absolute left-0 top-[66%] h-px w-32 bg-gradient-to-r from-transparent via-white/75 to-transparent"
+      className="absolute left-[-12%] top-[66%] h-px w-1/2 bg-gradient-to-r from-transparent via-white/80 to-transparent"
       transition={{ duration: 4.8, ease: "easeInOut", repeat: Infinity }}
+    />
+    <motion.div
+      animate={{ x: ["112%", "-28%"], opacity: [0, 0.72, 0] }}
+      className="absolute right-[-12%] top-[60%] h-px w-2/5 bg-gradient-to-r from-transparent via-brand-cyan/74 to-transparent"
+      transition={{
+        delay: 0.9,
+        duration: 6.1,
+        ease: "easeInOut",
+        repeat: Infinity,
+      }}
     />
     <motion.div
       animate={{ opacity: [0.24, 0.58, 0.24], scale: [0.98, 1.04, 0.98] }}
@@ -191,18 +196,15 @@ const ConnectSignal = () => (
       className="absolute left-[18%] top-[26%] h-[34%] w-[64%] rounded-full border border-brand-green/18"
       transition={{ duration: 7.4, ease: "easeInOut", repeat: Infinity }}
     />
-    <div className="absolute left-[21%] top-[66%] h-2 w-2 rounded-full bg-brand-lime shadow-[0_0_22px_rgba(94,225,122,0.72)]" />
-    <div className="absolute left-[49%] top-[66%] h-2 w-2 rounded-full bg-brand-cyan shadow-[0_0_22px_rgba(10,171,212,0.7)]" />
-    <div className="absolute right-[21%] top-[66%] h-2 w-2 rounded-full bg-brand-green shadow-[0_0_22px_rgba(48,209,88,0.72)]" />
-    <div className="absolute left-[21%] top-[66%] h-24 w-px origin-top rotate-[64deg] bg-gradient-to-b from-brand-lime/45 to-transparent" />
-    <div className="absolute right-[21%] top-[66%] h-24 w-px origin-top -rotate-[64deg] bg-gradient-to-b from-brand-green/45 to-transparent" />
+    <div className="connect-line-diagonal absolute left-[12%] top-[66%] h-36 w-px origin-top rotate-[64deg] bg-gradient-to-b from-brand-lime/50 via-brand-green/22 to-transparent" />
+    <div className="connect-line-diagonal absolute right-[12%] top-[66%] h-36 w-px origin-top -rotate-[64deg] bg-gradient-to-b from-brand-cyan/46 via-brand-green/20 to-transparent" />
   </div>
 );
 
 const BrandPanel = () => (
   <motion.section
     animate={{ opacity: 1 }}
-    className="cyber-grid relative flex min-h-[500px] flex-col justify-between overflow-hidden bg-[#020817] p-6 pt-6 pb-20 text-white md:min-h-[680px] md:p-9"
+    className="cyber-grid relative flex min-h-[500px] flex-col justify-center gap-4 overflow-hidden bg-[#020817] p-6 pt-6 pb-8 text-white md:min-h-[680px] md:p-9 md:py-8"
     initial={{ opacity: 0 }}
     transition={{ duration: 0.8, ease: "easeOut" }}
   >
@@ -229,9 +231,9 @@ const BrandPanel = () => (
       }}
     />
 
-    <div className="relative z-10 my-4 flex flex-1 flex-col items-center justify-center gap-2 md:my-6 md:gap-3">
+    <div className="compact-brand-stage relative z-10 mb-0 mt-2 flex flex-col items-center gap-0 md:mt-3">
       <div className="relative w-full max-w-[34rem]">
-        <div className="relative h-48 w-full sm:h-56 md:h-[17rem] xl:h-[19rem]">
+        <div className="relative h-44 w-full sm:h-48 md:h-[15rem] xl:h-[16.5rem]">
           <motion.div
             animate={{ opacity: [0.16, 0.42, 0.16], scale: [0.96, 1.06, 0.96] }}
             className="absolute inset-x-8 inset-y-4 rounded-[44px] bg-brand-cyan/20 blur-3xl"
@@ -253,15 +255,15 @@ const BrandPanel = () => (
             />
           </motion.div>
         </div>
-        <div className="mt-2">
+        <div className="mt-0">
           <TypewriterTitle text="Conectando você ao futuro SST" />
         </div>
       </div>
     </div>
 
-    <div className="relative z-10 space-y-4">
-      <div className="grid gap-3 border-t border-white/10 pt-4 text-sm sm:grid-cols-3">
-        {brandPillars.map(({ icon: Icon, title, description }) => (
+    <div className="relative z-10 space-y-1">
+      <div className="grid gap-3 border-t border-white/10 pt-2 text-sm sm:grid-cols-3">
+        {brandPillars.map(({ icon: Icon, title }) => (
           <motion.div
             key={title}
             className="brand-card-shine group relative overflow-hidden rounded-lg bg-brand-green/60 p-px shadow-[0_18px_42px_rgba(0,0,0,0.18)]"
@@ -278,16 +280,13 @@ const BrandPanel = () => (
                 repeat: Infinity,
               }}
             />
-            <div className="relative flex h-full min-h-[86px] items-start gap-3 rounded-[7px] border border-brand-green/22 bg-brand-midnight/88 p-3 backdrop-blur-xl transition-all duration-300 group-hover:border-brand-lime/48 group-hover:bg-brand-deep/94 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_34px_rgba(25,232,90,0.2)]">
+            <div className="relative flex h-full min-h-[76px] items-center gap-3 rounded-[7px] border border-brand-green/22 bg-brand-midnight/88 p-3 backdrop-blur-xl transition-all duration-300 group-hover:border-brand-lime/48 group-hover:bg-brand-deep/94 group-hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_34px_rgba(25,232,90,0.2)]">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-brand-green/24 bg-brand-green/10 text-brand-green shadow-[0_0_22px_rgba(25,232,90,0.14)] transition-all duration-300 group-hover:border-brand-lime/44 group-hover:bg-brand-lime/12 group-hover:text-brand-lime group-hover:shadow-[0_0_26px_rgba(139,255,51,0.2)]">
                 <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
               </span>
               <div className="min-w-0">
                 <p className="text-[13px] font-semibold leading-5 text-white">
                   {title}
-                </p>
-                <p className="mt-1 text-[11px] leading-4 text-white/58">
-                  {description}
                 </p>
               </div>
             </div>
@@ -307,7 +306,7 @@ type RecoveryStep = "initial" | "validate" | "reset";
 export default function LoginPage() {
   const router = useRouter();
 
-  const [cpf, setCpf] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -327,26 +326,12 @@ export default function LoginPage() {
   // HANDLERS
   // -------------------------------------------------------------
 
-  const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCPF(e.target.value);
-
-    if (formatted.length <= 14) setCpf(formatted);
-  };
-
-  const handleCPFPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const text = e.clipboardData.getData("text");
-    const formatted = formatCPF(text);
-
-    if (formatted.length <= 14) setCpf(formatted);
-  };
-
   const handleLogin = async () => {
     try {
       const userLogged = await fetchBodyJson<ApiResponse<IUserInfo>>(
         "/api/auth",
         "POST",
-        { cpf, password },
+        { email, password },
       );
 
       if (userLogged.data) {
@@ -366,10 +351,8 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const rawCpf = cpf.replace(/\D/g, "");
-
-    if (rawCpf.length !== 11) {
-      setError("CPF inválido. Informe os 11 dígitos.");
+    if (!email.trim() || !email.includes("@")) {
+      setError("Informe um e-mail válido.");
 
       return;
     }
@@ -515,7 +498,7 @@ export default function LoginPage() {
     return {
       title: "Acesse o ambiente Engemedical",
       subtitle:
-        "Entre com seu CPF e senha para consultar rotinas, documentos e atendimentos.",
+        "Entre com seu e-mail e senha para consultar rotinas, documentos e atendimentos.",
     };
   };
 
@@ -588,15 +571,15 @@ export default function LoginPage() {
                 <form className="space-y-6" onSubmit={handleSubmit}>
                   <InputField
                     required
-                    autoComplete="username"
+                    autoComplete="email"
                     disabled={isLoading}
-                    label="CPF"
+                    label="E-mail"
                     name="username"
-                    placeholder="000.000.000-00"
-                    startIcon={<User className="h-4 w-4" />}
-                    value={cpf}
-                    onChange={handleCPFChange}
-                    onPaste={handleCPFPaste}
+                    placeholder="seuemail@empresa.com.br"
+                    startIcon={<Mail className="h-4 w-4" />}
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
 
                   <InputField
@@ -795,7 +778,7 @@ export default function LoginPage() {
                         className="font-semibold text-brand-deep transition-colors hover:text-brand-blue hover:underline"
                         href="/registro"
                       >
-                        Solicitar cadastro
+                        Cadastre-se
                       </a>
                     </p>
                   </div>
