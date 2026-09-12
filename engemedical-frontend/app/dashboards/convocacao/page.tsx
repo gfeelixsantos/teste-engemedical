@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { NEST_URL } from '@/config/constants';
 import { logout } from '@/lib/utils';
 import { HeaderApp } from '@/components/shared/HeaderApp';
@@ -17,11 +17,10 @@ import { ConvocacaoFilters } from './components/ConvocacaoFilters';
 import EngemedicalLoading from '@/components/shared/EngemedicalLoading';
 import type { DashboardData } from './types';
 
-const PAGE_SIZE = 200;
+const PAGE_SIZE = 20;
 
 export default function ConvocacaoPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [filtroEmpresa, setFiltroEmpresa] = useState('');
   const [filtroSituacao, setFiltroSituacao] = useState('');
@@ -63,7 +62,7 @@ export default function ConvocacaoPage() {
     );
   }
 
-  // Filtrar detalhes
+  // Filtrar detalhes client-side
   const detalhesFiltrados = data.detalhes.filter((d) => {
     if (filtroEmpresa && d.nomeEmpresa !== filtroEmpresa) return false;
     if (filtroSituacao && d.situacaoExame !== filtroSituacao) return false;
@@ -71,7 +70,7 @@ export default function ConvocacaoPage() {
     return true;
   });
 
-  // Paginação client-side dos detalhes
+  // Paginação client-side
   const totalPaginas = Math.ceil(detalhesFiltrados.length / PAGE_SIZE);
   const detalhesPagina = detalhesFiltrados.slice(
     (page - 1) * PAGE_SIZE,
@@ -112,12 +111,21 @@ export default function ConvocacaoPage() {
       </HeaderApp>
 
       <div className="flex-1 overflow-auto p-4 md:p-6 space-y-4">
-        {/* ─── Row 1: LineChart (temporal por ano) + KPIs à direita ─── */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {/* ─── KPIs horizontais ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <KpiCards kpis={data.kpis} />
+        </motion.div>
+
+        {/* ─── Row: LineChart + Donut ─── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl border border-gray-200 p-4 lg:col-span-3"
+            transition={{ delay: 0.05 }}
+            className="bg-white rounded-xl border border-gray-200 p-4 lg:col-span-2"
           >
             <h3 className="text-sm font-semibold text-gray-700 mb-3">
               Monitoramento de Vencimentos por Período
@@ -125,18 +133,6 @@ export default function ConvocacaoPage() {
             <TemporalLineChart data={data.porAno} />
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col justify-center"
-          >
-            <KpiCards kpis={data.kpis} />
-          </motion.div>
-        </div>
-
-        {/* ─── Row 2: Donut (situação) + Barras agrupadas (tipo exame) ─── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -148,19 +144,20 @@ export default function ConvocacaoPage() {
             </h3>
             <SituacaoDonut data={data.porSituacao} />
           </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-white rounded-xl border border-gray-200 p-4"
-          >
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">
-              Distribuição de Exames por Situação
-            </h3>
-            <TipoExameBarChart data={data.porTipoExame} />
-          </motion.div>
         </div>
+
+        {/* ─── Row: Barras Tipo Exame ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="bg-white rounded-xl border border-gray-200 p-4"
+        >
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            Distribuição de Exames por Situação
+          </h3>
+          <TipoExameBarChart data={data.porTipoExame} />
+        </motion.div>
 
         {/* ─── Filtros ─── */}
         <motion.div

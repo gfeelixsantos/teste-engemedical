@@ -228,14 +228,17 @@ export class ConvocacaoService {
   ): ConvocacaoExame[] {
     const resultado: ConvocacaoExame[] = [];
 
-    const funcMap = new Map<string, SocFuncionarioContagem>();
-    for (const f of funcionarios) {
-      const key = `${f.CODIGOEMPRESA}|${f.NOMEFUNCIONARIO.trim().toUpperCase()}`;
-      if (!funcMap.has(key)) {
-        funcMap.set(key, f);
+    // Indexar exames por empresa + nome do exame (SOC não traz código func)
+    const examesPorEmpresaExame = new Map<string, SocExameRealizado[]>();
+    for (const exame of exames) {
+      const key = `${exame.EMPRESA}|${exame.NOMEEXAME.trim().toUpperCase()}`;
+      if (!examesPorEmpresaExame.has(key)) {
+        examesPorEmpresaExame.set(key, []);
       }
+      examesPorEmpresaExame.get(key)!.push(exame);
     }
 
+    // Preço por empresa → periodicidade em meses
     const precoPorEmpresa = new Map<string, number>();
     for (const p of precos) {
       if (p.valorVidaMes) {
@@ -244,16 +247,149 @@ export class ConvocacaoService {
       }
     }
 
+    // Indexar unidades por empresa+código
+    const unidadeMap = new Map<string, SocUnidade>();
+    for (const u of unidades) {
+      unidadeMap.set(`${u.CODIGOEMPRESA}|${u.CODIGOUNIDADE}`, u);
+    }
+
     const hoje = new Date();
 
-    for (const exame of exames) {
-      const funcByEmpresa = Array.from(funcMap.values()).find(
-        (f) =>
-          f.CODIGOEMPRESA === exame.EMPRESA ||
-          f.NOMEEMPRESA === exame.NOMEEMPRESA,
-      );
+    // ── ABORDAGEM: iterar por FUNCIONÁRIOS (base primária) ──
+    for (const func of funcionarios) {
+      // Pular funcionários inativos
+      if (func.SITUACAOFUNCIONARIO && func.SITUACAOFUNCIONARIO.toUpperCase() === 'I') continue;
 
-      if (!funcByEmpresa) {
+      const empresaCode = func.CODIGOEMPRESA;
+      const empresaKey = `${empresaCode}|`;
+      const unidade = unidadeMap.get(`${empresaCode}|${func.CODIGOUNIDADE}`);
+
+      // Todos os tipos de exame disponíveis para esta empresa
+      const examesDaEmpresa = new Map<string, SocExameRealizado[]>();
+      for (const [key, lista] of examesPorEmpresaExame) {
+        if (key.startsWith(empresaKey)) {
+          const nomeExame = key.split('|')[1];
+          examesDaEmpresa.set(nomeExame, lista);
+        }
+      }
+
+      // Se não há exames para esta empresa, funcionário fica "Nunca Realizado"
+      if (examesDaEmpresa.size === 0) {
+        resultado.push({
+          codigoEmpresa: empresaCode,
+          nomeEmpresa: func.NOMEEMPRESA,
+          codigoFuncionario: func.CODIGOFUNCIONARIO,
+          nomeFuncionario: func.NOMEFUNCIONARIO,
+          cargo: func.NOMECARGO || '',
+          unidade: unidade?.NOMEUNIDADE || func.NOMEUNIDADE || '',
+          setor: func.NOMESETOR || '',
+          subgrupo: func.NOMESUBGRUPO || '',
+          estado: func.NOMEGRUPO || '',
+          exame: 'Consulta Ocupacional (Admissional)',
+          dataResultado: null,
+          vencimento: null,
+          refazer: null,
+          ultimopedido: null,
+          tipoUltimoExame: 'adm',
+          situacaoExame: 'Nunca Realizado',
+          diasAVencerVencido: '',
+          periodicidade: precoPorEmpresa.get(empresaCode) || 12,
+        });
+        continue;
+      }
+
+      // Para cada tipo de exame disponível na empresa
+      const periodicidade = precoPorEmpresa.get(empresaCode) || 12;
+
+      for (const [nomeExame, listaExames] of examesDaEmpresa) {
+        // Pegar o exame mais recente para este tipo
+        const exameMaisRecente = listaExames.reduce((maisRecente, atual) => {
+          const d1 = this.parseDateBR(maisRecente.DATARESULTADO);
+          const d2 = this.parseDateBR(atual.DATARESULTADO);
+          if (!d1) return atual;
+          if (!d2) return maisRecente;
+          return d2 > d1 ? atual : maisRecente;
+        });
+
+        const dataResultado = this.parseDateBR(exameMaisRecente.DATARESULTADO);
+        const dataExame = this.parseDateBR(exameMaisRecente.DATAEXAME);
+
+        // Calcular vencimento
+        let vencimento: Date | null = null;
+        const baseDate = dataExame || dataResultado;
+        if (baseDate) {
+          vencimento = new Date(baseDate);
+          vencimento.setMonth(vencimento.getMonth() + periodicidade);
+        }
+
+        const situacao = this.calcularSituacao(dataResultado, vencimento, hoje);
+
+        const diasAVencerVencido =
+          situacao === 'A Vencer' && vencimento
+            ? String(
+                Math.max(
+                  0,
+                  Math.ceil(
+                    (vencimento.getTime() - hoje.getTime()) /
+                      (1000 * 60 * 60 * 24),
+                  ),
+                ),
+              )
+            : situacao === 'Vencido' && vencimento
+              ? String(
+                  Math.max(
+                    0,
+                    Math.ceil(
+                      (hoje.getTime() - vencimento.getTime()) /
+                        (1000 * 60 * 60 * 24),
+                    ),
+                  ),
+                )
+              : '';
+
+        resultado.push({
+          codigoEmpresa: empresaCode,
+          nomeEmpresa: func.NOMEEMPRESA,
+          codigoFuncionario: func.CODIGOFUNCIONARIO,
+          nomeFuncionario: func.NOMEFUNCIONARIO,
+          cargo: func.NOMECARGO || '',
+          unidade: unidade?.NOMEUNIDADE || func.NOMEUNIDADE || '',
+          setor: func.NOMESETOR || '',
+          subgrupo: func.NOMESUBGRUPO || '',
+          estado: func.NOMEGRUPO || '',
+          exame: nomeExame,
+          dataResultado,
+          vencimento,
+          refazer: null,
+          ultimopedido: dataExame,
+          tipoUltimoExame: exameMaisRecente.TIPOEXAME,
+          situacaoExame: situacao,
+          diasAVencerVencido,
+          periodicidade,
+        });
+      }
+    }
+
+    // Adicionar exames sem funcionário vinculado (SOC retornou exame sem func)
+    const funcKeys = new Set(
+      funcionarios.map((f) => `${f.CODIGOEMPRESA}|${f.NOMEFUNCIONARIO.trim().toUpperCase()}`),
+    );
+
+    for (const exame of exames) {
+      const funcDaEmpresa = funcionarios.find(
+        (f) => f.CODIGOEMPRESA === exame.EMPRESA,
+      );
+      if (!funcDaEmpresa) {
+        const dataResultado = this.parseDateBR(exame.DATARESULTADO);
+        const dataExame = this.parseDateBR(exame.DATAEXAME);
+        const periodicidade = precoPorEmpresa.get(exame.EMPRESA) || 12;
+        let vencimento: Date | null = null;
+        const baseDate = dataExame || dataResultado;
+        if (baseDate) {
+          vencimento = new Date(baseDate);
+          vencimento.setMonth(vencimento.getMonth() + periodicidade);
+        }
+
         resultado.push({
           codigoEmpresa: exame.EMPRESA,
           nomeEmpresa: exame.NOMEEMPRESA,
@@ -265,88 +401,16 @@ export class ConvocacaoService {
           subgrupo: '',
           estado: '',
           exame: exame.NOMEEXAME,
-          dataResultado: this.parseDateBR(exame.DATARESULTADO),
-          vencimento: null,
+          dataResultado,
+          vencimento,
           refazer: null,
-          ultimopedido: this.parseDateBR(exame.DATAEXAME),
+          ultimopedido: dataExame,
           tipoUltimoExame: exame.TIPOEXAME,
-          situacaoExame: this.calcularSituacao(
-            this.parseDateBR(exame.DATARESULTADO),
-            null,
-            hoje,
-          ),
+          situacaoExame: this.calcularSituacao(dataResultado, vencimento, hoje),
           diasAVencerVencido: '',
-          periodicidade: 0,
+          periodicidade,
         });
-        continue;
       }
-
-      const unidade = unidades.find(
-        (u) =>
-          u.CODIGOEMPRESA === funcByEmpresa.CODIGOEMPRESA &&
-          u.CODIGOUNIDADE === funcByEmpresa.CODIGOUNIDADE,
-      );
-
-      const periodicidade =
-        precoPorEmpresa.get(funcByEmpresa.CODIGOEMPRESA) || 12;
-
-      const dataResultado = this.parseDateBR(exame.DATARESULTADO);
-      const dataExame = this.parseDateBR(exame.DATAEXAME);
-
-      let vencimento: Date | null = null;
-      if (dataExame) {
-        vencimento = new Date(dataExame);
-        vencimento.setMonth(vencimento.getMonth() + periodicidade);
-      } else if (dataResultado) {
-        vencimento = new Date(dataResultado);
-        vencimento.setMonth(vencimento.getMonth() + periodicidade);
-      }
-
-      const situacao = this.calcularSituacao(dataResultado, vencimento, hoje);
-
-      const diasAVencerVencido =
-        situacao === 'A Vencer' && vencimento
-          ? String(
-              Math.max(
-                0,
-                Math.ceil(
-                  (vencimento.getTime() - hoje.getTime()) /
-                    (1000 * 60 * 60 * 24),
-                ),
-              ),
-            )
-          : situacao === 'Vencido' && vencimento
-            ? String(
-                Math.max(
-                  0,
-                  Math.ceil(
-                    (hoje.getTime() - vencimento.getTime()) /
-                      (1000 * 60 * 60 * 24),
-                  ),
-                ),
-              )
-            : '';
-
-      resultado.push({
-        codigoEmpresa: funcByEmpresa.CODIGOEMPRESA,
-        nomeEmpresa: funcByEmpresa.NOMEEMPRESA,
-        codigoFuncionario: funcByEmpresa.CODIGOFUNCIONARIO,
-        nomeFuncionario: funcByEmpresa.NOMEFUNCIONARIO,
-        cargo: funcByEmpresa.NOMECARGO || '',
-        unidade: unidade?.NOMEUNIDADE || funcByEmpresa.NOMEUNIDADE || '',
-        setor: funcByEmpresa.NOMESETOR || '',
-        subgrupo: funcByEmpresa.NOMESUBGRUPO || '',
-        estado: funcByEmpresa.NOMEGRUPO || '',
-        exame: exame.NOMEEXAME,
-        dataResultado,
-        vencimento,
-        refazer: null,
-        ultimopedido: dataExame,
-        tipoUltimoExame: exame.TIPOEXAME,
-        situacaoExame: situacao,
-        diasAVencerVencido,
-        periodicidade,
-      });
     }
 
     return resultado;
