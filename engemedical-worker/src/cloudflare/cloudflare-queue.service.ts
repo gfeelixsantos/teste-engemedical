@@ -54,19 +54,17 @@ export class CloudflareQueueService {
     }
 
     try {
-      const response = await fetch(
-        `${this.baseUrl}/messages/pull?batch_size=${batchSize}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.apiToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            visibility_timeout: 300, // 5 minutos para processar
-          }),
+      const response = await fetch(`${this.baseUrl}/messages/pull`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.apiToken}`,
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({
+          visibility_timeout_ms: 300000, // 5 minutos (300s)
+          batch_size: batchSize,
+        }),
+      });
 
       if (!response.ok) {
         this.logger.error(
@@ -106,94 +104,41 @@ export class CloudflareQueueService {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${this.apiToken}`,
+            'Content-Type': 'application/json',
           },
+          body: JSON.stringify({}),
         },
       );
 
-      if (!response.ok) {
-        this.logger.error(
-          `[CF_QUEUE] Erro ao fazer ack da mensagem ${messageId}: ${response.status}`,
-        );
-        return false;
-      }
-
-      return true;
+      return response.ok;
     } catch (error) {
-      this.logger.error(
-        `[CF_QUEUE] Falha ao fazer ack: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      this.logger.error(`[CF_QUEUE] Falha no ack: ${error}`);
       return false;
     }
   }
 
   /**
-   * Rejeita uma mensagem (nack) - volta para a fila
+   * Marca mensagem para retry
    */
-  async nack(messageId: string): Promise<boolean> {
+  async retry(messageId: string): Promise<boolean> {
     if (!this.isConfigured()) return false;
 
     try {
       const response = await fetch(
-        `${this.baseUrl}/messages/${messageId}/nack`,
+        `${this.baseUrl}/messages/${messageId}/retry`,
         {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${this.apiToken}`,
+            'Content-Type': 'application/json',
           },
+          body: JSON.stringify({}),
         },
       );
 
-      if (!response.ok) {
-        this.logger.error(
-          `[CF_QUEUE] Erro ao fazer nack da mensagem ${messageId}: ${response.status}`,
-        );
-        return false;
-      }
-
-      return true;
+      return response.ok;
     } catch (error) {
-      this.logger.error(
-        `[CF_QUEUE] Falha ao fazer nack: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      return false;
-    }
-  }
-
-  /**
-   * Envia mensagem para a fila (usado pelo backend)
-   * Este método é opcional - o backend já tem sua própria implementação
-   */
-  async send(payload: SendEmailPayload): Promise<boolean> {
-    if (!this.isConfigured()) {
-      this.logger.warn('[CF_QUEUE] Serviço não configurado - envio ignorado');
-      return false;
-    }
-
-    try {
-      const response = await fetch(`${this.baseUrl}/messages`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.apiToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          body: JSON.stringify(payload),
-        }),
-      });
-
-      if (!response.ok) {
-        this.logger.error(
-          `[CF_QUEUE] Erro ao enviar mensagem: ${response.status} ${response.statusText}`,
-        );
-        return false;
-      }
-
-      this.logger.log('[CF_QUEUE] Mensagem enviada para a fila com sucesso');
-      return true;
-    } catch (error) {
-      this.logger.error(
-        `[CF_QUEUE] Falha ao enviar mensagem: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      this.logger.error(`[CF_QUEUE] Falha no retry: ${error}`);
       return false;
     }
   }
