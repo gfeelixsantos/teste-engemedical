@@ -212,12 +212,15 @@ export class ConvocacaoService {
   ): SituacaoExame {
     if (!dataResultado) return 'Sem Data de Resultado';
     if (!vencimento) return 'Nunca Realizado';
-    if (vencimento > hoje) return 'A Vencer';
+
     const diffDias = Math.floor(
-      (hoje.getTime() - vencimento.getTime()) / (1000 * 60 * 60 * 24),
+      (vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24),
     );
-    if (diffDias <= 30) return 'Vencido';
-    return 'Nunca Realizado';
+
+    if (diffDias > 30) return 'Em Dia';        // Válido, longe do vencimento
+    if (diffDias > 0) return 'A Vencer';       // Vence em até 30 dias
+    if (diffDias >= -30) return 'Vencido';     // Venceu há até 30 dias
+    return 'Nunca Realizado';                   // Venceu há mais de 30 dias
   }
 
   private parseDateBR(dateStr: string | null): Date | null {
