@@ -52,6 +52,8 @@ export type FuncionarioModelo2HierarchyUpdate = {
   atualizarSetor?: boolean;
   atualizarUnidade?: boolean;
   criarHistorico?: boolean;
+  criarSetor?: boolean;
+  criarCargo?: boolean;
   unidade?: FuncionarioModelo2HierarchyReference;
   setor?: FuncionarioModelo2HierarchyReference;
   cargo?: FuncionarioModelo2HierarchyReference;
@@ -177,12 +179,12 @@ export async function WsFuncionarioModelo2(
             <atualizarUnidade>${bool(hierarchyUpdate.atualizarUnidade)}</atualizarUnidade>
             ${hierarchyBlock('cargoWsVo', hierarchyUpdate.cargo)}
             ${hierarchyBlock('centroCustoWsVo', hierarchyUpdate.centroCusto)}
-            <criarCargo>false</criarCargo>
+            <criarCargo>${bool(hierarchyUpdate.criarCargo)}</criarCargo>
             <criarCentroCusto>false</criarCentroCusto>
             <criarFuncionario>true</criarFuncionario>
             <criarHistorico>${bool(hierarchyUpdate.criarHistorico)}</criarHistorico>
             <criarMotivoLicenca>false</criarMotivoLicenca>
-            <criarSetor>false</criarSetor>
+            <criarSetor>${bool(hierarchyUpdate.criarSetor)}</criarSetor>
             <criarTurno>false</criarTurno>
             <criarUnidade>false</criarUnidade>
             <criarUnidadeContratante>false</criarUnidadeContratante>

@@ -1,9 +1,6 @@
-import { Inject, Injectable, Optional } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { CadastroFuncionarioPorSituacao } from 'src/soc/types/CadastroFuncionarioPorSituacao';
-import {
-  FuncionarioModelo2HierarchyUpdate,
-  WsFuncionarioModelo2,
-} from 'src/soc/webservice/funcionario/WsFuncionarioModelo2';
+import { WsFuncionarioModelo2 } from 'src/soc/webservice/funcionario/WsFuncionarioModelo2';
 import type { GrupoToraSocPayload } from './sftp-soc-payload.mapper';
 import { SftpSocEmployeeLookupService } from './sftp-soc-employee-lookup.service';
 
@@ -13,7 +10,6 @@ export type FuncionarioModelo2Caller = (
     lookupKey: 'CPF';
     overwriteSituacao: string;
     auditObservation: string;
-    hierarchyUpdate?: FuncionarioModelo2HierarchyUpdate;
   },
 ) => Promise<{
   status: number;
@@ -40,14 +36,19 @@ export type SftpSocProcessRowResult = {
   cpf: string;
   maskedCpf: string;
   nomeFuncionario: string;
+  nomeSetor: string;
+  nomeCargo: string;
   matriculaRh: string;
   codigoFuncionario?: string;
   codigoEmpresaSoc?: string;
   lookupKey: 'CPF';
   situationToSend: string;
   success: boolean;
+  notInBase?: boolean;
   httpStatus?: number;
   error?: string;
+  xml?: string;
+  responseText?: string;
 };
 
 function defaultDelay(ms: number) {
@@ -60,75 +61,10 @@ function maskCpf(value: string): string {
   return `${'*'.repeat(cpf.length - 4)}${cpf.slice(-4)}`;
 }
 
-function valueOrUndefined(value: string | undefined): string | undefined {
-  const normalized = String(value || '').trim();
-  return normalized || undefined;
-}
-
-function overlaySpreadsheetEmployee(
-  socEmployee: CadastroFuncionarioPorSituacao,
-  spreadsheetEmployee: CadastroFuncionarioPorSituacao,
-): CadastroFuncionarioPorSituacao {
-  return {
-    ...socEmployee,
-    NOME: spreadsheetEmployee.NOME || socEmployee.NOME,
-    CODIGOUNIDADE:
-      spreadsheetEmployee.CODIGOUNIDADE || socEmployee.CODIGOUNIDADE,
-    NOMEUNIDADE: spreadsheetEmployee.NOMEUNIDADE || socEmployee.NOMEUNIDADE,
-    CODIGOSETOR: spreadsheetEmployee.CODIGOSETOR || socEmployee.CODIGOSETOR,
-    NOMESETOR: spreadsheetEmployee.NOMESETOR || socEmployee.NOMESETOR,
-    CODIGOCARGO: spreadsheetEmployee.CODIGOCARGO || socEmployee.CODIGOCARGO,
-    NOMECARGO: spreadsheetEmployee.NOMECARGO || socEmployee.NOMECARGO,
-    CBOCARGO: spreadsheetEmployee.CBOCARGO || socEmployee.CBOCARGO,
-    CCUSTO: spreadsheetEmployee.CCUSTO || socEmployee.CCUSTO,
-    MATRICULAFUNCIONARIO:
-      spreadsheetEmployee.MATRICULAFUNCIONARIO ||
-      socEmployee.MATRICULAFUNCIONARIO,
-    MATRICULARH: spreadsheetEmployee.MATRICULARH || socEmployee.MATRICULARH,
-    SITUACAO: spreadsheetEmployee.SITUACAO || socEmployee.SITUACAO,
-    RHUNIDADE: spreadsheetEmployee.RHUNIDADE || socEmployee.RHUNIDADE,
-    RHSETOR: spreadsheetEmployee.RHSETOR || socEmployee.RHSETOR,
-    RHCARGO: spreadsheetEmployee.RHCARGO || socEmployee.RHCARGO,
-    RHCCENTROCUSTOUNIDADE:
-      spreadsheetEmployee.RHCCENTROCUSTOUNIDADE ||
-      socEmployee.RHCCENTROCUSTOUNIDADE,
-  };
-}
-
-function buildHierarchyUpdate(
-  employee: CadastroFuncionarioPorSituacao,
-): FuncionarioModelo2HierarchyUpdate {
-  return {
-    atualizarCargo: true,
-    atualizarCentroCusto: true,
-    atualizarFuncionario: true,
-    atualizarSetor: true,
-    atualizarUnidade: true,
-    criarHistorico: true,
-    unidade: {
-      tipoBusca: 'CODIGO_RH',
-      codigoRh: valueOrUndefined(employee.RHUNIDADE || employee.CODIGOUNIDADE),
-    },
-    setor: {
-      tipoBusca: 'CODIGO_RH',
-      codigoRh: valueOrUndefined(employee.RHSETOR || employee.CODIGOSETOR),
-    },
-    cargo: {
-      tipoBusca: 'CODIGO_RH',
-      codigoRh: valueOrUndefined(employee.RHCARGO || employee.CODIGOCARGO),
-      cbo: valueOrUndefined(employee.CBOCARGO),
-    },
-    centroCusto: {
-      tipoBusca: 'CODIGO_RH',
-      codigoRh: valueOrUndefined(
-        employee.RHCCENTROCUSTOUNIDADE || employee.CCUSTO,
-      ),
-    },
-  };
-}
-
 @Injectable()
 export class SftpSocProcessor {
+  private readonly logger = new Logger(SftpSocProcessor.name);
+
   constructor(
     @Optional()
     @Inject('SFTP_SOC_FUNCIONARIO_MODELO2')
@@ -147,6 +83,10 @@ export class SftpSocProcessor {
     const selected = payloads.slice(0, safeLimit);
     const rows: SftpSocProcessRowResult[] = [];
 
+    this.logger.log(
+      `[SOC_PROCESSOR] Iniciando processamento de ${selected.length} funcionarios (limite: ${safeLimit})`,
+    );
+
     for (let index = 0; index < selected.length; index++) {
       const payload = selected[index];
       try {
@@ -160,36 +100,36 @@ export class SftpSocProcessor {
             cpf: payload.employee.CPF,
             maskedCpf: maskCpf(payload.employee.CPF),
             nomeFuncionario: payload.employee.NOME,
+            nomeSetor: payload.employee.NOMESETOR || '',
+            nomeCargo: payload.employee.NOMECARGO || '',
             matriculaRh: payload.employee.MATRICULARH,
             lookupKey: payload.lookupKey,
             situationToSend: payload.situationToSend,
             success: false,
+            notInBase: true,
             error: 'Cadastro SOC nao encontrado para o CPF',
           });
           continue;
         }
 
         for (const lookup of lookupResults) {
-          const employeeToSend = overlaySpreadsheetEmployee(
-            lookup.employee,
-            payload.employee,
-          );
-          const response = await this.callFuncionarioModelo2(employeeToSend, {
+          const response = await this.callFuncionarioModelo2(lookup.employee, {
             lookupKey: payload.lookupKey,
             overwriteSituacao: payload.situationToSend,
             auditObservation: `Integrado Engemedical Connect em ${new Date().toLocaleString('pt-BR')}`,
-            hierarchyUpdate: buildHierarchyUpdate(employeeToSend),
           });
           const functionalSuccess =
             response.data?.success !== false && !response.data?.encontrouErro;
           rows.push({
             rowNumber: payload.rowNumber,
-            cpf: employeeToSend.CPF,
-            maskedCpf: maskCpf(employeeToSend.CPF),
-            nomeFuncionario: employeeToSend.NOME,
-            matriculaRh: employeeToSend.MATRICULARH,
-            codigoFuncionario: employeeToSend.CODIGO,
-            codigoEmpresaSoc: employeeToSend.CODIGOEMPRESA,
+            cpf: lookup.employee.CPF,
+            maskedCpf: maskCpf(lookup.employee.CPF),
+            nomeFuncionario: lookup.employee.NOME,
+            nomeSetor: payload.employee.NOMESETOR || '',
+            nomeCargo: payload.employee.NOMECARGO || '',
+            matriculaRh: lookup.employee.MATRICULARH,
+            codigoFuncionario: lookup.employee.CODIGO,
+            codigoEmpresaSoc: lookup.employee.CODIGOEMPRESA,
             lookupKey: payload.lookupKey,
             situationToSend: payload.situationToSend,
             success: functionalSuccess,
@@ -199,6 +139,8 @@ export class SftpSocProcessor {
               : response.data?.descricaoErro ||
                 response.data?.error ||
                 'Erro funcional retornado pelo SOC',
+            xml: response.xml,
+            responseText: response.responseText,
           });
         }
       } catch (error) {
@@ -207,6 +149,8 @@ export class SftpSocProcessor {
           cpf: payload.employee.CPF,
           maskedCpf: maskCpf(payload.employee.CPF),
           nomeFuncionario: payload.employee.NOME,
+          nomeSetor: payload.employee.NOMESETOR || '',
+          nomeCargo: payload.employee.NOMECARGO || '',
           matriculaRh: payload.employee.MATRICULARH,
           lookupKey: payload.lookupKey,
           situationToSend: payload.situationToSend,
@@ -215,17 +159,41 @@ export class SftpSocProcessor {
         });
       }
 
-      if (options.delayMs > 0 && index < selected.length - 1) {
-        await this.delay(options.delayMs);
+      // Log progresso a cada 10 registros
+      if ((index + 1) % 10 === 0 || index === selected.length - 1) {
+        const success = rows.filter((r) => r.success).length;
+        const failed = rows.filter((r) => !r.success && !r.notInBase).length;
+        const notInBase = rows.filter((r) => r.notInBase).length;
+        this.logger.log(
+          `[SOC_PROCESSOR] Progresso: ${index + 1}/${selected.length} ` +
+          `(sucesso: ${success}, falhas: ${failed}, naoBase: ${notInBase})`,
+        );
+      }
+
+      // Delay randômico entre chamadas
+      const delayMs = Math.floor(Math.random() * 700) + 100;
+      if (index < selected.length - 1) {
+        await this.delay(delayMs);
       }
     }
+
+    const success = rows.filter((r) => r.success).length;
+    const failed = rows.filter((r) => !r.success && !r.notInBase).length;
+    const notInBase = rows.filter((r) => r.notInBase).length;
+
+    this.logger.log(
+      `[SOC_PROCESSOR] Processamento concluido: ${selected.length} processados | ` +
+      `sucesso: ${success} | falhas: ${failed} | naoBase: ${notInBase}`,
+    );
 
     return {
       rows,
       summary: {
+        totalRows: payloads.length,
         totalSelected: selected.length,
-        success: rows.filter((row) => row.success).length,
-        failed: rows.filter((row) => !row.success).length,
+        success,
+        failed,
+        notInBase,
         skippedByLimit: Math.max(payloads.length - selected.length, 0),
         delayMs: options.delayMs,
       },

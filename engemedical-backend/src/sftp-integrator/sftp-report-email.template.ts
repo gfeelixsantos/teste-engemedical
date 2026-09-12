@@ -69,15 +69,22 @@ export function buildSftpDryRunReportEmail(run: SftpReportEmailRun): string {
 
 export function buildSftpSocReportEmail(run: SftpReportEmailRun): string {
   const failedRows = (run.soapPreview || []).filter(
-    (item: any) => !item.success,
+    (item: any) => !item.success && !item.notInBase,
   );
-  const soapRows = limitRows(failedRows).map((item: any) => [
+  const notInBaseRows = (run.soapPreview || []).filter(
+    (item: any) => item.notInBase,
+  );
+  const successRows = (run.soapPreview || []).filter(
+    (item: any) => item.success,
+  );
+  // Corpo do email: apenas falhas reais (nao "fora da base")
+  const failOnlyRows = limitRows(failedRows).map((item: any) => [
     item.rowNumber,
+    item.nomeFuncionario || '',
     item.maskedCpf,
-    item.codigoEmpresaSoc || item.codigoEmpresa,
-    item.codigoFuncionario,
+    item.nomeSetor || '',
+    item.nomeCargo || '',
     item.situationToSend,
-    'Falha',
     item.error || item.httpStatus || '',
   ]);
   const hasFailures = Number(run.summary.failed || 0) > 0;
@@ -86,30 +93,31 @@ export function buildSftpSocReportEmail(run: SftpReportEmailRun): string {
     title: 'Relatorio de Processamento SOC',
     eyebrow: clientLabel(run.clientKey),
     subtitle:
-      'Resumo da rotina de atualizacao de funcionarios via SOAP Funcionario Modelo 2.',
+      'Resumo da rotina de atualizacao de funcionarios.',
     run,
     statusTone: hasFailures ? 'danger' : 'success',
     cards: [
       card('Selecionados', run.summary.totalSelected),
       card('Sucesso', run.summary.success, 'success'),
+      card('Nao existem na base', run.summary.notInBase || 0, 'info'),
       card('Falhas', run.summary.failed, hasFailures ? 'danger' : 'success'),
       card('Delay aplicado', `${run.summary.delayMs || 0} ms`, 'info'),
     ],
     sections: [
       tableSection(
-        'Retorno por funcionario',
+        'Funcionarios com falha',
         [
           'Linha',
+          'Nome',
           'CPF',
-          'Empresa SOC',
-          'Funcionario SOC',
+          'Setor',
+          'Cargo',
           'Situacao',
-          'Status',
-          'Retorno',
+          'Erro',
         ],
-        soapRows,
+        failOnlyRows,
         {
-          emptyText: 'Nenhuma falha retornada pelo SOC nesta execucao.',
+          emptyText: 'Nenhuma falha registrada nesta execucao. Consulte o anexo Excel para o detalhamento completo.',
           footerText: previewFooter(failedRows),
         },
       ),

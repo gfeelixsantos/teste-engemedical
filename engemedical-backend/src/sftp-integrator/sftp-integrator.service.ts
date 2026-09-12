@@ -2,14 +2,15 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleInit,
   Optional,
 } from '@nestjs/common';
 import { Collection, ObjectId } from 'mongodb';
 import * as path from 'path';
+import * as fs from 'fs/promises';
 import { MongoService } from 'src/mongo/mongo.service';
-import { EmailService } from 'src/nodemailer/nodemailer.service';
 import {
   getSftpIntegratorConfig,
   normalizeSftpIntegratorClientKey,
@@ -28,6 +29,32 @@ import {
   buildSftpDryRunReportEmail,
   buildSftpSocReportEmail,
 } from './sftp-report-email.template';
+import { generateSocReportExcel } from './sftp-report-excel.generator';
+import { CloudflareR2Service } from './sftp-r2-storage.service';
+
+// ─── Nodemailer direto (bypass Azure Queue) ───
+let nodemailerTransporter: any = null;
+async function getNodemailerTransporter() {
+  if (nodemailerTransporter) return nodemailerTransporter;
+  try {
+    const nodemailer = await import('nodemailer');
+    const smtpHost = process.env.SMTP_HOST || 'smtp.titan.email';
+    const smtpPort = Number(process.env.SMTP_PORT || 465);
+    const smtpSecure = process.env.SMTP_SECURE !== 'false';
+    nodemailerTransporter = nodemailer.default.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
+      auth: {
+        user: process.env.SMTP_USER || '',
+        pass: process.env.SMTP_PASS || '',
+      },
+    });
+    return nodemailerTransporter;
+  } catch (err) {
+    return null;
+  }
+}
 
 function wildcardToRegExp(pattern: string): RegExp {
   const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
@@ -36,6 +63,7 @@ function wildcardToRegExp(pattern: string): RegExp {
 
 @Injectable()
 export class SftpIntegratorService implements OnModuleInit {
+  private readonly logger = new Logger(SftpIntegratorService.name);
   private readonly collectionName = 'sftp_integrator_files';
 
   constructor(
@@ -44,7 +72,6 @@ export class SftpIntegratorService implements OnModuleInit {
     private readonly sftpClient: SftpClientAdapter,
     private readonly fs: SftpIntegratorFs,
     private readonly spreadsheetParser: SftpSpreadsheetParser,
-    private readonly emailService: EmailService,
     private readonly socProcessor: SftpSocProcessor,
     @Optional()
     @Inject('SFTP_INTEGRATOR_BACKEND_ROOT')
@@ -52,14 +79,39 @@ export class SftpIntegratorService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.collection().createIndex(
-      { clientKey: 1, remotePath: 1, size: 1 },
-      { unique: true, name: 'sftp_file_identity' },
-    );
-    await this.collection().createIndex(
-      { clientKey: 1, createdAt: -1 },
-      { name: 'sftp_file_client_created_at' },
-    );
+    // Aguarda MongoDB estar pronto (guard contra race condition)
+    if (!this.mongoService?.db) {
+      this.logger.warn('[SFTP] MongoDB nao disponivel durante onModuleInit - criando indices depois');
+      return;
+    }
+    try {
+      await this.collection().createIndex(
+        { clientKey: 1, remotePath: 1, size: 1 },
+        { unique: true, name: 'sftp_file_identity' },
+      );
+      await this.collection().createIndex(
+        { clientKey: 1, createdAt: -1 },
+        { name: 'sftp_file_client_created_at' },
+      );
+    } catch (err) {
+      this.logger.warn(`[SFTP] Erro ao criar indices MongoDB: ${err}`);
+    }
+    // Inicializar R2 (injected via module)
+    this.logger.log('[SFTP] Servico inicializado com suporte a Cloudflare R2');
+  }
+
+  // ─── Inject Cloudflare R2 (lazy para evitar circular) ───
+  private _r2: CloudflareR2Service | null = null;
+  private get r2(): CloudflareR2Service | null {
+    if (this._r2) return this._r2;
+    // Tenta resolver do container NestJS
+    try {
+      const moduleRef = (this as any).__module_ref__;
+      if (moduleRef) {
+        this._r2 = moduleRef.get(CloudflareR2Service, { strict: false });
+      }
+    } catch { /* R2 não injetado */ }
+    return this._r2;
   }
 
   async pullLatest(clientKey: string): Promise<SftpPullResult> {
@@ -94,6 +146,7 @@ export class SftpIntegratorService implements OnModuleInit {
       };
     }
 
+    // 1. Download do SFTP para disco local
     const localDir = path.resolve(this.backendRoot, config.downloadDir);
     const localPath = path.resolve(localDir, latest.name);
     await this.fs.mkdir(localDir);
@@ -112,6 +165,20 @@ export class SftpIntegratorService implements OnModuleInit {
       createdAt: now,
       updatedAt: now,
     };
+
+    // 2. Upload para Cloudflare R2 (backup)
+    try {
+      const r2Service = this.r2;
+      if (r2Service) {
+        const fileBuffer = await fs.readFile(localPath);
+        const r2Key = `sftp-integrator/${clientKey}/${latest.name}`;
+        await r2Service.upload(r2Key, fileBuffer, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        this.logger.log(`[R2] Arquivo salvo: ${r2Key}`);
+      }
+    } catch (err) {
+      this.logger.warn(`[R2] Upload falhou (arquivo mantido local): ${err}`);
+    }
+
     const inserted = await this.collection().insertOne(record);
     return {
       clientKey: config.clientKey,
@@ -251,7 +318,7 @@ export class SftpIntegratorService implements OnModuleInit {
       },
     };
 
-    await this.sendDryRunReport(result);
+    await this.sendReportDirect(result, 'dry_run');
     return result;
   }
 
@@ -316,7 +383,7 @@ export class SftpIntegratorService implements OnModuleInit {
       },
     };
 
-    await this.sendSocReport(result);
+    await this.sendReportDirect(result, 'soc_limited');
     return result;
   }
 
@@ -334,6 +401,91 @@ export class SftpIntegratorService implements OnModuleInit {
     }
     return resolved;
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  ENVIO DE EMAIL DIRETO VIA NODEMAILER (BYPASS AZURE QUEUE)
+  // ═══════════════════════════════════════════════════════════════
+
+  private async sendReportDirect(
+    run: {
+      clientKey: string;
+      summary: any;
+      invalidRowsPreview: unknown[];
+      soapPreview?: unknown[];
+      file: { remoteName: string; sha256: string; size: number };
+    },
+    mode: 'dry_run' | 'soc_limited',
+  ) {
+    const recipients = parseEmailList(
+      process.env.SFTP_INTEGRATOR_GRUPO_TORA_REPORT_EMAIL_TO,
+    );
+    if (!recipients.length) {
+      this.logger.debug('[EMAIL] Nenhum destinatario configurado para relatorio SFTP');
+      return;
+    }
+
+    const subject = mode === 'dry_run'
+      ? `[DRY-RUN] Relatorio SFTP Grupo Tora - ${run.file.remoteName}`
+      : `[SOC] Relatorio Execucao SFTP Grupo Tora - ${run.file.remoteName}`;
+
+    const html = mode === 'dry_run'
+      ? buildSftpDryRunReportEmail(run)
+      : buildSftpSocReportEmail(run);
+
+    // Gerar Excel para modo SOC
+    let excelBuffer: Buffer | undefined;
+    let excelFileName: string | undefined;
+    if (mode === 'soc_limited' && run.soapPreview?.length) {
+      try {
+        const baseName = run.file.remoteName.replace(/\.[^.]+$/, '');
+        excelFileName = `Relatorio_SOC_${baseName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        excelBuffer = await generateSocReportExcel(
+          run.soapPreview as any,
+          run.summary,
+          excelFileName,
+        );
+        this.logger.log(`[EMAIL] Excel gerado: ${excelFileName} (${excelBuffer.length} bytes)`);
+      } catch (err) {
+        this.logger.warn(`[EMAIL] Falha ao gerar Excel: ${err}`);
+      }
+    }
+
+    // Tentar Nodemailer direto (bypass Azure Queue)
+    try {
+      const transporter = await getNodemailerTransporter();
+      if (transporter) {
+        const mailOptions: any = {
+          from: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@engemedical.com.br',
+          to: recipients.join(', '),
+          subject,
+          html,
+        };
+        if (excelBuffer && excelFileName) {
+          mailOptions.attachments = [{
+            filename: excelFileName,
+            content: excelBuffer,
+            contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          }];
+        }
+        await transporter.sendMail(mailOptions);
+        this.logger.log(`[EMAIL] Relatorio enviado diretamente via SMTP para ${recipients.length} destinatarios${excelBuffer ? ' (com anexo Excel)' : ''}`);
+        return;
+      }
+    } catch (err) {
+      this.logger.warn(`[EMAIL] Falha SMTP direto: ${err}. Relatorio salvo no MongoDB.`);
+    }
+
+    // Fallback: salvar relatorio no MongoDB para envio manual posterior
+    try {
+      await this.runsCollection().updateOne(
+        { _id: (run as any)._id },
+        { $set: { emailPending: true, emailRecipients: recipients, emailSubject: subject } },
+      );
+      this.logger.log(`[EMAIL] Relatorio marcado como pendente no MongoDB`);
+    } catch { /* ignore */ }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
 
   private collection(): Collection {
     return this.mongoService.db.collection(this.collectionName);
@@ -361,52 +513,6 @@ export class SftpIntegratorService implements OnModuleInit {
       file.localPath,
     );
     return { normalizedClientKey, fileId, file, resolvedPath };
-  }
-
-  private async sendDryRunReport(run: {
-    clientKey: string;
-    summary: any;
-    invalidRowsPreview: unknown[];
-    soapPreview?: unknown[];
-    file: { remoteName: string; sha256: string; size: number };
-  }) {
-    const recipients = parseEmailList(
-      process.env.SFTP_INTEGRATOR_GRUPO_TORA_REPORT_EMAIL_TO,
-    );
-    if (!recipients.length) {
-      return;
-    }
-
-    await this.emailService.sendEmail({
-      to: recipients,
-      subject: `Dry-run SFTP Grupo Tora - ${run.file.remoteName}`,
-      templatename: 'CUSTOM_REPORT',
-      attachment: [],
-      template: buildSftpDryRunReportEmail(run),
-    });
-  }
-
-  private async sendSocReport(run: {
-    clientKey: string;
-    summary: any;
-    invalidRowsPreview: unknown[];
-    soapPreview?: unknown[];
-    file: { remoteName: string; sha256: string; size: number };
-  }) {
-    const recipients = parseEmailList(
-      process.env.SFTP_INTEGRATOR_GRUPO_TORA_REPORT_EMAIL_TO,
-    );
-    if (!recipients.length) {
-      return;
-    }
-
-    await this.emailService.sendEmail({
-      to: recipients,
-      subject: `Execução SOC SFTP Grupo Tora - ${run.file.remoteName}`,
-      templatename: 'CUSTOM_REPORT',
-      attachment: [],
-      template: buildSftpSocReportEmail(run),
-    });
   }
 }
 

@@ -60,6 +60,24 @@ export class SocController {
     }
   }
 
+  @Get('hierarquia/exporta-dados')
+  async getExportaDados() {
+    const { SocExportaDadosService } = require('./soc-exporta-dados.service');
+    const exportaDadosService = new SocExportaDadosService();
+    try {
+      const hierarchy = await exportaDadosService.getGrupoToraHierarchyFromEnv();
+      return hierarchy;
+    } catch (err) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: 'Falha ao exportar dados do SOC: ' + err.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('empresas/:codigo')
   async getCompanyByCode(@Param('codigo') codigo: string) {
@@ -378,5 +396,129 @@ export class SocController {
 
     // Retorna { success, data, resumo } para que o Frontend mostre o que aconteceu no alert
     return result;
+  }
+
+  // ─── ENDPOINT DE TESTE: Inativação em massa (dry-run ou produção) ───
+  @Post('inactivation/test')
+  async testInactivation(
+    @Body() body: { dryRun?: boolean; companyCode?: string },
+  ) {
+    const dryRun = body.dryRun !== false; // default: true (seguro)
+    const startTime = new Date();
+
+    this.logger.log({
+      event: 'SOC_INACTIVATION_TEST_START',
+      dryRun,
+      companyCode: body.companyCode || 'ALL',
+    });
+
+    try {
+      // 1. Empresas alvo
+      const companies = await this.socService.getCompaniesRegister();
+      const targetCompanies = body.companyCode
+        ? companies.filter((c) => c.CODIGO === body.companyCode)
+        : companies.filter((c) => {
+            const nome = String(c.NOMEABREVIADO || c.RAZAOSOCIAL || '');
+            return !nome.toUpperCase().includes('VIDA');
+          });
+
+      // 2. FASE 2: Verificar elegibilidade via Preço 218761
+      const exportService = (this.socService as any).socExportService;
+      const eligible: any[] = [];
+      const ineligible: any[] = [];
+      const companiesWithSOC: string[] = [];
+
+      // Limitar a 5 empresas para teste (evitar timeout)
+      const testCompanies = targetCompanies.slice(0, 5);
+
+      for (const company of testCompanies) {
+        const codigo = String(company.CODIGO);
+        const nome = company.NOMEABREVIADO || company.RAZAOSOCIAL || 'Desconhecida';
+
+        try {
+          if (typeof exportService?.fetchPrecosEmpresa === 'function') {
+            const priceCheck = await exportService.fetchPrecosEmpresa(codigo);
+            if (!priceCheck.isElegivel) {
+              ineligible.push({
+                codigo,
+                nome,
+                motivo: priceCheck.motivo || 'Protegido (Vida Ativa/eSocial)',
+              });
+              continue;
+            }
+          }
+          // Se não tem 218761, assume elegível
+          eligible.push({ codigo, nome });
+          companiesWithSOC.push(codigo);
+        } catch (err) {
+          eligible.push({ codigo, nome, aviso: 'Erro ao consultar preço' });
+          companiesWithSOC.push(codigo);
+        }
+      }
+
+      // 3. Buscar funcionários das empresas elegíveis
+      const employeesResult: any[] = [];
+      if (!dryRun && companiesWithSOC.length > 0) {
+        const employeeData = await exportService.fetchEmployees();
+        for (const emp of employeeData) {
+          if (companiesWithSOC.includes(String(emp.empresa))) {
+            employeesResult.push(emp);
+          }
+        }
+      }
+
+      // 4. Executar SOAP se não for dry-run
+      let soapResults: any[] = [];
+      if (!dryRun && employeesResult.length > 0) {
+        soapResults = await this.socService.executeInactivationSoap(
+          employeesResult,
+        );
+      }
+
+      const endTime = new Date();
+      const elapsed = Math.round(
+        (endTime.getTime() - startTime.getTime()) / 1000,
+      );
+
+      const result = {
+        dryRun,
+        tempoExecucao: `${elapsed}s`,
+        empresas: {
+          totalAlvo: targetCompanies.length,
+          analisadas: testCompanies.length,
+          elegiveis: eligible.length,
+          inelegiveis: ineligible.length,
+        },
+        funcionarios: {
+          total: employeesResult.length,
+          inativados: soapResults.filter((r) => r.success).length,
+          erros: soapResults.filter((r) => !r.success).length,
+        },
+        detalhes: {
+          empresasElegiveis: eligible,
+          empresasInelegiveis: ineligible,
+          SOAP: dryRun ? 'SIMULADO (nenhum chamado)' : soapResults.slice(0, 20),
+        },
+      };
+
+      this.logger.log({
+        event: 'SOC_INACTIVATION_TEST_COMPLETE',
+        dryRun,
+        elapsed: `${elapsed}s`,
+        eligible: eligible.length,
+        ineligible: ineligible.length,
+      });
+
+      return result;
+    } catch (error) {
+      this.logger.error({
+        event: 'SOC_INACTIVATION_TEST_ERROR',
+        message: error.message,
+      });
+      throw new HttpException(
+        `Erro no teste de inativação: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
