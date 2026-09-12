@@ -86,52 +86,59 @@ export class ConvocacaoService {
   }
 
   /**
-   * Busca exames realizados — período amplo (últimos 5 anos) para
-   * popular o gráfico temporal do Smartrics.
+   * Busca exames realizados — últimos 6 meses mês a mês (SOC limita ~30 dias).
    */
   async fetchExamesRealizados(): Promise<SocExameRealizado[]> {
-    const hoje = new Date();
-    const dia = String(hoje.getDate()).padStart(2, '0');
-    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-    const ano = hoje.getFullYear();
-    const dataFim = `${dia}/${mes}/${ano}`;
-
-    // SOC limita periodo a ~30 dias — buscar ultimo mes
-    const mesInicio = new Date(hoje);
-    mesInicio.setMonth(hoje.getMonth() - 1);
-    const diaInicio = String(mesInicio.getDate()).padStart(2, '0');
-    const mesInicioNum = String(mesInicio.getMonth() + 1).padStart(2, '0');
-    const anoInicio = mesInicio.getFullYear();
-    const dataInicio = `${diaInicio}/${mesInicioNum}/${anoInicio}`;
-
     const credentials = getSocExportCredentials(
       'SOC_ED_EXAMES_REALIZADOS',
       this.configService,
     );
 
-    const url = buildSocExportDataUrl(
-      { ...credentials, tipoSaida: 'json', dataInicio, dataFim },
-      this.configService,
-    );
+    const todosExames: SocExameRealizado[] = [];
+    const hoje = new Date();
 
-    try {
-      this.logger.debug(`Buscando exames realizados (${dataInicio} a ${dataFim})`);
-      const response = await fetch(url, {
-        signal: AbortSignal.timeout(60000),
-      });
-      if (!response.ok) {
-        this.logger.error(`Falha exames: ${response.status}`);
-        return [];
+    for (let i = 0; i < 6; i++) {
+      const dt = new Date(hoje);
+      dt.setMonth(hoje.getMonth() - i);
+      const mes = String(dt.getMonth() + 1).padStart(2, '0');
+      const ano = String(dt.getFullYear());
+      const ultimoDia = new Date(dt.getFullYear(), dt.getMonth() + 1, 0).getDate();
+
+      const url = buildSocExportDataUrl(
+        {
+          ...credentials,
+          tipoSaida: 'json',
+          dataInicio: `01/${mes}/${ano}`,
+          dataFim: `${String(ultimoDia).padStart(2, '0')}/${mes}/${ano}`,
+        },
+        this.configService,
+      );
+
+      try {
+        const response = await fetch(url, {
+          signal: AbortSignal.timeout(60000),
+        });
+        if (!response.ok) continue;
+
+        const buffer = await response.arrayBuffer();
+        const decoded = new TextDecoder('iso-8859-1').decode(buffer);
+        const data = safeParseSocJson<SocExameRealizado>(decoded, 'exames', this.logger);
+
+        for (const e of data) {
+          const key = `${e.EMPRESA}|${e.NOMEEXAME}|${e.DATARESULTADO}|${e.TIPOEXAME}`;
+          if (!todosExames.some(
+            (x) => `${x.EMPRESA}|${x.NOMEEXAME}|${x.DATARESULTADO}|${x.TIPOEXAME}` === key,
+          )) {
+            todosExames.push(e);
+          }
+        }
+      } catch {
+        // Continua para próximo mês
       }
-      const buffer = await response.arrayBuffer();
-      const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const data = safeParseSocJson<SocExameRealizado>(decoded, 'exames', this.logger);
-      this.logger.debug(`Retornados ${data.length} exames`);
-      return data;
-    } catch (error) {
-      this.logger.error('Erro ao buscar exames:', error);
-      return [];
     }
+
+    this.logger.debug(`Total exames únicos: ${todosExames.length}`);
+    return todosExames;
   }
 
   async fetchUnidades(): Promise<SocUnidade[]> {
@@ -317,7 +324,9 @@ export class ConvocacaoService {
       }
 
       // Para cada tipo de exame disponível na empresa
-      const periodicidade = precoPorEmpresa.get(empresaCode) || 12;
+      // Periodicidade padrão NR-7: 12 meses para periódicos
+      // Admissional/Demissional/Retorno: sem periodicidade (únicos)
+      const periodicidade = 12;
 
       for (const [nomeExame, listaExames] of examesDaEmpresa) {
         // Pegar o exame mais recente para este tipo
@@ -400,7 +409,7 @@ export class ConvocacaoService {
       if (!funcDaEmpresa) {
         const dataResultado = this.parseDateBR(exame.DATARESULTADO);
         const dataExame = this.parseDateBR(exame.DATAEXAME);
-        const periodicidade = precoPorEmpresa.get(exame.EMPRESA) || 12;
+        const periodicidade = 12; // NR-7 padrão
         let vencimento: Date | null = null;
         const baseDate = dataExame || dataResultado;
         if (baseDate) {
