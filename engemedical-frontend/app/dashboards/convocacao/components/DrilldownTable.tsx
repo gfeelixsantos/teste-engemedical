@@ -1,79 +1,102 @@
 'use client';
 
+import { CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 import type { ConvocacaoExame } from '../types';
 
-const SITUACAO_COLORS: Record<string, string> = {
-  'Em Dia': 'bg-emerald-100 text-emerald-700',
-  'A Vencer': 'bg-amber-100 text-amber-700',
-  Vencido: 'bg-red-100 text-red-700',
-  'Nunca Realizado': 'bg-blue-100 text-blue-700',
-  'Sem Data de Resultado': 'bg-gray-100 text-gray-600',
-};
-
 export function DrilldownTable({ data }: { data: ConvocacaoExame[] }) {
+  const formatDateStr = (dStr: string | null) => {
+    if (!dStr) return '';
+    const date = new Date(dStr);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('pt-BR');
+  };
+
+  const renderStatusBadge = (situacao: string) => {
+    switch (situacao) {
+      case 'Em Dia':
+        return (
+          <div className="flex items-center gap-1.5 text-green-700 font-semibold">
+            <span>Em Dia</span>
+            <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+          </div>
+        );
+      case 'A Vencer':
+        return (
+          <div className="flex items-center gap-1.5 text-amber-700 font-semibold">
+            <span>A Vencer</span>
+            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+          </div>
+        );
+      case 'Vencido':
+      case 'Nunca Realizado':
+      case 'Sem Data de Resultado':
+      default:
+        return (
+          <div className="flex items-center gap-1.5 text-red-700 font-semibold">
+            <span>{situacao}</span>
+            <XCircle className="h-4 w-4 text-red-600 shrink-0" />
+          </div>
+        );
+    }
+  };
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="p-8 text-center text-gray-500 text-sm">
+        Nenhum registro encontrado com os filtros selecionados.
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="border-b border-gray-200">
-            {[
-              'Empresa',
-              'Unidade',
-              'Setor',
-              'Cargo',
-              'Funcionário',
-              'Exame',
-              'Vencimento',
-              'Situação',
-              'Dias',
-            ].map((h) => (
-              <th
-                key={h}
-                className="px-2 py-2 text-left font-semibold text-gray-600 whitespace-nowrap"
-              >
-                {h}
-              </th>
-            ))}
+    <div className="overflow-x-auto w-full border border-gray-200 rounded-lg">
+      <table className="w-full text-left text-xs text-gray-700 border-collapse">
+        <thead className="bg-gray-50 text-gray-800 font-semibold border-b border-gray-200 uppercase text-[11px]">
+          <tr>
+            <th className="px-3 py-2.5">Empresa</th>
+            <th className="px-3 py-2.5">Unidade</th>
+            <th className="px-3 py-2.5">Setor</th>
+            <th className="px-3 py-2.5">Cargo</th>
+            <th className="px-3 py-2.5">Funcionários</th>
+            <th className="px-3 py-2.5 text-center">Vencimento</th>
+            <th className="px-3 py-2.5 text-center">Periodicidade</th>
+            <th className="px-3 py-2.5">Situação</th>
+            <th className="px-3 py-2.5">Exame</th>
+            <th className="px-3 py-2.5">Dias a Vencer/Vencido</th>
           </tr>
         </thead>
-        <tbody>
-          {data.map((row, i) => (
+        <tbody className="divide-y divide-gray-100">
+          {data.map((row, idx) => (
             <tr
-              key={`${row.codigoFuncionario}-${row.exame}-${i}`}
-              className="border-b border-gray-100 hover:bg-gray-50"
+              key={`${row.codigoEmpresa}-${row.codigoFuncionario}-${idx}`}
+              className="hover:bg-gray-50/80 transition-colors"
             >
-              <td className="px-2 py-1.5 max-w-[140px] truncate">{row.nomeEmpresa}</td>
-              <td className="px-2 py-1.5 max-w-[120px] truncate">{row.unidade}</td>
-              <td className="px-2 py-1.5 max-w-[100px] truncate">{row.setor}</td>
-              <td className="px-2 py-1.5 max-w-[120px] truncate">{row.cargo}</td>
-              <td className="px-2 py-1.5 max-w-[140px] truncate font-medium">{row.nomeFuncionario}</td>
-              <td className="px-2 py-1.5 max-w-[160px] truncate">{row.exame}</td>
-              <td className="px-2 py-1.5 whitespace-nowrap">
-                {row.vencimento
-                  ? new Date(row.vencimento).toLocaleDateString('pt-BR')
-                  : '—'}
+              <td className="px-3 py-2 font-medium text-gray-900 max-w-[150px] truncate">
+                {row.nomeEmpresa}
               </td>
-              <td className="px-2 py-1.5">
-                <span
-                  className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                    SITUACAO_COLORS[row.situacaoExame] || 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {row.situacaoExame}
-                </span>
+              <td className="px-3 py-2 max-w-[140px] truncate">{row.unidade}</td>
+              <td className="px-3 py-2 max-w-[120px] truncate">{row.setor}</td>
+              <td className="px-3 py-2 max-w-[140px] truncate">{row.cargo}</td>
+              <td className="px-3 py-2 font-medium text-gray-900 max-w-[160px] truncate">
+                {row.nomeFuncionario.startsWith('*') ? row.nomeFuncionario : `*${row.nomeFuncionario}`}
               </td>
-              <td className="px-2 py-1.5 whitespace-nowrap text-gray-500">
-                {row.diasAVencerVencido || '—'}
+              <td className="px-3 py-2 text-center text-gray-600">
+                {formatDateStr(row.vencimento)}
+              </td>
+              <td className="px-3 py-2 text-center text-gray-600 font-medium">
+                {row.periodicidade || 12}
+              </td>
+              <td className="px-3 py-2 whitespace-nowrap">
+                {renderStatusBadge(row.situacaoExame)}
+              </td>
+              <td className="px-3 py-2 font-medium max-w-[200px] truncate" title={row.exame}>
+                {row.exame}
+              </td>
+              <td className="px-3 py-2 font-medium whitespace-nowrap text-gray-600">
+                {row.diasAVencerVencido}
               </td>
             </tr>
           ))}
-          {data.length === 0 && (
-            <tr>
-              <td colSpan={9} className="px-4 py-8 text-center text-gray-400">
-                Nenhum registro encontrado
-              </td>
-            </tr>
-          )}
         </tbody>
       </table>
     </div>

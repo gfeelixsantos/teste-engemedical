@@ -7,75 +7,89 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
+  LabelList,
 } from 'recharts';
+import type { PorTipoExame } from '../types';
 
-const SITUACAO_COLORS: Record<string, string> = {
-  'A Vencer': '#f97316',
-  'Em Dia': '#10b981',
-  'Nunca Realizado': '#3b82f6',
-  'Sem Data de Resultado': '#94a3b8',
-  Vencido: '#ef4444',
+const COLOR_MAP: Record<string, string> = {
+  'A Vencer': '#E69F00',
+  'Em Dia': '#009E73',
+  'Nunca Realizado': '#0072B2',
+  'Sem Data de Resultado': '#CCCCCC',
+  'Vencido': '#D55E00',
 };
 
-interface Props {
-  data: Array<{
-    tipoExame: string;
-    'Em Dia': number;
-    'A Vencer': number;
-    Vencido: number;
-    'Nunca Realizado': number;
-    'Sem Data de Resultado': number;
-  }>;
-}
+const SITUACOES = ['A Vencer', 'Em Dia', 'Nunca Realizado', 'Sem Data de Resultado', 'Vencido'];
 
-export function TipoExameBarChart({ data }: Props) {
-  // Truncar nomes longos dos tipos de exame
-  const chartData = data.map((d) => ({
-    ...d,
-    tipoExame:
-      d.tipoExame.length > 40
-        ? d.tipoExame.substring(0, 37) + '...'
-        : d.tipoExame,
+export function TipoExameBarChart({ data }: { data: PorTipoExame[] }) {
+  // Truncate long exam names for x-axis labels
+  const formattedData = data.map((item) => ({
+    ...item,
+    shortName:
+      item.tipoExame.length > 25
+        ? `${item.tipoExame.substring(0, 22)}...`
+        : item.tipoExame,
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart
-        data={chartData}
-        margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" />
-        <XAxis
-          dataKey="tipoExame"
-          tick={{ fontSize: 9 }}
-          tickLine={false}
-          axisLine={false}
-          interval={0}
-          angle={-15}
-          textAnchor="end"
-          height={60}
-        />
-        <YAxis
-          tick={{ fontSize: 11 }}
-          tickLine={false}
-          axisLine={false}
-        />
-        <Tooltip
-          formatter={(value: number, name: string) => [
-            value.toLocaleString('pt-BR'),
-            name,
-          ]}
-          contentStyle={{ fontSize: 11 }}
-        />
-        <Legend wrapperStyle={{ fontSize: 10 }} />
-        <Bar dataKey="A Vencer" stackId="a" fill={SITUACAO_COLORS['A Vencer']} />
-        <Bar dataKey="Em Dia" stackId="a" fill={SITUACAO_COLORS['Em Dia']} />
-        <Bar dataKey="Nunca Realizado" stackId="a" fill={SITUACAO_COLORS['Nunca Realizado']} />
-        <Bar dataKey="Sem Data de Resultado" stackId="a" fill={SITUACAO_COLORS['Sem Data de Resultado']} />
-        <Bar dataKey="Vencido" stackId="a" fill={SITUACAO_COLORS['Vencido']} />
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="w-full h-[300px]">
+      {/* Legend Header */}
+      <div className="flex flex-wrap items-center justify-center gap-3 mb-2 text-[11px] font-semibold text-gray-700">
+        {SITUACOES.map((s) => (
+          <div key={s} className="flex items-center gap-1">
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: COLOR_MAP[s] }}
+            />
+            <span>{s}</span>
+          </div>
+        ))}
+      </div>
+
+      <ResponsiveContainer width="100%" height="85%">
+        <BarChart
+          data={formattedData}
+          margin={{ top: 20, right: 10, left: -20, bottom: 25 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+          <XAxis
+            dataKey="shortName"
+            stroke="#64748B"
+            fontSize={10}
+            tickLine={false}
+            interval={0}
+            angle={-10}
+            textAnchor="end"
+          />
+          <YAxis stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: '#1E293B',
+              borderRadius: '8px',
+              border: 'none',
+              color: '#FFF',
+              fontSize: '11px',
+            }}
+          />
+          {SITUACOES.map((situacao) => (
+            <Bar
+              key={situacao}
+              dataKey={situacao}
+              name={situacao}
+              fill={COLOR_MAP[situacao]}
+              radius={[3, 3, 0, 0]}
+            >
+              <LabelList
+                dataKey={situacao}
+                position="top"
+                style={{ fontSize: '9px', fontWeight: 'bold', fill: '#475569' }}
+                formatter={(v: number) => (v > 0 ? v : '')}
+              />
+            </Bar>
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

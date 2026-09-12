@@ -12,17 +12,18 @@ export class ConvocacaoController {
   ) {
     const data = await this.convocacaoService.getDashboardData();
     const pageNum = parseInt(page || '1', 10);
-    const limitNum = parseInt(limit || '200', 10);
+    const limitNum = parseInt(limit || '500', 10);
     const start = (pageNum - 1) * limitNum;
     const end = start + limitNum;
 
     return {
       kpis: data.kpis,
-      porSituacao: data.porSituacao,
-      porEmpresa: data.porEmpresa,
-      porUnidade: data.porUnidade,
-      porAno: data.porAno,
-      porTipoExame: data.porTipoExame,
+      porSituacao: data.porSituacao || [],
+      porStatus10: data.porStatus10 || [],
+      porEmpresa: data.porEmpresa || [],
+      porUnidade: data.porUnidade || [],
+      porAno: data.porAno || [],
+      porTipoExame: data.porTipoExame || [],
       filtros: data.filtros,
       totalDetalhes: data.totalDetalhes,
       detalhes: data.detalhes.slice(start, end),

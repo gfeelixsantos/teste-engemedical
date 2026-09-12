@@ -1,92 +1,88 @@
 'use client';
 
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
-// Cores exatas do Smartrics
-const COLORS: Record<string, string> = {
-  'A Vencer': '#f97316',       // laranja
-  'Em Dia': '#10b981',         // verde
-  'Nunca Realizado': '#3b82f6', // azul
-  'Sem Data de Resultado': '#94a3b8', // cinza
-  Vencido: '#ef4444',          // vermelho
-};
-
-const SITUACAO_ORDER = [
-  'Em Dia',
-  'A Vencer',
-  'Vencido',
-  'Nunca Realizado',
-  'Sem Data de Resultado',
-];
-
-interface Props {
-  data: Array<{ situacao: string; funcionarios: number; exames: number }>;
+interface SituacaoItem {
+  situacao: string;
+  funcionarios: number;
+  exames: number;
+  percentual: number;
 }
 
-export function SituacaoDonut({ data }: Props) {
-  // Ordenar conforme Smartrics
-  const sorted = [...data].sort((a, b) => {
-    const ia = SITUACAO_ORDER.indexOf(a.situacao);
-    const ib = SITUACAO_ORDER.indexOf(b.situacao);
-    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-  });
+const COLOR_MAP: Record<string, string> = {
+  'A Vencer': '#E69F00',
+  'Em Dia': '#009E73',
+  'Nunca Realizado': '#0072B2',
+  'Sem Data de Resultado': '#CCCCCC',
+  'Vencido': '#D55E00',
+};
 
-  const total = sorted.reduce((sum, d) => sum + d.exames, 0);
+const ORDER = ['A Vencer', 'Em Dia', 'Nunca Realizado', 'Sem Data de Resultado', 'Vencido'];
 
-  const chartData = sorted.map((d) => ({
-    name: d.situacao,
-    value: d.exames,
-    percent: total > 0 ? ((d.exames / total) * 100).toFixed(2) : '0',
-  }));
+export function SituacaoDonut({ data }: { data: SituacaoItem[] }) {
+  const sortedData = [...data].sort(
+    (a, b) => ORDER.indexOf(a.situacao) - ORDER.indexOf(b.situacao),
+  );
 
   return (
-    <div>
-      <ResponsiveContainer width="100%" height={250}>
+    <div className="w-full h-[280px] flex flex-col items-center">
+      {/* Legend on Top */}
+      <div className="flex flex-wrap items-center justify-center gap-3 mb-2 text-[11px] font-semibold text-gray-700">
+        {ORDER.map((s) => (
+          <div key={s} className="flex items-center gap-1">
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: COLOR_MAP[s] || '#64748B' }}
+            />
+            <span>{s}</span>
+          </div>
+        ))}
+      </div>
+
+      <ResponsiveContainer width="100%" height="85%">
         <PieChart>
           <Pie
-            data={chartData}
+            data={sortedData}
+            dataKey="exames"
+            nameKey="situacao"
             cx="50%"
             cy="50%"
             innerRadius={60}
-            outerRadius={95}
-            paddingAngle={3}
-            dataKey="value"
-            label={({ name, percent }) => `${percent}%`}
-            labelLine={false}
+            outerRadius={90}
+            paddingAngle={2}
+            label={({ situacao, exames, percentual }) =>
+              `${exames.toLocaleString('pt-BR')} (${percentual ? percentual.toFixed(2) : 0}%)`
+            }
+            labelLine={{ strokeWidth: 1, stroke: '#94A3B8' }}
           >
-            {chartData.map((entry) => (
+            {sortedData.map((entry) => (
               <Cell
-                key={entry.name}
-                fill={COLORS[entry.name] || '#94a3b8'}
+                key={entry.situacao}
+                fill={COLOR_MAP[entry.situacao] || '#64748B'}
               />
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number, name: string, props: { payload?: { percent?: string } }) => [
-              `${value.toLocaleString('pt-BR')} (${props.payload?.percent || 0}%)`,
+            contentStyle={{
+              backgroundColor: '#1E293B',
+              borderRadius: '8px',
+              border: 'none',
+              color: '#FFF',
+              fontSize: '12px',
+            }}
+            formatter={(value: number, name: string) => [
+              `${value.toLocaleString('pt-BR')} exames`,
               name,
             ]}
           />
         </PieChart>
       </ResponsiveContainer>
-
-      {/* Legenda */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center mt-2">
-        {chartData.map((entry) => (
-          <div key={entry.name} className="flex items-center gap-1.5">
-            <span
-              className="h-2.5 w-2.5 rounded-full shrink-0"
-              style={{ backgroundColor: COLORS[entry.name] || '#94a3b8' }}
-            />
-            <span className="text-xs text-gray-600">
-              {entry.name}{' '}
-              <span className="text-gray-400">
-                ({entry.value.toLocaleString('pt-BR')} — {entry.percent}%)
-              </span>
-            </span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

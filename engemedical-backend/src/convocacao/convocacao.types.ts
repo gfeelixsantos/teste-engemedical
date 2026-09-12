@@ -93,39 +93,45 @@ export interface ConvocacaoExame {
   subgrupo: string;
   estado: string;
   exame: string;
-  dataResultado: Date | null;
-  vencimento: Date | null;
-  refazer: Date | null;
-  ultimopedido: Date | null;
+  dataResultado: string | null;  // ISO string serialized from Date
+  vencimento: string | null;     // ISO string serialized from Date
+  refazer: string | null;
+  ultimopedido: string | null;   // ISO string serialized from Date
   tipoUltimoExame: string;
   situacaoExame: SituacaoExame;
   diasAVencerVencido: string;
   periodicidade: number;
+  statusFaixa?: string;
 }
 
 export interface ConvocacaoKPIs {
   totalExames: number;
   totalFuncionariosConvocados: number;
+  percentFuncionariosEmDia: number;
+  percentConformidadeTotal: number;
   examesEmDia: number;
   examesVencidos: number;
   examesAVencer: number;
   examesNuncaRealizado: number;
   examesSemResultado: number;
-  ultimaAtualizacao: Date;
-  // Tendências percentuais (Smartrics padrão)
+  examesDentroDoPrazo: number;
+  examesForaDoPrazo: number;
+  funcionariosExamesAVencer: number;
+  funcionariosExamesForaDoPrazo: number;
+  funcionariosExamesEmDia: number;
+  funcionariosExamesVencidos: number;
+  ultimaAtualizacao: string;  // ISO string
   tendenciaExamesEmDia?: number;
   tendenciaExamesAVencer?: number;
   tendenciaExamesVencidos?: number;
 }
 
-// Agregação por ANO (LineChart — eixo X = anos)
 export interface PorAno {
   ano: number;
   funcionarios: number;
   exames: number;
 }
 
-// Agregação por TIPO DE EXAME e situação (Barras agrupadas)
 export interface PorTipoExame {
   tipoExame: string;
   'Em Dia': number;
@@ -135,13 +141,22 @@ export interface PorTipoExame {
   'Sem Data de Resultado': number;
 }
 
+export interface Status10Faixa {
+  status: string;
+  funcionarios: number;
+  exames: number;
+  cor: string;
+}
+
 export interface DashboardData {
   kpis: ConvocacaoKPIs;
   porSituacao: Array<{
     situacao: string;
     funcionarios: number;
     exames: number;
+    percentual: number;
   }>;
+  porStatus10: Status10Faixa[];
   porEmpresa: Array<{
     empresa: string;
     exames: number;
