@@ -14,6 +14,7 @@ import { NodmailerModule } from './nodemailer/nodemailer.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { SignatureModule } from './signature/signature.module';
 import { LoggerModule } from './core/logger/logger.module';
+import { CloudflareModule } from './cloudflare/cloudflare.module';
 
 require('dotenv').config();
 
@@ -30,6 +31,7 @@ require('dotenv').config();
     SupabaseModule,
     SignatureModule,
     LoggerModule,
+    CloudflareModule,
   ],
   controllers: [AppController],
   providers: [
