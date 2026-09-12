@@ -41,6 +41,8 @@ import { HeaderApp } from "@/components/shared/HeaderApp";
 import EngemedicalLoading from "@/components/shared/EngemedicalLoading";
 import PremiumCyberLoading from "@/components/shared/PremiumCyberLoading";
 import { usePscAuthStatus } from "@/hooks/usePscAuthStatus";
+import { SidebarMenu } from "@/components/shared/SidebarMenu";
+import { getHomeRoute } from "@/lib/user/home-route.mjs";
 
 // Constantes
 const SESSION_MESSAGE_KEY = "dashboard_current_message";
@@ -229,7 +231,7 @@ const dashboardNavItems = {
   ],
 } as const;
 
-const DashboardNavSidebar: React.FC<{
+const LegacyDashboardNavSidebar: React.FC<{
   onNavigate: (path: string) => void;
 }> = ({ onNavigate }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
@@ -412,6 +414,17 @@ const DashboardNavSidebar: React.FC<{
   );
 };
 
+const DashboardNavSidebar: React.FC = () => (
+  <aside
+    aria-label="Menu principal do dashboard"
+    className="sticky top-16 relative z-[1000] hidden h-[calc(100vh-4rem)] w-64 shrink-0 self-start overflow-y-auto overscroll-contain scrollbar-hidden text-slate-900 lg:block"
+  >
+    <div className="min-h-full w-64 rounded-r-2xl border-r border-brand-200/80 bg-white p-3 shadow-[8px_0_24px_rgba(0,69,96,0.08)]">
+      <SidebarMenu openOnHover />
+    </div>
+  </aside>
+);
+
 const WelcomeSection: React.FC<{ name: string }> = ({ name }) => (
   <motion.section
     animate={{ opacity: 1, y: 0 }}
@@ -465,7 +478,7 @@ export default function DashboardPage() {
 
   const handlePostLoginComplete = useCallback(() => {
     setShowPostLoginTransition(false);
-    router.replace("/dashboard", { scroll: false });
+    router.replace(getHomeRoute(getCurrentUser()), { scroll: false });
   }, [router]);
 
   // Buscar mensagem atual
@@ -671,8 +684,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <DashboardNavSidebar onNavigate={(path) => router.push(path)} />
-
       <HeaderApp
         onLogout={() => {
           // Limpar mensagem ao fazer logout
@@ -684,10 +695,12 @@ export default function DashboardPage() {
         <></>
       </HeaderApp>
 
-      <main
-        aria-label="Dashboard principal"
-        className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:pl-24 lg:pr-8"
-      >
+      <div className="flex min-h-[calc(100vh-4rem)] items-start">
+        <DashboardNavSidebar />
+        <main
+          aria-label="Dashboard principal"
+          className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8"
+        >
         <WelcomeSection name={user.nome} />
 
         <section aria-labelledby="stats-title" className="mt-8">
@@ -703,13 +716,14 @@ export default function DashboardPage() {
           transition={{ duration: 0.5, delay: 1.5 }}
         >
           <p className="text-sm text-gray-600">
-            Centro Médico de Saúde Ocupacional • {new Date().getFullYear()} •{" "}
+            Engemedical Brasil • {new Date().getFullYear()} •{" "}
             <a href="/privacidade" className="text-[#0698C2] hover:underline">
               Política de Privacidade
             </a>
           </p>
         </motion.footer>
-      </main>
+        </main>
+      </div>
 
       {/* Modal de consentimento LGPD */}
       <ConsentModal />

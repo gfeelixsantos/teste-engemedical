@@ -1,158 +1,194 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { getHomeRoute } from "@/lib/user/home-route.mjs";
+import { getCurrentUser } from "@/lib/utils";
 import {
-  Home,
-  Stethoscope,
-  Users,
-  ChartNoAxesCombined,
-  FileText,
+  Activity, ChartNoAxesCombined, ChevronRight, FileCheck, FileText, Globe,
+  HeartPulse, Home, LayoutGrid, Settings, Stethoscope, TrendingUp, UserX, Users,
   CalendarDays,
-  Settings,
-  LayoutGrid,
-  BarChart3,
-  ChevronDown,
-  Activity,
-  TrendingUp,
-  UserX,
-  Globe,
-  FileCheck,
-  Shield,
-  HeartPulse,
 } from "lucide-react";
 
-const NAV_ITEMS = [
-  { title: "Página Inicial", icon: Home, path: "/dashboard" },
-  { title: "Atendimento", icon: Stethoscope, path: "/atendimento" },
-  { title: "Recepção", icon: Users, path: "/recepcao" },
-  { title: "Relatórios", icon: ChartNoAxesCombined, path: "/relatorio" },
-  { title: "Prontuários", icon: FileText, path: "/prontuarios" },
+type MenuItem = { title: string; icon: typeof Home; path: string; color?: string };
+type MenuGroup = { title: string; icon: typeof Home; items: readonly MenuItem[] };
+
+const GROUPS: readonly MenuGroup[] = [
+  { title: "Atendimento", icon: Stethoscope, items: [
+    { title: "Atendimento", icon: Stethoscope, path: "/atendimento" },
+    { title: "Prontuários", icon: FileText, path: "/prontuarios" },
+    { title: "Recepção", icon: Users, path: "/recepcao" },
+  ]},
+  { title: "Informativos", icon: ChartNoAxesCombined, items: [
+    { title: "Absenteísmo", icon: UserX, path: "/dashboards/absenteismo", color: "text-orange-500" },
+    { title: "Convocação de exames", icon: Activity, path: "/dashboards/convocacao" },
+    { title: "Documentos SST", icon: FileCheck, path: "/dashboards/documentos", color: "text-teal-500" },
+    { title: "eSocial", icon: Globe, path: "/dashboards/esocial", color: "text-purple-500" },
+    { title: "Gestão de vidas", icon: HeartPulse, path: "/dashboards/vidas", color: "text-green-500" },
+    { title: "Relatórios", icon: ChartNoAxesCombined, path: "/relatorio" },
+    { title: "Volumetria", icon: TrendingUp, path: "/dashboards/volumetria", color: "text-indigo-500" },
+  ]},
+  { title: "Serviços", icon: LayoutGrid, items: [
+    { title: "Agenda Compromissos", icon: CalendarDays, path: "/agenda" },
+    { title: "Campanhas de e-mail", icon: LayoutGrid, path: "/servicos?tab=campanhas" },
+    { title: "Explorador de arquivos", icon: FileText, path: "/servicos?tab=arquivos" },
+    { title: "Filas de processamento", icon: Activity, path: "/servicos?tab=filas" },
+    { title: "Painel de serviços", icon: LayoutGrid, path: "/servicos" },
+  ]},
+  { title: "Configurações", icon: Settings, items: [
+    { title: "Configurações", icon: Settings, path: "/configuracoes" },
+  ]},
 ] as const;
 
-const DASHBOARDS = [
-  { title: "Convocação de Exames", icon: Activity, path: "/dashboards/convocacao", color: "text-blue-500" },
-  { title: "Volumetria", icon: TrendingUp, path: "/dashboards/volumetria", color: "text-indigo-500" },
-  { title: "Absenteísmo", icon: UserX, path: "/dashboards/absenteismo", color: "text-orange-500" },
-  { title: "eSocial", icon: Globe, path: "/dashboards/esocial", color: "text-purple-500" },
-  { title: "Gestão de Vidas", icon: HeartPulse, path: "/dashboards/vidas", color: "text-green-500" },
-  { title: "Documentos SST", icon: FileCheck, path: "/dashboards/documentos", color: "text-teal-500" },
-] as const;
+const isActivePath = (pathname: string | null, path: string) => {
+  const cleanPath = path.split("?")[0];
+  return pathname === cleanPath || pathname?.startsWith(`${cleanPath}/`);
+};
 
-const SECONDARY_ITEMS = [
-  { title: "Agenda", icon: CalendarDays, path: "/agenda" },
-  { title: "Configurações", icon: Settings, path: "/configuracoes" },
-  { title: "Serviços", icon: LayoutGrid, path: "/servicos" },
-] as const;
-
-export function SidebarMenu() {
+export function SidebarMenu({
+  collapsed = false,
+  inlineSubmenus = false,
+  openOnHover = true,
+  onSubmenuChange,
+}: {
+  collapsed?: boolean;
+  inlineSubmenus?: boolean;
+  openOnHover?: boolean;
+  onSubmenuChange?: (open: boolean) => void;
+}) {
   const pathname = usePathname();
   const router = useRouter();
-  const [dashboardsOpen, setDashboardsOpen] = useState(false);
+  const homeRoute = getHomeRoute(getCurrentUser());
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [submenuPosition, setSubmenuPosition] = useState({ top: 16, left: 280 });
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const updateOpenGroup = (group: string | null) => {
+    setOpenGroup(group);
+    onSubmenuChange?.(group !== null);
+  };
 
-  const isActive = (path: string) =>
-    pathname === path || pathname?.startsWith(path + "/");
+  const cancelClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => updateOpenGroup(null), 140);
+  };
 
-  const isDashboardsActive = pathname?.startsWith("/dashboards");
+  const openGroupAt = (title: string, element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    setSubmenuPosition({
+      top: Math.max(12, Math.min(rect.top, window.innerHeight - 420)),
+      left: rect.right + 10,
+    });
+    updateOpenGroup(title);
+  };
+
+  const activateGroup = (title: string, element: HTMLElement) => {
+    if (inlineSubmenus) {
+      updateOpenGroup(title);
+      return;
+    }
+    openGroupAt(title, element);
+  };
+
+  useEffect(() => () => cancelClose(), []);
+  useEffect(() => {
+    const activeGroup = GROUPS.find((group) => group.items.some((item) => isActivePath(pathname, item.path)));
+    if (activeGroup) updateOpenGroup(activeGroup.title);
+  }, [pathname]);
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") updateOpenGroup(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const goTo = (path: string) => {
+    updateOpenGroup(null);
+    router.push(path);
+  };
 
   return (
-    <nav
-      aria-label="Menu de navegação"
-      className="space-y-1"
-      role="navigation"
-    >
-      {/* Nav items principais */}
-      {NAV_ITEMS.map(({ title, icon: Icon, path }) => {
-        const active = isActive(path);
-        return (
-          <button
-            key={path}
-            aria-current={active ? "page" : undefined}
-            className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${
-              active
-                ? "bg-brand-50 text-brand-700 border border-brand-500/30"
-                : "text-gray-600 hover:bg-brand-mist hover:text-gray-900 border border-transparent hover:border-brand-line"
-            }`}
-            type="button"
-            onClick={() => router.push(path)}
-          >
-            <span
-              className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border shadow-sm transition-all ${
-                active
-                  ? "border-brand-500/40 bg-brand-100 text-brand-600"
-                  : "border-brand-line bg-white text-brand-blue group-hover:border-brand-green-300 group-hover:bg-brand-mist group-hover:text-brand-green-600"
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-            </span>
-            <span className="truncate">{title}</span>
-          </button>
-        );
-      })}
-
-      {/* Separador */}
-      <div className="my-2 border-t border-gray-200" />
-
-      {/* Dashboards Premium - Sub-menu expansível */}
+    <nav aria-label="Menu de navegação" className="space-y-1" role="navigation">
       <button
         type="button"
-        onClick={() => setDashboardsOpen(!dashboardsOpen)}
-        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${
-          isDashboardsActive
-            ? "bg-brand-50 text-brand-700"
-            : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
-        }`}
+        aria-current={pathname === "/visao-geral" || pathname === "/inicio" ? "page" : undefined}
+        className={`group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${pathname === "/visao-geral" || pathname === "/inicio" ? "border-brand-500/30 bg-brand-50 text-brand-700" : "border-transparent text-gray-600 hover:border-brand-line hover:bg-brand-mist hover:text-gray-900"}`}
+        onClick={() => goTo(homeRoute)}
       >
-        <BarChart3 className="h-4 w-4 shrink-0" />
-        <span className="truncate flex-1">Dashboards Premium</span>
-        <ChevronDown
-          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
-            dashboardsOpen ? "rotate-180" : ""
-          }`}
-        />
+        <Home className="h-4 w-4 shrink-0 text-brand-blue" />
+        <span className={collapsed ? "sr-only" : "truncate"}>Página Inicial</span>
       </button>
 
-      {dashboardsOpen && (
-        <div className="ml-6 mt-1 space-y-0.5 border-l-2 border-gray-200 pl-3">
-          {DASHBOARDS.map(({ title, icon: Icon, path, color }) => {
-            const active = isActive(path);
-            return (
-              <button
-                key={path}
-                type="button"
-                onClick={() => router.push(path)}
-                className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs font-medium transition-all duration-150 ${
-                  active
-                    ? "bg-brand-50 text-brand-700 border border-brand-500/20"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 border border-transparent"
-                }`}
-              >
-                <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-brand-500" : color}`} />
-                <span className="truncate">{title}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <div className="my-2 border-t border-gray-200" />
 
-      {/* Outros itens secundários */}
-      {SECONDARY_ITEMS.map(({ title, icon: Icon, path }) => {
-        const active = isActive(path);
+      {GROUPS.map(({ title, icon: Icon, items }) => {
+        const active = items.some((item) => isActivePath(pathname, item.path));
+        const open = openGroup === title;
         return (
-          <button
-            key={path}
-            aria-current={active ? "page" : undefined}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${
-              active
-                ? "bg-brand-50 text-brand-700"
-                : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
-            }`}
-            type="button"
-            onClick={() => router.push(path)}
+          <div
+            key={title}
+            className="relative"
+            onMouseEnter={(event) => {
+              cancelClose();
+              if (openOnHover && !inlineSubmenus) {
+                openGroupAt(title, event.currentTarget.querySelector<HTMLButtonElement>("button") ?? event.currentTarget);
+              }
+            }}
+            onMouseLeave={scheduleClose}
           >
-            <Icon className="h-4 w-4 shrink-0" />
-            <span className="truncate">{title}</span>
-          </button>
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-haspopup="menu"
+              className={`group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${active ? "border-brand-500/30 bg-brand-50 text-brand-700" : "border-transparent text-gray-600 hover:border-brand-line hover:bg-brand-mist hover:text-gray-900"}`}
+              onClick={(event) => open ? updateOpenGroup(null) : activateGroup(title, event.currentTarget)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  if (open) updateOpenGroup(null);
+                  else activateGroup(title, event.currentTarget);
+                }
+              }}
+            >
+              <Icon className={`h-4 w-4 shrink-0 ${active ? "text-brand-500" : "text-brand-blue"}`} />
+              <span className={collapsed ? "sr-only" : "min-w-0 flex-1 truncate"}>{title}</span>
+              {!collapsed && <ChevronRight className={`h-4 w-4 shrink-0 transition-transform duration-200 ${open ? "translate-x-0.5 text-brand-500" : "text-gray-400"}`} />}
+            </button>
+
+            {open && (
+              <div
+                aria-label={`Itens de ${title}`}
+                className={`${inlineSubmenus ? "relative left-0 top-0 mt-1 ml-3 w-[calc(100%-0.75rem)] shadow-none" : "fixed z-[1000] max-h-[calc(100vh-1.5rem)] w-64 shadow-[0_18px_48px_rgba(0,69,96,0.14)]"} overflow-y-auto scrollbar-hidden rounded-2xl border border-brand-200/80 bg-white p-2`}
+                role="menu"
+                style={inlineSubmenus ? undefined : submenuPosition}
+                onMouseEnter={cancelClose}
+                onMouseLeave={scheduleClose}
+              >
+                <div className="border-b border-brand-200/80 px-3 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-700">{title}</div>
+                <div className="mt-1 space-y-0.5">
+                  {items.map(({ title: itemTitle, icon: ItemIcon, path, color }) => {
+                    const itemActive = isActivePath(pathname, path);
+                    return (
+                      <button
+                        key={path}
+                        type="button"
+                        role="menuitem"
+                        aria-current={itemActive ? "page" : undefined}
+                        className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${itemActive ? "border-brand-500/30 bg-brand-50 font-semibold text-brand-700 shadow-sm shadow-brand-500/10" : "border-transparent text-gray-600 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-900"}`}
+                        onClick={() => goTo(path)}
+                      >
+                        <ItemIcon className={`h-4 w-4 shrink-0 ${itemActive ? "text-brand-500" : color ?? "text-brand-blue"}`} />
+                        <span className="truncate">{itemTitle}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         );
       })}
     </nav>
