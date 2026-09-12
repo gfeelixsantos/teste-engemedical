@@ -425,8 +425,8 @@ export class SftpIntegratorService implements OnModuleInit {
     }
 
     const subject = mode === 'dry_run'
-      ? `[DRY-RUN] Relatorio SFTP Grupo Tora - ${run.file.remoteName}`
-      : `[SOC] Relatorio Execucao SFTP Grupo Tora - ${run.file.remoteName}`;
+      ? `[DRY-RUN] Resumo da rotina de atualizacao de funcionarios - ${run.file.remoteName}`
+      : `Resumo da rotina de atualizacao de funcionarios - ${run.file.remoteName}`;
 
     const html = mode === 'dry_run'
       ? buildSftpDryRunReportEmail(run)

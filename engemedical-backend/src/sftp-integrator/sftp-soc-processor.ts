@@ -3,6 +3,12 @@ import { CadastroFuncionarioPorSituacao } from 'src/soc/types/CadastroFuncionari
 import { WsFuncionarioModelo2 } from 'src/soc/webservice/funcionario/WsFuncionarioModelo2';
 import type { GrupoToraSocPayload } from './sftp-soc-payload.mapper';
 import { SftpSocEmployeeLookupService } from './sftp-soc-employee-lookup.service';
+function getEnvFlag(key: string, defaultValue: boolean): boolean {
+  const val = process.env[key];
+  if (val === undefined || val === '') return defaultValue;
+  return val.toLowerCase() === 'true';
+}
+
 
 export type FuncionarioModelo2Caller = (
   employee: CadastroFuncionarioPorSituacao,
@@ -82,6 +88,11 @@ export class SftpSocProcessor {
     const safeLimit = Math.max(Number(options.limit) || 0, 0);
     const selected = payloads.slice(0, safeLimit);
     const rows: SftpSocProcessRowResult[] = [];
+    const criarSetor = getEnvFlag('SFTP_INTEGRATOR_GRUPO_TORA_CRIAR_SETOR', false);
+    const criarCargo = getEnvFlag('SFTP_INTEGRATOR_GRUPO_TORA_CRIAR_CARGO', false);
+    this.logger.log(
+      `[SOC_PROCESSOR] Config: criarSetor=${criarSetor} criarCargo=${criarCargo}`,
+    );
 
     this.logger.log(
       `[SOC_PROCESSOR] Iniciando processamento de ${selected.length} funcionarios (limite: ${safeLimit})`,
@@ -117,6 +128,10 @@ export class SftpSocProcessor {
             lookupKey: payload.lookupKey,
             overwriteSituacao: payload.situationToSend,
             auditObservation: `Integrado Engemedical Connect em ${new Date().toLocaleString('pt-BR')}`,
+            hierarchyUpdate: {
+              criarSetor,
+              criarCargo,
+            },
           });
           const functionalSuccess =
             response.data?.success !== false && !response.data?.encontrouErro;
