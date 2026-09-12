@@ -45,7 +45,7 @@ export class ConvocacaoService {
     const todosFuncionarios: SocFuncionarioContagem[] = [];
     const hoje = new Date();
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 12; i++) {
       const dt = new Date(hoje);
       dt.setMonth(hoje.getMonth() - i);
       const mes = String(dt.getMonth() + 1).padStart(2, '0');
@@ -97,7 +97,7 @@ export class ConvocacaoService {
     const todosExames: SocExameRealizado[] = [];
     const hoje = new Date();
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 12; i++) {
       const dt = new Date(hoje);
       dt.setMonth(hoje.getMonth() - i);
       const mes = String(dt.getMonth() + 1).padStart(2, '0');
