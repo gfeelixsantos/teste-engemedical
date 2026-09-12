@@ -97,7 +97,7 @@ export class ConvocacaoService {
     const todosExames: SocExameRealizado[] = [];
     const hoje = new Date();
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 3; i++) {
       const dt = new Date(hoje);
       dt.setMonth(hoje.getMonth() - i);
       const mes = String(dt.getMonth() + 1).padStart(2, '0');
@@ -409,7 +409,7 @@ export class ConvocacaoService {
       if (!funcDaEmpresa) {
         const dataResultado = this.parseDateBR(exame.DATARESULTADO);
         const dataExame = this.parseDateBR(exame.DATAEXAME);
-        const periodicidade = 12; // NR-7 padrão
+        const periodicidade = 12; // NR-7 padrao - valorVidaMes e valorVida nao e periodicidade
         let vencimento: Date | null = null;
         const baseDate = dataExame || dataResultado;
         if (baseDate) {
