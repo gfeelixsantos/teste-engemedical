@@ -104,7 +104,7 @@ export default function NotFound() {
         initial={{ opacity: 0 }}
         transition={{ delay: 1 }}
       >
-        © {new Date().getFullYear()} CMSO 360 - Sistema Médico Integrado
+        © {new Date().getFullYear()} Engemedical Brasil - Sistema Integrado
       </motion.div>
     </div>
   );

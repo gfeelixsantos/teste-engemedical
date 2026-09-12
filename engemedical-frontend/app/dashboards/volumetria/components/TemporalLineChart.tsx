@@ -18,7 +18,7 @@ interface Props {
 
 /* ── Smartrics brand palette ── */
 const COLORS = {
-  agendamentos: '#0698C2', // ENGE Blue
+  agendamentos: '#28B1CF', // ENGE Blue
   atendidos: '#a6ce39',    // ENGE Green
   exames: '#f59e0b',       // amber
 };

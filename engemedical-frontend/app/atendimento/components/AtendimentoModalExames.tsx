@@ -490,22 +490,22 @@ const AtendimentoModalExames = ({
       switch (type) {
         case "confirm":
           return {
-            header: "bg-gradient-to-r from-[#0698C2] to-[#0AABD4]",
+            header: "bg-gradient-to-r from-[#28B1CF] to-[#44C2D5]",
             button:
-              "bg-gradient-to-r from-[#0698C2] to-[#0AABD4] hover:opacity-90",
+              "bg-gradient-to-r from-[#28B1CF] to-[#44C2D5] hover:opacity-90",
             icon: "",
           };
         case "success":
           return {
-            header: "bg-gradient-to-r from-[#0698C2] to-[#0AABD4]",
+            header: "bg-gradient-to-r from-[#28B1CF] to-[#44C2D5]",
             button:
-              "bg-gradient-to-r from-[#0698C2] to-[#0AABD4] hover:opacity-90",
+              "bg-gradient-to-r from-[#28B1CF] to-[#44C2D5] hover:opacity-90",
             icon: "",
           };
         case "error":
           return {
-            header: "bg-[#005C7A]",
-            button: "bg-[#0698C2] hover:bg-[#005C7A]",
+            header: "bg-[#006782]",
+            button: "bg-[#28B1CF] hover:bg-[#006782]",
             icon: "",
           };
       }
@@ -548,7 +548,7 @@ const AtendimentoModalExames = ({
               <div className="flex gap-2 w-full sm:w-auto">
                 {showCancel && (
                   <Button
-                    className="flex-1 sm:flex-initial font-medium text-[#005C7A] hover:bg-[#E6F5FA]"
+                    className="flex-1 sm:flex-initial font-medium text-[#006782] hover:bg-[#EFFBFD]"
                     color="default"
                     variant="flat"
                     onPress={onCancel}
@@ -557,7 +557,7 @@ const AtendimentoModalExames = ({
                   </Button>
                 )}
                 <Button
-                  className={`${colors.button} text-white flex-1 sm:flex-initial font-medium focus-visible:ring-2 focus-visible:ring-[#0698C2]/40`}
+                  className={`${colors.button} text-white flex-1 sm:flex-initial font-medium focus-visible:ring-2 focus-visible:ring-[#28B1CF]/40`}
                   onPress={onConfirm}
                 >
                   {type === "confirm" ? "Confirmar" : "Entendido"}
@@ -588,8 +588,8 @@ const AtendimentoModalExames = ({
         size="2xl"
         onClose={onClose}
       >
-        <ModalContent className="border border-[#0698C2]/20">
-          <ModalHeader className="bg-gradient-to-r from-[#0698C2] to-[#005C7A] text-white">
+        <ModalContent className="border border-[#28B1CF]/20">
+          <ModalHeader className="bg-gradient-to-r from-[#28B1CF] to-[#006782] text-white">
             Carregando formulário...
           </ModalHeader>
           <ModalBody className="py-8">

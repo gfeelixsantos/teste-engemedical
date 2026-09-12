@@ -259,7 +259,7 @@ export function ExamesSection() {
         <CardBody className="p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <FlaskConical size={28} aria-hidden="true" style={{ color: "#0698C2" }} />
+              <FlaskConical size={28} aria-hidden="true" style={{ color: "#28B1CF" }} />
               <h2 className="text-xl font-semibold text-gray-800">Exames</h2>
               <Chip size="sm" variant="flat">{exames.length} exames</Chip>
             </div>
@@ -296,7 +296,7 @@ export function ExamesSection() {
                     onPress={openCreate}
                     size="sm"
                     className="h-9 px-3"
-                    style={{ backgroundColor: "#0698C2" }}
+                    style={{ backgroundColor: "#28B1CF" }}
                   >
                     Novo Exame
                   </Button>
@@ -494,7 +494,7 @@ export function ExamesSection() {
               onPress={handleGrupoSave}
               isLoading={saving}
               isDisabled={!grupoFormNome.trim()}
-              style={{ backgroundColor: "#0698C2" }}
+              style={{ backgroundColor: "#28B1CF" }}
             >
               {grupoModalMode === "create" ? "Criar" : "Renomear"}
             </Button>
@@ -621,7 +621,7 @@ export function ExamesSection() {
               onPress={handleSave}
               isLoading={saving}
               isDisabled={!form.nome.trim() || (!form.grupo && !newGrupoName.trim())}
-              style={{ backgroundColor: "#0698C2" }}
+              style={{ backgroundColor: "#28B1CF" }}
             >
               {editing ? "Atualizar" : "Criar"}
             </Button>

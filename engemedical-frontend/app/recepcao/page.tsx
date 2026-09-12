@@ -513,7 +513,7 @@ const RecepcaoPage: React.FC = () => {
         )}
       </HeaderApp>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <motion.aside
           animate={{ x: 0, opacity: 1 }}
           className="w-60 bg-red shadow-sm"
@@ -607,15 +607,15 @@ const RecepcaoPage: React.FC = () => {
 
       {/* Modal de confirmação do HeroUI */}
       <Modal disableAnimation={true} isDismissable={false} isOpen={modalAlert}>
-        <ModalContent className="border border-[#0698C2]/20">
-          <ModalHeader className="text-[#0698C2]">
-            <ExclamationCircleIcon className="h-6 w-6 text-[#0698C2]" />
+        <ModalContent className="border border-brand-500/20">
+          <ModalHeader className="text-brand-500">
+            <ExclamationCircleIcon className="h-6 w-6 text-brand-500" />
             Atenção
           </ModalHeader>
           <ModalBody>{modalText}</ModalBody>
           <ModalFooter className="flex justify-end gap-2">
             <Button
-              className="bg-gradient-to-r from-[#0698C2] to-[#005C7A] text-white focus-visible:ring-2 focus-visible:ring-[#0698C2]/40"
+              className="bg-gradient-to-r from-brand-500 to-brand-700 text-white focus-visible:ring-2 focus-visible:ring-brand-500/40"
               size="sm"
               onPress={() => setModalAlert(false)}
             >

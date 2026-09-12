@@ -243,7 +243,7 @@ const FacialModal: React.FC<FacialModalProps> = ({
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 mb-4 shadow-sm">
         <div className="flex items-center gap-2 text-xs font-medium text-gray-700">
-          <span className="text-[#0698C2]">
+          <span className="text-[#28B1CF]">
             <User className="h-3.5 w-3.5 shrink-0" />
           </span>
           <span className="truncate">{context.funcionarioNome}</span>
@@ -303,8 +303,8 @@ const FacialModal: React.FC<FacialModalProps> = ({
       size="lg"
       onClose={() => onClose(status === "success")}
     >
-      <ModalContent className="border border-[#0698C2]/20">
-        <ModalHeader className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white flex flex-col gap-1">
+      <ModalContent className="border border-[#28B1CF]/20">
+        <ModalHeader className="bg-gradient-to-r from-[#28B1CF] to-[#44C2D5] text-white flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <span className="text-base font-semibold">Autenticacao Facial</span>
             </div>

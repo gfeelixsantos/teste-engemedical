@@ -8,26 +8,26 @@ import {
   Bell,
   CheckCheck,
   CheckCircle,
+  Command,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ExternalLink,
   Inbox,
-  LayoutGrid,
   LogOut,
-  Settings,
-  CalendarDays,
-  Stethoscope,
-  Users,
-  ChartNoAxesCombined,
-  FileText,
+  Search,
   Trash2,
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NotificationToggle } from "./NotificationToggle";
+import { CommandPalette } from "./CommandPalette";
 
 import { getCurrentUser } from "@/lib/utils";
+import { getHomeRoute } from "@/lib/user/home-route.mjs";
 import { IUserInfo } from "@/lib/user/interfaces/IUser";
+import { SIDEBAR_GROUPS } from "@/components/shared/SidebarMenu";
 import {
   type AppNotification,
   addNotification,
@@ -43,53 +43,53 @@ type MenuView = "menu" | "notifications";
 
 const getSpecialtyColor = (especialidade: string) => {
   const colorMap: Record<string, string> = {
-    MASTER: "bg-gray-100 text-gray-800 border-gray-300",
-    MÉDICO: "bg-blue-100 text-blue-700 border-blue-200",
-    ENFERMAGEM: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    FONOAUDIOLOGA: "bg-violet-100 text-violet-700 border-violet-200",
-    ADMINISTRATIVO: "bg-slate-100 text-slate-700 border-slate-200",
-    COMERCIAL: "bg-orange-100 text-orange-700 border-orange-200",
-    ATENDIMENTO: "bg-cyan-100 text-cyan-700 border-cyan-200",
-    LABORATORIO: "bg-yellow-100 text-yellow-700 border-yellow-200",
-    CONVIDADO: "bg-stone-100 text-stone-600 border-stone-200",
-    ENGENHARIA: "bg-red-100 text-red-700 border-red-200",
+    MASTER: "bg-brand-100 text-brand-900 border-brand-200",
+    MÉDICO: "bg-brand-100 text-brand-700 border-brand-200",
+    ENFERMAGEM: "bg-brand-green-100 text-brand-green-700 border-brand-green-200",
+    FONOAUDIOLOGA: "bg-brand-100 text-brand-800 border-brand-300",
+    ADMINISTRATIVO: "bg-brand-50 text-brand-700 border-brand-200",
+    COMERCIAL: "bg-brand-green-100 text-brand-green-700 border-brand-green-200",
+    ATENDIMENTO: "bg-brand-100 text-brand-700 border-brand-200",
+    LABORATORIO: "bg-brand-green-100 text-brand-green-700 border-brand-green-200",
+    CONVIDADO: "bg-brand-50 text-brand-600 border-brand-200",
+    ENGENHARIA: "bg-brand-100 text-brand-800 border-brand-300",
   };
 
-  return colorMap[especialidade] || "bg-gray-100 text-gray-700 border-gray-200";
+  return colorMap[especialidade] || "bg-brand-50 text-brand-700 border-brand-200";
 };
 
 const getAvatarColor = (especialidade: string) => {
   const colorMap: Record<string, string> = {
-    MASTER: "bg-gray-800",
-    MÉDICO: "bg-blue-600",
-    ENFERMAGEM: "bg-emerald-500",
-    FONOAUDIOLOGA: "bg-violet-500",
-    ADMINISTRATIVO: "bg-slate-600",
-    COMERCIAL: "bg-orange-500",
-    ATENDIMENTO: "bg-cyan-500",
-    LABORATORIO: "bg-yellow-600",
-    CONVIDADO: "bg-stone-400",
-    ENGENHARIA: "bg-red-500",
+    MASTER: "bg-brand-800",
+    MÉDICO: "bg-brand-700",
+    ENFERMAGEM: "bg-brand-green-500",
+    FONOAUDIOLOGA: "bg-brand-600",
+    ADMINISTRATIVO: "bg-brand-800",
+    COMERCIAL: "bg-brand-green-600",
+    ATENDIMENTO: "bg-brand-500",
+    LABORATORIO: "bg-brand-green-700",
+    CONVIDADO: "bg-brand-600",
+    ENGENHARIA: "bg-brand-700",
   };
 
-  return colorMap[especialidade] || "bg-gray-500";
+  return colorMap[especialidade] || "bg-brand-700";
 };
 
 const getHoverColor = (especialidade: string) => {
   const colorMap: Record<string, string> = {
-    MASTER: "hover:bg-gray-50 hover:text-gray-800",
-    MÉDICO: "hover:bg-blue-50 hover:text-blue-700",
-    ENFERMAGEM: "hover:bg-emerald-50 hover:text-emerald-700",
-    FONOAUDIOLOGA: "hover:bg-violet-50 hover:text-violet-700",
-    ADMINISTRATIVO: "hover:bg-slate-50 hover:text-slate-700",
-    COMERCIAL: "hover:bg-orange-50 hover:text-orange-700",
-    ATENDIMENTO: "hover:bg-cyan-50 hover:text-cyan-700",
-    LABORATORIO: "hover:bg-yellow-50 hover:text-yellow-700",
-    CONVIDADO: "hover:bg-stone-50 hover:text-stone-600",
-    ENGENHARIA: "hover:bg-red-50 hover:text-red-700",
+    MASTER: "hover:bg-brand-50 hover:text-brand-900",
+    MÉDICO: "hover:bg-brand-50 hover:text-brand-700",
+    ENFERMAGEM: "hover:bg-brand-green-100 hover:text-brand-green-700",
+    FONOAUDIOLOGA: "hover:bg-brand-50 hover:text-brand-800",
+    ADMINISTRATIVO: "hover:bg-brand-50 hover:text-brand-700",
+    COMERCIAL: "hover:bg-brand-green-100 hover:text-brand-green-700",
+    ATENDIMENTO: "hover:bg-brand-50 hover:text-brand-700",
+    LABORATORIO: "hover:bg-brand-green-100 hover:text-brand-green-700",
+    CONVIDADO: "hover:bg-brand-50 hover:text-brand-600",
+    ENGENHARIA: "hover:bg-brand-50 hover:text-brand-800",
   };
 
-  return colorMap[especialidade] || "hover:bg-gray-50 hover:text-gray-900";
+  return colorMap[especialidade] || "hover:bg-brand-50 hover:text-brand-800";
 };
 
 const getInitials = (nome: string): string => {
@@ -130,7 +130,7 @@ const getNotificationIconBadge = (type: AppNotification["type"]) => {
       );
     default:
       return (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E6F5FA] text-[#0698C2] border border-[#0698C2]/20 shadow-2xs">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-700 border border-brand-500/20 shadow-2xs">
           <Bell className="h-4 w-4" />
         </div>
       );
@@ -169,7 +169,7 @@ const NotificationsList: React.FC<{
             <div
               key={notification.id}
               className={`group relative flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50/80 ${
-                notification.read ? "bg-white" : "bg-[#E6F5FA]/30"
+                notification.read ? "bg-white" : "bg-brand-100/30"
               }`}
             >
               {getNotificationIconBadge(notification.type)}
@@ -206,7 +206,7 @@ const NotificationsList: React.FC<{
 
                   {!notification.read ? (
                     <button
-                      className="text-[11px] font-medium text-[#0698C2] hover:text-[#005C7A] transition-colors"
+                      className="text-[11px] font-medium text-brand-700 hover:text-brand-800 transition-colors"
                       onClick={() => onMarkAsRead(notification.id)}
                     >
                       Marcar como lida
@@ -234,6 +234,8 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
   const [user, setUser] = useState<IUserInfo | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [view, setView] = useState<MenuView>("menu");
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [quickGroupIndex, setQuickGroupIndex] = useState(0);
   const [notifications, setNotifications] = useState<AppNotification[]>(() =>
     getNotifications(),
   );
@@ -249,6 +251,19 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
       setUser(currentUser);
     }
   }, [router]);
+
+  useEffect(() => {
+    const handleCommandShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setIsCommandPaletteOpen(true);
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleCommandShortcut);
+    return () => window.removeEventListener("keydown", handleCommandShortcut);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -286,6 +301,7 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
   const closeMenu = () => {
     setIsMenuOpen(false);
     setView("menu");
+    setQuickGroupIndex(0);
   };
 
   const handleMarkAsRead = (id: string) => {
@@ -317,6 +333,8 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
     onLogout();
   };
 
+  const closeCommandPalette = () => setIsCommandPaletteOpen(false);
+
   return (
     <motion.header
       animate={{ y: 0, opacity: 1 }}
@@ -329,8 +347,8 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
         <div className="flex h-16 items-center justify-between">
           <Link
             aria-label="Ir para o dashboard"
-            className="flex items-center gap-2 rounded-lg p-1 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#0698C2]"
-            href="/dashboard"
+            className="flex items-center gap-2 rounded-lg p-1 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            href={getHomeRoute(user)}
           >
             <Image
               priority
@@ -344,13 +362,37 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
 
           {children}
 
+          <button
+            aria-label="Buscar páginas e ações"
+            aria-keyshortcuts="Control+K"
+            className="group mx-4 hidden min-w-0 flex-1 max-w-md cursor-pointer items-center gap-3 rounded-xl border border-brand-line bg-brand-surface px-3 py-2 text-left transition-colors hover:border-brand-500/50 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 lg:flex"
+            type="button"
+            onClick={() => setIsCommandPaletteOpen(true)}
+          >
+            <Search className="h-4 w-4 shrink-0 text-brand-600" />
+            <span className="min-w-0 flex-1 truncate text-sm text-gray-500">
+              Buscar páginas e ações...
+            </span>
+            <kbd className="flex shrink-0 items-center gap-1 rounded-md border border-brand-line bg-white px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 shadow-sm">
+              <Command className="h-3 w-3" /> K
+            </kbd>
+          </button>
+
           <div className="flex items-center gap-3">
+            <button
+              aria-label="Buscar páginas e ações"
+              className="grid h-9 w-9 cursor-pointer place-items-center rounded-xl border border-brand-line bg-brand-surface text-brand-700 transition-colors hover:border-brand-500/50 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 lg:hidden"
+              type="button"
+              onClick={() => setIsCommandPaletteOpen(true)}
+            >
+              <Search className="h-4 w-4" />
+            </button>
             <div ref={menuRef} className="relative">
               <button
                 aria-expanded={isMenuOpen}
                 aria-haspopup="true"
                 aria-label="Abrir menu do usuário"
-                className="flex cursor-pointer items-center gap-2 rounded-xl p-2 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0698C2]"
+                className="flex cursor-pointer items-center gap-2 rounded-xl p-2 transition-colors hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 onClick={() => setIsMenuOpen((current) => !current)}
               >
                 <Badge
@@ -409,47 +451,54 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
                       <p className="text-xs text-white/80">{user?.perfil}</p>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-1 border-b border-gray-100 px-4 py-3">
-                      {[
-                        { icon: Stethoscope, label: "Atendimento", path: "/atendimento" },
-                        { icon: Users, label: "Recepção", path: "/recepcao" },
-                        { icon: ChartNoAxesCombined, label: "Relatórios", path: "/relatorio" },
-                        { icon: FileText, label: "Prontuários", path: "/prontuarios" },
-                      ].map((item) => (
-                        <button
-                          key={item.path}
-                          className={`flex flex-col items-center gap-1.5 rounded-lg p-2 text-gray-600 cursor-pointer transition-colors ${getHoverColor(user?.perfil ?? "")}`}
-                          onClick={() => handleNavigate(item.path)}
-                        >
-                          <item.icon className="h-5 w-5" />
-                          <span className="text-[10px] font-medium leading-tight text-center">{item.label}</span>
-                        </button>
-                      ))}
+                    <div className="border-b border-gray-100 px-4 py-3">
+                      {(() => {
+                        const group = SIDEBAR_GROUPS[quickGroupIndex];
+                        const GroupIcon = group.icon;
+
+                        return (
+                          <>
+                            <div className="mb-2 flex items-center justify-between gap-2">
+                              <button
+                                aria-label="Grupo anterior"
+                                className={`cursor-pointer rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 ${quickGroupIndex === 0 ? "invisible" : ""}`}
+                                disabled={quickGroupIndex === 0}
+                                onClick={() => setQuickGroupIndex((current) => Math.max(0, current - 1))}
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                              </button>
+                              <div className="flex min-w-0 items-center gap-2 text-center">
+                                <GroupIcon className="h-4 w-4 shrink-0 text-brand-blue" />
+                                <span className="truncate text-xs font-semibold uppercase tracking-[0.12em] text-brand-700">
+                                  {group.title}
+                                </span>
+                              </div>
+                              <button
+                                aria-label="Próximo grupo"
+                                className={`cursor-pointer rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 ${quickGroupIndex === SIDEBAR_GROUPS.length - 1 ? "invisible" : ""}`}
+                                disabled={quickGroupIndex === SIDEBAR_GROUPS.length - 1}
+                                onClick={() => setQuickGroupIndex((current) => Math.min(SIDEBAR_GROUPS.length - 1, current + 1))}
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </button>
+                            </div>
+
+                            <div className="space-y-0.5">
+                              {group.items.map(({ title, icon: ItemIcon, path, color }) => (
+                                <button
+                                  key={path}
+                                  className={`flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs text-gray-600 transition-colors ${getHoverColor(user?.perfil ?? "")}`}
+                                  onClick={() => handleNavigate(path)}
+                                >
+                                  <ItemIcon className={`h-4 w-4 shrink-0 ${color ?? "text-brand-blue"}`} />
+                                  <span className="truncate">{title}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
-
-                    <button
-                      className={`flex w-full items-center px-4 py-2 text-sm text-gray-700 cursor-pointer transition-colors ${getHoverColor(user?.perfil ?? "")}`}
-                      onClick={() => handleNavigate("/agenda")}
-                    >
-                      <CalendarDays className="mr-3 h-4 w-4" />
-                      Agenda de Compromissos
-                    </button>
-
-                    <button
-                      className={`flex w-full items-center px-4 py-2 text-sm text-gray-700 cursor-pointer transition-colors ${getHoverColor(user?.perfil ?? "")}`}
-                      onClick={() => handleNavigate("/configuracoes")}
-                    >
-                      <Settings className="mr-3 h-4 w-4" />
-                      Configurações
-                    </button>
-
-                    <button
-                      className={`flex w-full items-center px-4 py-2 text-sm text-gray-700 cursor-pointer transition-colors ${getHoverColor(user?.perfil ?? "")}`}
-                      onClick={() => handleNavigate("/servicos")}
-                    >
-                      <LayoutGrid className="mr-3 h-4 w-4" />
-                      Serviços
-                    </button>
 
                     <div
                       className={`flex w-full items-center justify-between px-4 py-2 text-sm text-gray-700 transition-colors ${getHoverColor(user?.perfil ?? "")}`}
@@ -556,6 +605,7 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
           </div>
         </div>
       </div>
+      <CommandPalette open={isCommandPaletteOpen} onClose={closeCommandPalette} />
     </motion.header>
   );
 };

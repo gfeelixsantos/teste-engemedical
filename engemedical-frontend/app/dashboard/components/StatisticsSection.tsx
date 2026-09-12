@@ -22,15 +22,14 @@ import {
   Gauge,
   Info,
 } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 
-import { ScraperMonitor } from "./ScraperMonitor";
 import SlaChart from "./SlaChart";
 import {
   BarChart,
   Bar,
-  AreaChart,
-  Area,
+  PieChart,
+  Pie,
   RadialBarChart,
   RadialBar,
   PolarAngleAxis,
@@ -53,16 +52,16 @@ import {
 
 // 🎨 Constantes de design
 const COLORS = {
-  primary: "#0698C2",
-  primaryLight: "#0AABD4",
-  primaryDark: "#005C7A",
-  secondary: "#30D158",
-  secondaryLight: "#5EE17A",
-  accent: "#006B94",
+  primary: "#28B1CF",
+  primaryLight: "#44C2D5",
+  primaryDark: "#006782",
+  secondary: "#00C853",
+  secondaryLight: "#3FE17B",
+  accent: "#006782",
   success: "#10b981",
   warning: "#f59e0b",
   danger: "#ef4444",
-  info: "#0698C2",
+  info: "#28B1CF",
   purple: "#8b5cf6",
 };
 
@@ -81,81 +80,26 @@ const STATUS_LABELS: Record<string, string> = {
   EM_ANALISE: "Em Análise",
 };
 
-const PowerBiKpiPanel = ({
+const OperationalMetric = ({
   title,
   value,
   icon: Icon,
-  gradient = false,
-  delay = 0,
-  accent = COLORS.primary,
+  accent,
 }: {
   title: string;
-  value: number | string;
+  value: number;
   icon: any;
-  gradient?: boolean;
-  delay?: number;
-  accent?: string;
+  accent: string;
 }) => (
-  <motion.div
-    animate={{ opacity: 1, scale: 1 }}
-    className={`group relative overflow-hidden rounded-xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_48px_rgba(6,152,194,0.16)] ${
-      gradient
-        ? "border-[#0698C2]/30 bg-gradient-to-br from-[#0698C2] via-[#047A9E] to-[#005C7A] text-white"
-        : "border-gray-200/80 bg-white text-gray-900"
-    }`}
-    initial={{ opacity: 0, scale: 0.95 }}
-    transition={{ delay }}
-  >
-    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-blue via-brand-cyan to-brand-green" />
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex-1">
-        <p
-          className={`text-sm font-medium mb-1 ${gradient ? "text-white/90" : "text-gray-700"}`}
-        >
-          {title}
-        </p>
-        <p
-          className={`text-2xl font-bold ${gradient ? "text-white" : "text-gray-900"}`}
-        >
-          {typeof value === "number" ? value.toLocaleString("pt-BR") : value}
-        </p>
-        <div className="mt-4 h-12">
-          <ResponsiveContainer height="100%" width="100%">
-            <AreaChart
-              data={[
-                { name: "D-4", value: Math.max(Number(value) * 0.62 || 4, 1) },
-                { name: "D-3", value: Math.max(Number(value) * 0.74 || 6, 1) },
-                { name: "D-2", value: Math.max(Number(value) * 0.58 || 5, 1) },
-                { name: "D-1", value: Math.max(Number(value) * 0.86 || 8, 1) },
-                { name: "Hoje", value: Math.max(Number(value) || 10, 1) },
-              ]}
-              margin={{ bottom: 0, left: 0, right: 0, top: 8 }}
-            >
-              <Area
-                dataKey="value"
-                fill={gradient ? "rgba(255,255,255,0.2)" : `${accent}18`}
-                stroke={gradient ? "rgba(255,255,255,0.82)" : accent}
-                strokeWidth={2}
-                type="monotone"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      <div
-        className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${
-          gradient
-            ? "bg-white/12 text-white backdrop-blur-sm"
-            : "border bg-[#E6F5FA] text-[#0698C2]"
-        }`}
-        style={{ borderColor: `${accent}30` }}
-      >
-        <Icon
-          className={`h-6 w-6 ${gradient ? "text-white" : "text-[#0698C2]"}`}
-        />
-      </div>
+  <div className="rounded-xl border border-gray-200/80 bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
+    <div className="flex items-start justify-between gap-2">
+      <p className="text-xs font-medium leading-4 text-gray-600">{title}</p>
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-100" style={{ color: accent }}>
+        <Icon className="h-4 w-4" />
+      </span>
     </div>
-  </motion.div>
+    <p className="mt-2 text-xl font-bold text-gray-950">{value.toLocaleString("pt-BR")}</p>
+  </div>
 );
 
 // 📊 Barra de progresso horizontal
@@ -486,7 +430,7 @@ const TempoPermanenciaChart = ({
     pessoas: d.quantidade,
   }));
 
-  const cores = ["#0698C2", "#0AABD4", "#006B94", "#30D158", "#005C7A"];
+  const cores = ["#28B1CF", "#44C2D5", "#006782", "#00C853", "#0B9516"];
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -616,7 +560,7 @@ const GlobalSlaCard = ({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
         <div className="flex items-center gap-3">
-          <Target className="h-5 w-5 text-[#0698C2]" />
+          <Target className="h-5 w-5 text-brand-500" />
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
               SLA Global de Atendimento
@@ -751,7 +695,7 @@ const GlobalSlaCard = ({
         <div className="mt-5 pt-4 border-t border-gray-100">
           <details className="group">
             <summary className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer hover:text-gray-700 select-none">
-              <Info className="h-3.5 w-3.5 text-[#0698C2]" />
+              <Info className="h-3.5 w-3.5 text-brand-500" />
               <span className="font-medium">O que é este gráfico?</span>
               <ChevronDown className="h-3 w-3 ml-auto transition-transform group-open:rotate-180" />
             </summary>
@@ -841,7 +785,20 @@ const GlobalSlaCard = ({
 };
 
 // 🚀 Componente principal
-export function StatisticsSection() {
+type StatisticsMeta = {
+  lastUpdate: string;
+  isCache: boolean;
+};
+
+export function StatisticsSection({
+  onMetaChange,
+  refreshSignal = 0,
+  onRefreshStateChange,
+}: {
+  onMetaChange?: (meta: StatisticsMeta) => void;
+  refreshSignal?: number;
+  onRefreshStateChange?: (isRefreshing: boolean) => void;
+}) {
   const { data, loading, error, refetch } = useStatistics({
     autoRefresh: true,
     refreshInterval: 300000,
@@ -850,7 +807,6 @@ export function StatisticsSection() {
   const [expandedUnit, setExpandedUnit] = useState<string | null>(null);
   const [expandedExamUnit, setExpandedExamUnit] = useState<string | null>(null);
   const [showAllExams, setShowAllExams] = useState<Record<string, boolean>>({});
-  const [lastUpdate, setLastUpdate] = useState<string>("");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const statisticsData = data as unknown as StatisticsResponseDto;
@@ -968,18 +924,36 @@ export function StatisticsSection() {
   // 🎯 Atualizar timestamp
   useEffect(() => {
     if (statisticsData?.generatedAt) {
-      setLastUpdate(
-        new Date(statisticsData.generatedAt).toLocaleTimeString("pt-BR"),
-      );
+      const formattedLastUpdate = new Date(
+        statisticsData.generatedAt,
+      ).toLocaleTimeString("pt-BR");
+
+      onMetaChange?.({
+        lastUpdate: formattedLastUpdate,
+        isCache: statisticsData.source === "cache",
+      });
     }
-  }, [statisticsData]);
+  }, [onMetaChange, statisticsData]);
 
   // 🔄 Refresh handler
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await refetch();
-    setTimeout(() => setIsRefreshing(false), 500);
-  };
+    try {
+      await refetch();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
+  }, [refetch]);
+
+  useEffect(() => {
+    if (refreshSignal === 0) return;
+
+    void handleRefresh();
+  }, [handleRefresh, refreshSignal]);
+
+  useEffect(() => {
+    onRefreshStateChange?.(isRefreshing);
+  }, [isRefreshing, onRefreshStateChange]);
 
   // 🎨 Toggle para ver todos os exames
   const toggleShowAllExams = (unitName: string) => {
@@ -1044,6 +1018,22 @@ export function StatisticsSection() {
     totais?.atendimentosPrevistos > 0
       ? Math.round((totalFinalizados / totais.atendimentosPrevistos) * 100)
       : 0;
+  const statusData = Object.entries(totais?.atendimentosPorStatus || {})
+    .map(([status, value]) => ({
+      name: STATUS_LABELS[status] || status.replace(/_/g, " "),
+      status,
+      value: Number(value),
+    }))
+    .filter((item) => item.value > 0)
+    .sort((a, b) => b.value - a.value);
+  const statusTotal = statusData.reduce((total, item) => total + item.value, 0);
+  const statusColor = (status: string) => {
+    if (status.includes("FINALIZADO") || status.includes("CONCLUIDO")) return COLORS.success;
+    if (status.includes("AVALIACAO_MEDICA")) return COLORS.warning;
+    if (status.includes("AGUARDANDO_RESULTADOS")) return COLORS.purple;
+    if (status.includes("ATENDIMENTO") || status.includes("EM_CHAMADA")) return COLORS.danger;
+    return COLORS.info;
+  };
 
   return (
     <AnimatePresence>
@@ -1054,150 +1044,108 @@ export function StatisticsSection() {
         initial={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.4 }}
       >
-        {/* 📊 HEADER - Dashboard de Estatísticas */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Dashboard de Estatísticas
-              </h1>
-              <p className="text-sm text-gray-600 flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  {new Date().toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </span>
-                {lastUpdate && (
-                  <>
-                    <span className="text-gray-300">•</span>
-                    <Clock className="h-4 w-4" />
-                    Atualizado às {lastUpdate}
-                    {statisticsData?.source === "cache" && " (cache)"}
-                  </>
-                )}
-              </p>
-            </div>
+        <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+          <div className="border-b border-gray-200/80 bg-gradient-to-r from-gray-50 to-white px-5 py-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-blue">
+              Resumo operacional
+            </p>
+            <h2 className="mt-1 text-lg font-semibold text-gray-950">
+              Acompanhamento do fluxo de atendimento
+            </h2>
           </div>
 
-          <Button
-            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-200 border border-gray-200 cursor-pointer"
-            disabled={loading || isRefreshing}
-            onClick={handleRefresh}
-          >
-            <RefreshCw
-              className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-            />
-            <span className="font-medium">
-              {isRefreshing ? "Atualizando..." : "Atualizar Dados"}
-            </span>
-          </Button>
-        </div>
-
-        <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
-          <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1fr)_260px]">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <PowerBiKpiPanel
-                gradient
-                delay={0}
-                accent={COLORS.primary}
-                icon={Users}
-                title="Atendimentos Totais"
-                value={totais?.totalAgendamentos || 0}
-              />
-
-              <PowerBiKpiPanel
-                delay={0.08}
-                accent={COLORS.info}
-                icon={Calendar}
-                title="Atendimentos Previstos"
-                value={totais?.atendimentosPrevistos || 0}
-              />
-
-              <PowerBiKpiPanel
-                delay={0.16}
-                accent={COLORS.primaryDark}
-                icon={FileText}
-                title="Total de Prontuários"
-                value={totais?.totalProntuarios || 0}
-              />
-
-              <PowerBiKpiPanel
-                delay={0.24}
-                accent={COLORS.success}
-                icon={FlaskConical}
-                title="Exames Realizados"
-                value={totais?.totalExamesRealizados || 0}
-              />
-
-              <PowerBiKpiPanel
-                delay={0.32}
-                accent={COLORS.purple}
-                icon={Clock}
-                title="Aguardando Resultados"
-                value={totais?.aguardandoResultados || 0}
-              />
-
-              <PowerBiKpiPanel
-                delay={0.4}
-                accent={COLORS.warning}
-                icon={Stethoscope}
-                title="Aguardando Avaliação Médica"
-                value={totais?.aguardandoAvaliacaoMedica || 0}
-              />
-            </div>
-
+          <div className="grid gap-5 p-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
             <article className="rounded-xl border border-gray-200 bg-[#F9FAFB] p-4">
-              <div className="mb-3 flex items-center justify-between">
+              <div className="mb-2 flex items-center gap-2">
+                <Activity className="h-5 w-5 text-brand-500" />
                 <div>
-                  <p className="text-sm font-semibold text-gray-950">
-                    Eficiência do dia
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Finalizados sobre previstos
-                  </p>
+                  <h3 className="text-sm font-semibold text-gray-950">Distribuição dos atendimentos</h3>
+                  <p className="text-xs text-gray-500">Status consolidados do dia</p>
                 </div>
-                <Gauge className="h-5 w-5 text-[#0698C2]" />
               </div>
-              <div className="h-44">
-                <ResponsiveContainer height="100%" width="100%">
-                  <RadialBarChart
-                    cx="50%"
-                    cy="50%"
-                    data={[
-                      {
-                        fill: COLORS.secondary,
-                        name: "Finalizados",
-                        value: eficienciaOperacional,
-                      },
-                    ]}
-                    endAngle={-270}
-                    innerRadius="72%"
-                    outerRadius="94%"
-                    startAngle={90}
-                  >
-                    <PolarAngleAxis
-                      angleAxisId={0}
-                      domain={[0, 100]}
-                      tick={false}
-                      type="number"
-                    />
-                    <RadialBar background cornerRadius={12} dataKey="value" />
-                  </RadialBarChart>
-                </ResponsiveContainer>
+
+              <div className="grid items-center gap-4 md:grid-cols-[190px_minmax(0,1fr)]">
+                <div className="relative h-48">
+                  <ResponsiveContainer height="100%" width="100%">
+                    <PieChart>
+                      <Pie
+                        cx="50%"
+                        cy="50%"
+                        data={statusData}
+                        dataKey="value"
+                        innerRadius="62%"
+                        outerRadius="88%"
+                        paddingAngle={2}
+                        stroke="none"
+                      >
+                        {statusData.map((entry) => (
+                          <Cell key={entry.status} fill={statusColor(entry.status)} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-2xl font-bold text-gray-950">{statusTotal.toLocaleString("pt-BR")}</span>
+                    <span className="text-[11px] text-gray-500">atendimentos</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {statusData.length === 0 ? (
+                    <p className="text-sm text-gray-500">Nenhum status disponível.</p>
+                  ) : (
+                    statusData.map((entry) => (
+                      <div key={entry.status} className="flex items-center justify-between gap-3 text-xs">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: statusColor(entry.status) }} />
+                          <span className="truncate text-gray-600">{entry.name}</span>
+                        </div>
+                        <span className="shrink-0 font-semibold text-gray-900">
+                          {entry.value} ({statusTotal ? Math.round((entry.value / statusTotal) * 100) : 0}%)
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
-              <p className="text-center text-3xl font-bold text-gray-950">
-                {eficienciaOperacional}%
-              </p>
             </article>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <article className="col-span-2 rounded-xl border border-gray-200 bg-[#F9FAFB] p-3 sm:col-span-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-950">Eficiência do dia</p>
+                    <p className="text-xs text-gray-500">Finalizados sobre previstos</p>
+                  </div>
+                  <div className="relative h-16 w-16">
+                    <ResponsiveContainer height="100%" width="100%">
+                      <RadialBarChart
+                        cx="50%"
+                        cy="50%"
+                        data={[{ fill: COLORS.secondary, value: eficienciaOperacional }]}
+                        endAngle={-270}
+                        innerRadius="68%"
+                        outerRadius="94%"
+                        startAngle={90}
+                      >
+                        <PolarAngleAxis angleAxisId={0} domain={[0, 100]} tick={false} type="number" />
+                        <RadialBar background cornerRadius={8} dataKey="value" />
+                      </RadialBarChart>
+                    </ResponsiveContainer>
+                    <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-gray-950">{eficienciaOperacional}%</span>
+                  </div>
+                </div>
+              </article>
+
+              <OperationalMetric accent={COLORS.info} icon={Calendar} title="Atendimentos previstos" value={totais?.atendimentosPrevistos || 0} />
+              <OperationalMetric accent={COLORS.primary} icon={Users} title="Atendimentos totais" value={totais?.totalAgendamentos || 0} />
+              <OperationalMetric accent={COLORS.success} icon={FlaskConical} title="Exames realizados" value={totais?.totalExamesRealizados || 0} />
+              <OperationalMetric accent={COLORS.purple} icon={Clock} title="Aguardando resultados" value={totais?.aguardandoResultados || 0} />
+              <OperationalMetric accent={COLORS.warning} icon={Stethoscope} title="Aguardando avaliação médica" value={totais?.aguardandoAvaliacaoMedica || 0} />
+              <OperationalMetric accent={COLORS.primaryDark} icon={FileText} title="Prontuários" value={totais?.totalProntuarios || 0} />
+            </div>
           </div>
         </section>
-
-        <div className="grid grid-cols-1 gap-6">
-          <ScraperMonitor />
-        </div>
 
         {/* 📊 STATUS E TIPOS DE EXAME */}
         {totais && (
@@ -1210,7 +1158,7 @@ export function StatisticsSection() {
             >
               <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
                 <div className="flex items-center gap-3">
-                  <Activity className="h-5 w-5 text-[#0698C2]" />
+                  <Activity className="h-5 w-5 text-brand-500" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
                       Status dos Atendimentos
@@ -1375,7 +1323,7 @@ export function StatisticsSection() {
             >
               <div className="p-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
                 <div className="flex items-center gap-3">
-                  <Layers className="h-5 w-5 text-[#0698C2]" />
+                  <Layers className="h-5 w-5 text-brand-500" />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
                       Tipos de Exame
@@ -1413,7 +1361,7 @@ export function StatisticsSection() {
                             </div>
                           </div>
                           <ProgressBar
-                            color="#30D158"
+                            color="#00C853"
                             max={totais.totalAgendamentos}
                             size="sm"
                             value={count as number}
@@ -1466,7 +1414,7 @@ export function StatisticsSection() {
                         <div className="flex items-center gap-4 mt-1">
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4 text-gray-500" />
-                            <span className="text-lg font-bold text-[#0698C2]">
+                            <span className="text-lg font-bold text-brand-500">
                               {unidade.totalAgendamentos}
                             </span>
                             <span className="text-sm text-gray-600">
@@ -1822,8 +1770,8 @@ export function StatisticsSection() {
                     <div className="border-t border-gray-200 pt-6">
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-[#0698C2]/12 border border-[#0698C2]/20">
-                            <FlaskConical className="h-5 w-5 text-[#0698C2]" />
+                          <div className="p-2 rounded-lg bg-brand-500/12 border border-brand-500/20">
+                            <FlaskConical className="h-5 w-5 text-brand-500" />
                           </div>
                           <div>
                             <h3 className="text-lg font-semibold text-gray-900">
@@ -1878,7 +1826,7 @@ export function StatisticsSection() {
 
                           {unidade.exames.length > 8 && (
                             <Button
-                              className="text-[#0698C2]"
+                              className="text-brand-500"
                               size="sm"
                               variant="light"
                               onClick={(e) => {
@@ -1922,7 +1870,7 @@ export function StatisticsSection() {
                       {!showAllForUnit && unidade.exames.length > 8 && (
                         <div className="mt-6 text-center">
                           <Button
-                            className="text-[#0698C2] font-medium"
+                            className="text-brand-500 font-medium"
                             size="sm"
                             variant="light"
                             onClick={() => toggleShowAllExams(unidade.unidade)}
@@ -1998,7 +1946,7 @@ export function StatisticsSection() {
                         {/* Guia explicativo do SLA */}
                         <div className="bg-gradient-to-br from-[#f8faf8] to-white rounded-xl border border-gray-200 p-5 flex flex-col justify-center">
                           <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                            <span className="w-5 h-5 rounded-full bg-[#0698C2]/10 flex items-center justify-center text-[11px] font-bold text-[#0698C2]">
+                            <span className="w-5 h-5 rounded-full bg-brand-500/10 flex items-center justify-center text-[11px] font-bold text-brand-500">
                               ?
                             </span>
                             Como funciona este SLA?

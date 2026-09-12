@@ -1081,7 +1081,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
               <Building
                 aria-hidden="true"
                 size={28}
-                style={{ color: "#0698C2" }}
+                style={{ color: "#28B1CF" }}
                 className="flex-shrink-0"
               />
               <h2 className="text-xl font-semibold text-gray-800 whitespace-nowrap">
@@ -1202,7 +1202,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                 color="primary"
                 size="sm"
                 startContent={<Plus size={16} />}
-                style={{ backgroundColor: "#0698C2" }}
+                style={{ backgroundColor: "#28B1CF" }}
                 onPress={openCreate}
               >
                 Nova Empresa
@@ -1518,7 +1518,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
               aria-label="Dados complementares da empresa"
               classNames={{
                 tabList: "gap-6 w-full relative rounded-none p-0 border-b-0",
-                cursor: "w-full bg-[#0698C2]",
+                cursor: "w-full bg-[#28B1CF]",
                 tab: "max-w-fit px-0 h-12 text-sm font-medium",
               }}
               selectedKey={activeTab}
@@ -1540,14 +1540,14 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                 {isCreate && (
                   <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-slate-50 to-gray-100/80 border border-gray-200/50 shadow-sm flex flex-col gap-3">
                     <div className="flex items-center gap-2 text-default-500 font-semibold text-xs uppercase tracking-wider">
-                      <Database className="text-[#0698C2]" size={14} />
+                      <Database className="text-[#28B1CF]" size={14} />
                       <span>Importar Dados do SOC (Opcional)</span>
                     </div>
                     <Autocomplete
                       allowsCustomValue={false}
                       classNames={{
                         selectorButton:
-                          "bg-white border-gray-200 hover:border-gray-300 focus:border-[#0698C2] shadow-none",
+                          "bg-white border-gray-200 hover:border-gray-300 focus:border-[#28B1CF] shadow-none",
                       }}
                       isLoading={importingSoc}
                       items={filteredSocCompanies(socSearchTerm)}
@@ -1599,7 +1599,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                       onValueChange={(v) => setForm((f) => ({ ...f, CNPJ: v }))}
                     />
                     <Button
-                      className="bg-[#0698C2] text-white min-w-fit h-10 px-4 text-sm font-semibold rounded-xl shadow-sm hover:opacity-90 align-middle"
+                      className="bg-[#28B1CF] text-white min-w-fit h-10 px-4 text-sm font-semibold rounded-xl shadow-sm hover:opacity-90 align-middle"
                       isLoading={buscandoCnpj}
                       size="md"
                       variant="solid"
@@ -1710,7 +1710,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                   {/* Seção de Endereço */}
                   <div className="col-span-2 border-t border-gray-100 pt-4 mt-2">
                     <h3 className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1.5">
-                      <MapPin className="text-[#0698C2]" size={16} />
+                      <MapPin className="text-[#28B1CF]" size={16} />
                       Endereço da Empresa
                     </h3>
                   </div>
@@ -2020,7 +2020,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                     }
                   />
                   <Button
-                    className="bg-[#0698C2]"
+                    className="bg-[#28B1CF]"
                     color="primary"
                     size="md"
                     startContent={<Plus size={16} />}
@@ -2148,7 +2148,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
 
                   <div className="flex justify-end pt-2">
                     <Button
-                      className="bg-[#0698C2] px-8"
+                      className="bg-[#28B1CF] px-8"
                       color="primary"
                       startContent={<Plus size={16} />}
                       onPress={addResponsavel}
@@ -2239,7 +2239,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                       }
                     />
                     <Button
-                      className="bg-[#0698C2] text-white font-semibold shadow-sm hover:opacity-90"
+                      className="bg-[#28B1CF] text-white font-semibold shadow-sm hover:opacity-90"
                       isLoading={buscandoContratanteCnpj}
                       size="md"
                       variant="solid"
@@ -2348,7 +2348,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
 
                   <div className="col-span-1 md:col-span-4 flex justify-end">
                     <Button
-                      className="bg-[#0698C2] px-8"
+                      className="bg-[#28B1CF] px-8"
                       color="primary"
                       size="md"
                       startContent={<Plus size={16} />}
@@ -2472,7 +2472,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                         </Button>
                       )}
                       <Button
-                        className="bg-[#0698C2] px-8"
+                        className="bg-[#28B1CF] px-8"
                         color="primary"
                         size="md"
                         startContent={<Plus size={16} />}
@@ -2553,11 +2553,11 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                     {editingDoc && !showReplaceFile && !newDocFile ? (
                       <div className="flex items-center justify-between border border-gray-200 rounded-xl p-4 bg-white">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#0698C2]/10 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-[#28B1CF]/10 flex items-center justify-center">
                             <svg
                               fill="none"
                               height="20"
-                              stroke="#0698C2"
+                              stroke="#28B1CF"
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth="2"
@@ -2595,28 +2595,28 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                       </div>
                     ) : (
                       <div
-                        className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-[#0698C2] hover:bg-[#0698C2]/5 transition-colors"
+                        className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-[#28B1CF] hover:bg-[#28B1CF]/5 transition-colors"
                         onClick={() =>
                           document.getElementById("doc-file-input")?.click()
                         }
                         onDragLeave={(e) => {
                           e.currentTarget.classList.remove(
-                            "border-[#0698C2]",
-                            "bg-[#0698C2]/5",
+                            "border-[#28B1CF]",
+                            "bg-[#28B1CF]/5",
                           );
                         }}
                         onDragOver={(e) => {
                           e.preventDefault();
                           e.currentTarget.classList.add(
-                            "border-[#0698C2]",
-                            "bg-[#0698C2]/5",
+                            "border-[#28B1CF]",
+                            "bg-[#28B1CF]/5",
                           );
                         }}
                         onDrop={(e) => {
                           e.preventDefault();
                           e.currentTarget.classList.remove(
-                            "border-[#0698C2]",
-                            "bg-[#0698C2]/5",
+                            "border-[#28B1CF]",
+                            "bg-[#28B1CF]/5",
                           );
                           if (
                             e.dataTransfer.files &&
@@ -2639,11 +2639,11 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                         />
                         {newDocFile ? (
                           <div className="flex flex-col items-center gap-2">
-                            <div className="w-10 h-10 rounded-full bg-[#0698C2]/10 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-[#28B1CF]/10 flex items-center justify-center">
                               <svg
                                 fill="none"
                                 height="20"
-                                stroke="#0698C2"
+                                stroke="#28B1CF"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth="2"
@@ -2854,7 +2854,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                         Cancelar
                       </Button>
                       <Button
-                        className="bg-[#0698C2]"
+                        className="bg-[#28B1CF]"
                         color="primary"
                         isLoading={uploadingDoc}
                         onPress={
@@ -2874,7 +2874,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                         Gerencie os documentos da empresa.
                       </span>
                       <Button
-                        className="bg-[#0698C2]"
+                        className="bg-[#28B1CF]"
                         color="primary"
                         startContent={<Plus size={16} />}
                         onPress={() => {
@@ -3017,7 +3017,7 @@ export function EmpresasSection({ user }: EmpresasSectionProps) {
                 ) === initialStateSnapshot
               }
               isLoading={saving}
-              style={{ backgroundColor: "#0698C2" }}
+              style={{ backgroundColor: "#28B1CF" }}
               onPress={handleSave}
             >
               Salvar Alterações

@@ -2,10 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { NEST_URL } from '@/config/constants';
-import { logout } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { HeaderApp } from '@/components/shared/HeaderApp';
 import KpiCards from './components/KpiCards';
 import VigenciaGeralDonut from './components/VigenciaGeralDonut';
 import DocumentosPorTipo from './components/DocumentosPorTipo';
@@ -70,7 +67,6 @@ function DashboardSkeleton() {
 }
 
 export default function DocumentosPage() {
-  const router = useRouter();
   const [empresaSel, setEmpresaSel] = useState('');
   const [unidadeSel, setUnidadeSel] = useState('');
   const [tipoSel, setTipoSel] = useState('');
@@ -85,11 +81,6 @@ export default function DocumentosPage() {
     staleTime: 15 * 60 * 1000,
   });
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
-
   // Filtrar registros
   const filteredRegistros = data?.registros?.filter((r) => {
     if (empresaSel && r.empresa !== empresaSel) return false;
@@ -100,8 +91,6 @@ export default function DocumentosPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <HeaderApp onLogout={handleLogout} />
-
       <main className="max-w-[1400px] mx-auto px-4 py-6 space-y-6">
         {/* Title */}
         <div>

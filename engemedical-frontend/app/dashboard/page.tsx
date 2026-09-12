@@ -11,11 +11,13 @@ import {
   ChartNoAxesCombined,
   BarChart3,
   CalendarDays,
+  Clock,
   Settings,
   LayoutGrid,
   Bell,
   X,
   ChevronDown,
+  RefreshCw,
 } from "lucide-react";
 import {
   Button,
@@ -60,11 +62,11 @@ const MessageModal: React.FC<{
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-sm">
       <motion.div
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-[#0698C2]/15"
+        className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-brand-500/15"
         exit={{ opacity: 0, scale: 0.95 }}
         initial={{ opacity: 0, scale: 0.95 }}
       >
-        <div className="p-6 border-b border-[#0698C2]/15 bg-[#F2F9FC]">
+        <div className="p-6 border-b border-brand-500/15 bg-brand-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <video
@@ -76,7 +78,7 @@ const MessageModal: React.FC<{
                 src="/images/gifs/Notification.webm"
               />
               <div>
-                <h2 className="text-xl font-bold text-[#005C7A]">
+                <h2 className="text-xl font-bold text-brand-700">
                   {message.title}
                 </h2>
                 <p className="text-md text-gray-500">{message.date}</p>
@@ -84,7 +86,7 @@ const MessageModal: React.FC<{
             </div>
             <button
               aria-label="Fechar"
-              className="p-2 hover:bg-[#E6F5FA] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0698C2]/40"
+              className="p-2 hover:bg-brand-100 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
               onClick={onClose}
             >
               <X className="h-5 w-5 text-gray-500" />
@@ -99,7 +101,7 @@ const MessageModal: React.FC<{
                 dangerouslySetInnerHTML={{
                   __html: sanitizeMessageHtml(message.content),
                 }}
-                className="text-gray-700 leading-relaxed [&_p]:my-3 [&_strong]:text-[#005C7A] [&_a]:text-[#0698C2] [&_a:hover]:text-[#005C7A] [&_a]:underline [&_img]:rounded-2xl [&_img]:max-h-56 [&_img]:w-auto [&_img]:mx-auto [&_img]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-3 [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-6 [&_h3]:text-[#005C7A] [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-2 [&_blockquote]:mt-5 [&_blockquote]:rounded-xl [&_blockquote]:border-l-4 [&_blockquote]:border-[#0698C2] [&_blockquote]:bg-[#F2F9FC] [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:text-[#005C7A]"
+                className="text-gray-700 leading-relaxed [&_p]:my-3 [&_strong]:text-brand-700 [&_a]:text-brand-600 [&_a:hover]:text-brand-700 [&_a]:underline [&_img]:rounded-2xl [&_img]:max-h-56 [&_img]:w-auto [&_img]:mx-auto [&_img]:my-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-3 [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-6 [&_h3]:text-brand-700 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-2 [&_blockquote]:mt-5 [&_blockquote]:rounded-xl [&_blockquote]:border-l-4 [&_blockquote]:border-brand-500 [&_blockquote]:bg-brand-50 [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:text-brand-700"
               />
             ) : (
               <div className="whitespace-pre-line text-gray-700">
@@ -109,10 +111,10 @@ const MessageModal: React.FC<{
           </div>
         </div>
 
-        <div className="p-6 border-t border-[#0698C2]/15 bg-[#F2F9FC]">
+        <div className="p-6 border-t border-brand-500/15 bg-brand-50">
           <div className="flex justify-end">
             <Button
-              className="px-6 py-2 text-[#005C7A] hover:bg-[#E6F5FA]"
+              className="px-6 py-2 text-brand-700 hover:bg-brand-100"
               color="default"
               variant="flat"
               onPress={onClose}
@@ -133,7 +135,7 @@ const MessageFloatingButton: React.FC<{
 }> = ({ onClick, hasMessage }) => (
   <button
     aria-label="Visualizar mensagem atual"
-    className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-[#0698C2] rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center group"
+    className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-brand-500 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center justify-center group"
     disabled={true}
     onClick={onClick}
   >
@@ -417,15 +419,25 @@ const LegacyDashboardNavSidebar: React.FC<{
 const DashboardNavSidebar: React.FC = () => (
   <aside
     aria-label="Menu principal do dashboard"
-    className="sticky top-16 relative z-[1000] hidden h-[calc(100vh-4rem)] w-64 shrink-0 self-start overflow-y-auto overscroll-contain scrollbar-hidden text-slate-900 lg:block"
+    className="sticky top-16 relative z-[1000] hidden h-[calc(100vh-4rem)] w-56 shrink-0 self-start overflow-y-auto overscroll-contain scrollbar-hidden text-slate-900 lg:block"
   >
-    <div className="min-h-full w-64 rounded-r-2xl border-r border-brand-200/80 bg-white p-3 shadow-[8px_0_24px_rgba(0,69,96,0.08)]">
+    <div className="min-h-full w-56 rounded-r-2xl border-r border-white/10 bg-brand-deep p-2.5 shadow-[8px_0_24px_rgba(4,21,31,0.14)]">
       <SidebarMenu openOnHover />
     </div>
   </aside>
 );
 
-const WelcomeSection: React.FC<{ name: string }> = ({ name }) => (
+type StatisticsMeta = {
+  lastUpdate: string;
+  isCache: boolean;
+};
+
+const WelcomeSection: React.FC<{
+  name: string;
+  statisticsMeta: StatisticsMeta;
+  isRefreshing: boolean;
+  onRefresh: () => void;
+}> = ({ name, statisticsMeta, isRefreshing, onRefresh }) => (
   <motion.section
     animate={{ opacity: 1, y: 0 }}
     aria-labelledby="welcome-title"
@@ -433,22 +445,48 @@ const WelcomeSection: React.FC<{ name: string }> = ({ name }) => (
     initial={{ opacity: 0, y: 20 }}
     transition={{ duration: 0.5 }}
   >
-    <section className="flex justify-between">
+    <section className="flex items-start justify-between gap-6">
       <div>
         <h1
           className="text-3xl font-bold text-gray-900 tracking-tight"
           id="welcome-title"
         >
           Bem-vindo,{" "}
-          <span>
+          <span className="bg-gradient-to-r from-brand-700 via-brand-600 to-brand-green-600 bg-clip-text text-transparent">
             {name.split(" ")[0]} {name.split(" ")[1]}
           </span>
         </h1>
-        <p className="text-lg text-gray-600 mt-2">
-          Acompanhe a operação do dia com indicadores consolidados de
-          atendimento e SST.
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-600">
+          <CalendarDays className="h-4 w-4" />
+          <span>
+            {new Date().toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}
+          </span>
+          {statisticsMeta.lastUpdate && (
+            <>
+              <span className="text-gray-300">•</span>
+              <Clock className="h-4 w-4" />
+              <span>
+                Atualizado às {statisticsMeta.lastUpdate}
+                {statisticsMeta.isCache && " (cache)"}
+              </span>
+            </>
+          )}
         </p>
       </div>
+      <Button
+        className="mt-1 flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-4 py-2.5 text-gray-700 transition-all duration-200 hover:bg-gray-200"
+        disabled={isRefreshing}
+        onClick={onRefresh}
+      >
+        <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+        <span className="font-medium">
+          {isRefreshing ? "Atualizando..." : "Atualizar Dados"}
+        </span>
+      </Button>
     </section>
   </motion.section>
 );
@@ -456,6 +494,12 @@ const WelcomeSection: React.FC<{ name: string }> = ({ name }) => (
 // Componente Principal
 export default function DashboardPage() {
   const router = useRouter();
+  const [statisticsMeta, setStatisticsMeta] = useState<StatisticsMeta>({
+    lastUpdate: "",
+    isCache: false,
+  });
+  const [refreshSignal, setRefreshSignal] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [user, setUser] = useState<IUserInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -701,11 +745,20 @@ export default function DashboardPage() {
           aria-label="Dashboard principal"
           className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8"
         >
-        <WelcomeSection name={user.nome} />
+        <WelcomeSection
+          name={user.nome}
+          statisticsMeta={statisticsMeta}
+          isRefreshing={isRefreshing}
+          onRefresh={() => setRefreshSignal((current) => current + 1)}
+        />
 
         <section aria-labelledby="stats-title" className="mt-8">
           <div>
-            <StatisticsSection />
+            <StatisticsSection
+              onMetaChange={setStatisticsMeta}
+              onRefreshStateChange={setIsRefreshing}
+              refreshSignal={refreshSignal}
+            />
           </div>
         </section>
 
@@ -717,7 +770,7 @@ export default function DashboardPage() {
         >
           <p className="text-sm text-gray-600">
             Engemedical Brasil • {new Date().getFullYear()} •{" "}
-            <a href="/privacidade" className="text-[#0698C2] hover:underline">
+            <a href="/privacidade" className="text-brand-600 hover:underline">
               Política de Privacidade
             </a>
           </p>
@@ -736,7 +789,7 @@ export default function DashboardPage() {
         size="sm"
       >
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-1 text-[#005C7A]">
+          <ModalHeader className="flex flex-col gap-1 text-brand-700">
             Sessão de Assinatura Expirada
           </ModalHeader>
           <ModalBody>
@@ -755,7 +808,7 @@ export default function DashboardPage() {
               Agora não
             </Button>
             <Button
-              className="bg-[#0698C2] text-white hover:bg-[#047A9E]"
+              className="bg-brand-500 text-white hover:bg-brand-600"
               onPress={attemptPscReauth}
             >
               Autenticar

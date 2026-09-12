@@ -3,8 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Activity, TrendingUp, UserX, Globe, HeartPulse, FileCheck } from 'lucide-react';
-import { HeaderApp } from '@/components/shared/HeaderApp';
-import { logout } from '@/lib/utils';
 
 const dashboards = [
   {
@@ -56,14 +54,11 @@ export default function DashboardsPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <HeaderApp onLogout={logout}>
-        <div className="flex items-center gap-3">
+      <div className="flex-1 overflow-auto p-6">
+        <div className="mb-2 flex items-center gap-3">
           <Activity className="h-6 w-6 text-brand-600" />
           <h1 className="text-xl font-bold text-gray-900">Dashboards Premium</h1>
         </div>
-      </HeaderApp>
-
-      <div className="flex-1 overflow-auto p-6">
         <p className="text-sm text-gray-500 mb-6">
           Selecione um dashboard para visualizar os dados em tempo real.
         </p>

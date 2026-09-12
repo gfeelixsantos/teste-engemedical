@@ -295,10 +295,10 @@ export default function EmPreparacaoModal({
         disableAnimation
         backdrop="blur"
         classNames={{
-          base: "rounded-xl shadow-xl bg-white border border-[#0698C2]/20",
-          header: "border-b border-[#0698C2]/15 px-5 py-3",
+          base: "rounded-xl shadow-xl bg-white border border-[#28B1CF]/20",
+          header: "border-b border-[#28B1CF]/15 px-5 py-3",
           body: "px-5 py-4",
-          footer: "border-t border-[#0698C2]/15 px-5 py-3",
+          footer: "border-t border-[#28B1CF]/15 px-5 py-3",
         }}
         isOpen={isOpen}
         size="md"
@@ -309,7 +309,7 @@ export default function EmPreparacaoModal({
             <>
               <ModalHeader className="flex items-center justify-between gap-3 p-4">
                 <div className="flex items-center gap-2">
-                  <FileClock className="text-[#0698C2]" size={20} />
+                  <FileClock className="text-[#28B1CF]" size={20} />
                   <span className="text-lg font-semibold text-gray-800">
                     Solicitar Documentação
                   </span>
@@ -389,7 +389,7 @@ export default function EmPreparacaoModal({
 
               <ModalFooter className="flex justify-end gap-2">
                 <Button
-                  className="text-[#005C7A] hover:bg-[#E6F5FA] px-4"
+                  className="text-[#006782] hover:bg-[#EFFBFD] px-4"
                   size="sm"
                   variant="light"
                   onPress={onClose}
@@ -397,7 +397,7 @@ export default function EmPreparacaoModal({
                   Cancelar
                 </Button>
                 <Button
-                  className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white font-medium shadow-sm hover:opacity-90 px-4 focus-visible:ring-2 focus-visible:ring-[#0698C2]/40"
+                  className="bg-gradient-to-r from-[#28B1CF] to-[#44C2D5] text-white font-medium shadow-sm hover:opacity-90 px-4 focus-visible:ring-2 focus-visible:ring-[#28B1CF]/40"
                   isDisabled={!isFormValid}
                   isLoading={loading}
                   size="sm"
@@ -418,8 +418,8 @@ export default function EmPreparacaoModal({
         isOpen={showConfirm}
         onOpenChange={setShowConfirm}
       >
-        <ModalContent className="border border-[#0698C2]/20">
-          <ModalHeader className="text-[#005C7A]">Confirmar</ModalHeader>
+        <ModalContent className="border border-[#28B1CF]/20">
+          <ModalHeader className="text-[#006782]">Confirmar</ModalHeader>
           <ModalBody>
             <p className="text-gray-700">
               Finalizar solicitação de documentação?
@@ -427,7 +427,7 @@ export default function EmPreparacaoModal({
           </ModalBody>
           <ModalFooter className="flex justify-end gap-2">
             <Button
-              className="text-[#005C7A] hover:bg-[#E6F5FA]"
+              className="text-[#006782] hover:bg-[#EFFBFD]"
               color="default"
               size="sm"
               variant="flat"
@@ -436,7 +436,7 @@ export default function EmPreparacaoModal({
               Cancelar
             </Button>
             <Button
-              className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white focus-visible:ring-2 focus-visible:ring-[#0698C2]/40"
+              className="bg-gradient-to-r from-[#28B1CF] to-[#44C2D5] text-white focus-visible:ring-2 focus-visible:ring-[#28B1CF]/40"
               size="sm"
               onPress={handleConfirmEnvio}
             >

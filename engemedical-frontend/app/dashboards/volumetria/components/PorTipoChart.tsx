@@ -19,7 +19,7 @@ interface Props {
 /* ── Smartrics brand palette ── */
 const SITUACAO_COLORS: Record<string, string> = {
   AguardandoAtendimento: '#a6ce39', // ENGE Green
-  Atendido: '#0698C2',              // ENGE Blue
+  Atendido: '#28B1CF',              // ENGE Blue
   NaoAtendido: '#ef4444',           // red
 };
 

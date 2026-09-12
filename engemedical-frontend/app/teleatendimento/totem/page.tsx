@@ -81,7 +81,7 @@ const InputField: React.FC<InputFieldProps> = ({
       <input
         aria-label={label}
         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl
-        focus:ring-2 focus:ring-[#0698C2] focus:border-[#0698C2] focus:outline-none
+        focus:ring-2 focus:ring-[#28B1CF] focus:border-[#28B1CF] focus:outline-none
         disabled:bg-gray-100 disabled:cursor-not-allowed
         transition-all duration-200 text-lg tracking-wider"
         disabled={disabled}
@@ -267,7 +267,7 @@ function TotemContent() {
       <div className="w-full max-w-4xl mx-auto flex flex-col md:flex-row rounded-2xl shadow-xl overflow-hidden bg-white border border-gray-200">
         
         {/* COL ESQUERDA - INSTRUÇÕES DE ATENDIMENTO */}
-        <div className="md:w-2/5 bg-gradient-to-b from-[#0698C2]/5 to-transparent p-8 flex flex-col justify-between border-r border-gray-200">
+        <div className="md:w-2/5 bg-gradient-to-b from-[#28B1CF]/5 to-transparent p-8 flex flex-col justify-between border-r border-gray-200">
           <div className="space-y-8">
             {/* Logo */}
             <div className="text-center md:text-left">
@@ -283,7 +283,7 @@ function TotemContent() {
 
             {/* Título do Atendimento */}
             <div className="space-y-2">
-              <h3 className="text-lg font-bold text-[#0698C2]">
+              <h3 className="text-lg font-bold text-[#28B1CF]">
                 Seu Atendimento Online
               </h3>
               <p className="text-xs text-gray-600 leading-relaxed">
@@ -294,7 +294,7 @@ function TotemContent() {
             {/* Passos do Processo */}
             <div className="space-y-4">
               <div className="flex gap-3 items-start">
-                <div className="w-6 h-6 rounded-full bg-[#0698C2]/10 flex items-center justify-center text-[#0698C2] flex-shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-full bg-[#28B1CF]/10 flex items-center justify-center text-[#28B1CF] flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold">1</span>
                 </div>
                 <div>
@@ -304,7 +304,7 @@ function TotemContent() {
               </div>
 
               <div className="flex gap-3 items-start">
-                <div className="w-6 h-6 rounded-full bg-[#0698C2]/10 flex items-center justify-center text-[#0698C2] flex-shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-full bg-[#28B1CF]/10 flex items-center justify-center text-[#28B1CF] flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold">2</span>
                 </div>
                 <div>
@@ -314,7 +314,7 @@ function TotemContent() {
               </div>
 
               <div className="flex gap-3 items-start">
-                <div className="w-6 h-6 rounded-full bg-[#0698C2]/10 flex items-center justify-center text-[#0698C2] flex-shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-full bg-[#28B1CF]/10 flex items-center justify-center text-[#28B1CF] flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold">3</span>
                 </div>
                 <div>
@@ -324,7 +324,7 @@ function TotemContent() {
               </div>
 
               <div className="flex gap-3 items-start">
-                <div className="w-6 h-6 rounded-full bg-[#0698C2]/10 flex items-center justify-center text-[#0698C2] flex-shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-full bg-[#28B1CF]/10 flex items-center justify-center text-[#28B1CF] flex-shrink-0 mt-0.5">
                   <span className="text-xs font-bold">4</span>
                 </div>
                 <div>
@@ -379,8 +379,8 @@ function TotemContent() {
                 />
 
                 <button
-                  className="w-full py-3 px-4 bg-[#0698C2] text-white font-semibold rounded-xl
-                  hover:bg-[#005C7A] focus:ring-2 focus:ring-[#0698C2] focus:outline-none
+                  className="w-full py-3 px-4 bg-[#28B1CF] text-white font-semibold rounded-xl
+                  hover:bg-[#006782] focus:ring-2 focus:ring-[#28B1CF] focus:outline-none
                   disabled:opacity-50 disabled:cursor-not-allowed
                   flex items-center justify-center gap-2
                   transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
@@ -441,7 +441,7 @@ function TotemContent() {
 
             {/* FOOTER */}
             <div className="mt-8 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
-              Centro Médico de Saúde Ocupacional &copy; {new Date().getFullYear()}
+              Engemedical Brasil &copy; {new Date().getFullYear()}
             </div>
           </motion.div>
         </div>

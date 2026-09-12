@@ -73,7 +73,7 @@ export function UsuarioSection({ user }: UsuarioSectionProps) {
     <div className="space-y-4">
       <Card className="border border-gray-200 shadow-sm">
         <CardHeader className="flex flex-row items-center gap-2 pb-2">
-          <User className="h-5 w-5 text-[#0698C2]" aria-hidden="true" />
+          <User className="h-5 w-5 text-[#28B1CF]" aria-hidden="true" />
           <h2 className="text-xl font-semibold text-gray-900">Dados do Usuário</h2>
         </CardHeader>
         <CardBody>
@@ -110,7 +110,7 @@ export function UsuarioSection({ user }: UsuarioSectionProps) {
 
       <Card className="border border-gray-200 shadow-sm">
         <CardHeader className="flex flex-row items-center gap-2 pb-2">
-          <Shield className="h-5 w-5 text-[#0698C2]" aria-hidden="true" />
+          <Shield className="h-5 w-5 text-[#28B1CF]" aria-hidden="true" />
           <h2 className="text-xl font-semibold text-gray-900">Privacidade e LGPD</h2>
         </CardHeader>
         <CardBody className="p-6 space-y-3">

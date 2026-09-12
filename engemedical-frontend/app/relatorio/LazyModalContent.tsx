@@ -725,7 +725,7 @@ const LazyModalContent: React.FC<LazyModalContentProps> = ({
         isOpen={alertModal.open}
         onClose={() => setAlertModal({ ...alertModal, open: false })}
       >
-        <ModalContent className="border border-[#0698C2]/20">
+        <ModalContent className="border border-[#28B1CF]/20">
           <ModalHeader
             className={
               alertModal.type === "success"
@@ -754,7 +754,7 @@ const LazyModalContent: React.FC<LazyModalContentProps> = ({
                   Cancelar
                 </Button>
                 <Button
-                  className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white"
+                  className="bg-gradient-to-r from-[#28B1CF] to-[#44C2D5] text-white"
                   onPress={() => {
                     alertModal.onConfirm?.();
                     setAlertModal({ ...alertModal, open: false });
@@ -765,7 +765,7 @@ const LazyModalContent: React.FC<LazyModalContentProps> = ({
               </>
             ) : (
               <Button
-                className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white"
+                className="bg-gradient-to-r from-[#28B1CF] to-[#44C2D5] text-white"
                 onPress={() => setAlertModal({ ...alertModal, open: false })}
               >
                 OK

@@ -58,10 +58,10 @@ const SelectField = ({
   conectado: boolean;
 }) => (
   <div className="space-y-1">
-    <label className="text-xs font-medium text-gray-700" htmlFor={id}>
+    <label className="text-xs font-medium text-white/75" htmlFor={id}>
       {label}
       {conectado && (
-        <span className="text-[10px] text-gray-500 ml-1">(somente leitura)</span>
+        <span className="text-[10px] text-white/45 ml-1">(somente leitura)</span>
       )}
     </label>
 
@@ -130,7 +130,7 @@ const SidebarModeToggle: React.FC<{
   onModeChange: (mode: SidebarMode) => void;
 }> = ({ mode, onModeChange }) => (
   <div
-    className="flex rounded-xl border border-gray-200 bg-gray-50 p-0.5 mb-4"
+    className="flex rounded-xl border border-white/15 bg-white/10 p-0.5 mb-4"
     role="tablist"
     aria-label="Modo da sidebar"
   >
@@ -138,8 +138,8 @@ const SidebarModeToggle: React.FC<{
       aria-selected={mode === "controls"}
       className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold transition-all duration-200 ${
         mode === "controls"
-          ? "bg-white text-brand-600 shadow-sm ring-1 ring-brand-500/20"
-          : "text-gray-500 hover:text-gray-700"
+          ? "bg-brand-teal text-white shadow-sm ring-1 ring-brand-cyan/40"
+          : "text-white/65 hover:text-white"
       }`}
       role="tab"
       type="button"
@@ -152,8 +152,8 @@ const SidebarModeToggle: React.FC<{
       aria-selected={mode === "menu"}
       className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold transition-all duration-200 ${
         mode === "menu"
-          ? "bg-white text-brand-600 shadow-sm ring-1 ring-brand-500/20"
-          : "text-gray-500 hover:text-gray-700"
+          ? "bg-brand-teal text-white shadow-sm ring-1 ring-brand-cyan/40"
+          : "text-white/65 hover:text-white"
       }`}
       role="tab"
       type="button"
@@ -223,14 +223,14 @@ export function SidebarRecepcao({
   return (
     <aside
       aria-label="Painel lateral de filtros e controles"
-      className="w-68 bg-white border-r border-gray-200 shadow-lg h-full overflow-y-auto transition-all relative"
+      className="w-68 min-h-0 bg-brand-navy border-r border-white/10 shadow-[8px_0_24px_rgba(4,21,31,0.16)] h-full overflow-y-auto scrollbar-hidden transition-all relative"
       role="complementary"
     >
       <main className="p-4 pt-4">
         {/* Header — sempre visível */}
         <header className="mb-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-brand-600">
+            <h2 className="text-sm font-bold text-brand-cyan">
               {sidebarMode === "controls" ? "Controles" : "Navegação"}
             </h2>
             {conectado && (
@@ -243,7 +243,7 @@ export function SidebarRecepcao({
 
           <div className="flex flex-col gap-2">
             <div className="grid grid-cols-[85px_minmax(0,1fr)] items-center gap-x-2">
-              <span className="text-sm font-medium text-gray-700 text-left">
+                <span className="text-sm font-medium text-white/75 text-left">
                 Servidor:
               </span>
               <div className="justify-self-end flex items-center gap-2">
@@ -268,7 +268,7 @@ export function SidebarRecepcao({
 
             {sidebarMode === "controls" && pscStatusElement && (
               <div className="grid grid-cols-[85px_minmax(0,1fr)] items-center gap-x-2">
-                <span className="text-sm font-medium text-gray-700 text-left pt-1">
+                <span className="text-sm font-medium text-white/75 text-left pt-1">
                   Assinatura:
                 </span>
                 <div className="justify-self-end flex items-center gap-2">
@@ -294,7 +294,7 @@ export function SidebarRecepcao({
           /* ---- MODO MENU: Navegação ---- */
           <SidebarMenu />
         ) : (
-          /* ---- MODO CONTROLES: Filtros + Navegação sempre visível ---- */
+          /* ---- MODO CONTROLES: filtros e ações operacionais ---- */
           <>
             {/* Filtros */}
             <section className="space-y-2 mb-3">
@@ -348,7 +348,7 @@ export function SidebarRecepcao({
                 aria-pressed={conectado}
                 className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-all ${
                   conectado
-                    ? "bg-white text-brand-500 hover:bg-brand-100"
+                    ? "bg-white/10 text-brand-cyan hover:bg-white/15"
                     : "bg-brand-500 text-white hover:bg-brand-600 hover:text-white"
                 }`}
                 disabled={onLoading}
@@ -404,11 +404,6 @@ export function SidebarRecepcao({
               </aside>
             )}
 
-            {/* Navegação sempre visível no modo controles */}
-            <div className="mt-4 pt-3 border-t border-gray-200">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Navegação</p>
-              <SidebarMenu />
-            </div>
           </>
         )}
       </main>

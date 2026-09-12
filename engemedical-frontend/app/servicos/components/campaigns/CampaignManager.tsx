@@ -90,7 +90,7 @@ export function CampaignManager() {
           >
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Comunicados e Campanhas</h2>
-              <Button color="primary" style={{ backgroundColor: '#0698C2' }} startContent={<Plus className="w-4 h-4" />} onPress={handleCreate}>
+              <Button color="primary" style={{ backgroundColor: '#28B1CF' }} startContent={<Plus className="w-4 h-4" />} onPress={handleCreate}>
                 Nova Campanha
               </Button>
             </div>

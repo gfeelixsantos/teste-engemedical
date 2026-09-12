@@ -5,7 +5,7 @@ import type { PorSituacaoItem } from '../types';
 
 /* ── Smartrics / Engemedical brand colors for situacao ── */
 const SITUACAO_COLORS: Record<string, string> = {
-  Atendido: '#0698C2',            // ENGE Blue
+  Atendido: '#28B1CF',            // ENGE Blue
   NaoAtendido: '#ef4444',         // red
   AguardandoAtendimento: '#a6ce39', // ENGE Green
   Cancelado: '#94a3b8',           // slate

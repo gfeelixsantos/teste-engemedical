@@ -3,8 +3,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { NEST_URL } from '@/config/constants';
-import { logout } from '@/lib/utils';
-import { HeaderApp } from '@/components/shared/HeaderApp';
 import { RefreshCw, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -79,38 +77,33 @@ export default function ConvocacaoPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <HeaderApp onLogout={logout}>
-        <div className="flex items-center justify-between w-full">
+      <div className="flex-1 overflow-auto p-4 md:p-6 space-y-4">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => router.push('/dashboards')}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="rounded-lg p-2 transition-colors hover:bg-gray-100"
+              aria-label="Voltar para dashboards"
             >
               <ArrowLeft className="h-5 w-5 text-gray-500" />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                Controle de Convocações de Exames
-              </h1>
+              <h1 className="text-xl font-bold text-gray-900">Controle de Convocações de Exames</h1>
               <p className="text-xs text-gray-400">
-                Contagem de Exames — Última atualização:{' '}
-                {new Date(data.kpis.ultimaAtualizacao).toLocaleString('pt-BR')}
+                Contagem de Exames — Última atualização: {new Date(data.kpis.ultimaAtualizacao).toLocaleString('pt-BR')}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => refetch()}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+            className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-brand-600 transition-colors hover:bg-brand-50"
           >
             <RefreshCw className="h-4 w-4" />
             Atualizar
           </button>
         </div>
-      </HeaderApp>
-
-      <div className="flex-1 overflow-auto p-4 md:p-6 space-y-4">
         {/* ─── KPIs horizontais ─── */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

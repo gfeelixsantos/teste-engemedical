@@ -138,7 +138,7 @@ export function PrestadoresSection() {
         <CardBody className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <Handshake size={28} aria-hidden="true" style={{ color: "#0698C2" }} />
+              <Handshake size={28} aria-hidden="true" style={{ color: "#28B1CF" }} />
               <h2 className="text-xl font-semibold text-gray-800">Prestadores</h2>
               <Chip size="sm" variant="flat">{prestadores.length} prestadores</Chip>
             </div>
@@ -147,7 +147,7 @@ export function PrestadoresSection() {
                 color="primary"
                 startContent={<Plus size={18} />}
                 onPress={openCreate}
-                style={{ backgroundColor: "#0698C2" }}
+                style={{ backgroundColor: "#28B1CF" }}
               >
                 Novo Prestador
               </Button>
@@ -290,7 +290,7 @@ export function PrestadoresSection() {
               onPress={handleSave}
               isLoading={saving}
               isDisabled={!form.nome.trim() || !form.unidade?.trim()}
-              style={{ backgroundColor: "#0698C2" }}
+              style={{ backgroundColor: "#28B1CF" }}
             >
               {editing ? "Atualizar" : "Criar"}
             </Button>

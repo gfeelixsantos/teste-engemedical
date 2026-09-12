@@ -232,11 +232,11 @@ export const TicketsMonitor: React.FC = () => {
   return (
     <div className="flex flex-col gap-6">
       {/* Header Section */}
-      <div className="rounded-xl bg-gradient-to-br from-[#005C7A] to-[#004560] p-5 shadow-lg">
+      <div className="rounded-xl bg-gradient-to-br from-[#006782] to-[#004560] p-5 shadow-lg">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-[#30D158]" />
+              <Sparkles className="h-5 w-5 text-[#00C853]" />
               Tickets Emitidos (Supabase)
             </h3>
             <p className="mt-1 text-sm text-white/70">
@@ -274,7 +274,7 @@ export const TicketsMonitor: React.FC = () => {
               <p className="text-xs font-medium">Total Emitidos</p>
               <HelpCircle className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-            <p className="mt-1 text-2xl font-bold text-[#0698C2]">{stats.total}</p>
+            <p className="mt-1 text-2xl font-bold text-[#28B1CF]">{stats.total}</p>
           </motion.div>
         </Tooltip>
 

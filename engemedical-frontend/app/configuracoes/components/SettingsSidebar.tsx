@@ -46,7 +46,7 @@ export function SettingsSidebar({
                 className={[
                   "flex items-center gap-3 w-full px-4 py-2.5 rounded-md text-sm font-medium text-left transition-colors cursor-pointer",
                   isActive
-                    ? "bg-[#0698C2] text-white"
+                    ? "bg-brand-500 text-white"
                     : "text-gray-700 hover:bg-gray-100",
                 ].join(" ")}
               >
@@ -76,7 +76,7 @@ export function SettingsSidebar({
                 className={[
                   "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors cursor-pointer",
                   isActive
-                    ? "bg-[#0698C2] text-white"
+                    ? "bg-brand-500 text-white"
                     : "text-gray-700 hover:bg-gray-100",
                 ].join(" ")}
               >

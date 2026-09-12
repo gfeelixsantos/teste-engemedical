@@ -50,8 +50,9 @@ test("SidebarMenu has all navigation items with brand tokens", async () => {
   assert.match(menu, /Prontuários/);
 
   // Secondary nav items
-  assert.match(menu, /Dashboards/);
-  assert.match(menu, /Agenda/);
+  assert.match(menu, /Informativos/);
+  assert.match(menu, /Automação/);
+  assert.match(menu, /Agenda Compromissos/);
   assert.match(menu, /Configurações/);
   assert.match(menu, /Serviços/);
 
@@ -64,6 +65,17 @@ test("SidebarMenu has all navigation items with brand tokens", async () => {
   assert.match(menu, /\/agenda/);
   assert.match(menu, /\/configuracoes/);
   assert.match(menu, /\/servicos/);
+
+  const header = await readFile(
+    new URL("../components/shared/HeaderApp.tsx", import.meta.url),
+    "utf8"
+  );
+  assert.doesNotMatch(header, /Agenda de Compromissos/);
+  assert.doesNotMatch(header, /handleNavigate\("\/configuracoes"\)/);
+  assert.doesNotMatch(header, /handleNavigate\("\/servicos\/filas"\)/);
+  assert.match(header, /SIDEBAR_GROUPS/);
+  assert.match(header, /Grupo anterior/);
+  assert.match(header, /Próximo grupo/);
 
   // Uses usePathname for active state
   assert.match(menu, /usePathname/);

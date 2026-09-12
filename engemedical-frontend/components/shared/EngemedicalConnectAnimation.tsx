@@ -69,7 +69,7 @@ export default function EngemedicalConnectAnimation() {
           <motion.button
             key={index}
             className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              currentFeature === index ? "bg-[#0698C2] w-6" : "bg-gray-300"
+              currentFeature === index ? "bg-brand-500 w-6" : "bg-gray-300"
             }`}
             whileHover={{ scale: 1.15 }}
             whileTap={{ scale: 0.9 }}
@@ -86,7 +86,7 @@ export default function EngemedicalConnectAnimation() {
         transition={{ duration: 0.5, delay: 0.4 }}
       >
         <p className="text-sm text-gray-500">
-          <span className="font-semibold text-[#0698C2]">Atualização</span> 06/2026
+          <span className="font-semibold text-brand-700">Atualização</span> 06/2026
         </p>
       </motion.div>
     </div>
@@ -117,7 +117,7 @@ function FeatureCarousel({ current }: { current: number }) {
                 animate={{
                   scale: current === index ? 1 : 0.85,
                 }}
-                className="w-16 h-16 bg-gradient-to-br from-[#0698C2] to-[#a6ce39] rounded-full flex items-center justify-center mx-auto mb-3"
+                className="w-16 h-16 bg-gradient-to-br from-brand-500 to-brand-green-500 rounded-full flex items-center justify-center mx-auto mb-3"
                 transition={{ duration: 0.45 }}
               >
                 <Icon className="h-8 w-8 text-white" />

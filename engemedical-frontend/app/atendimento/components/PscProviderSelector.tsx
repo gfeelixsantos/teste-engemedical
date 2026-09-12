@@ -25,8 +25,8 @@ export function PscProviderSelector({
 
   return (
     <Modal backdrop="blur" isOpen={isOpen} onClose={onClose}>
-      <ModalContent className="border border-[#0698C2]/20">
-        <ModalHeader className="flex flex-col gap-1 text-[#005C7A]">
+      <ModalContent className="border border-[#28B1CF]/20">
+        <ModalHeader className="flex flex-col gap-1 text-[#006782]">
           Selecione seu provedor de assinatura
         </ModalHeader>
         <ModalBody className="pb-6">
@@ -34,7 +34,7 @@ export function PscProviderSelector({
             {providers.map((item) => (
               <Button
                 key={item.psc}
-                className="justify-start h-16 px-3 hover:bg-[#E6F5FA] border-[#0698C2]/30 transition-colors focus-visible:ring-2 focus-visible:ring-[#0698C2]/40"
+                className="justify-start h-16 px-3 hover:bg-[#EFFBFD] border-[#28B1CF]/30 transition-colors focus-visible:ring-2 focus-visible:ring-[#28B1CF]/40"
                 variant="bordered"
                 onPress={() => onSelect(item.psc)}
               >

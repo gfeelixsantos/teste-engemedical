@@ -282,7 +282,7 @@ export function OrientacoesParecerSection() {
               isLoading={saving}
               isDisabled={!form.texto_tela.trim() || !form.texto_email.trim()}
               size="sm"
-              style={{ backgroundColor: "#0698C2" }}
+              style={{ backgroundColor: "#28B1CF" }}
             >
               {creatingNew ? "Criar" : "Atualizar"}
             </Button>
@@ -309,7 +309,7 @@ export function OrientacoesParecerSection() {
       <CardBody className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Stethoscope size={28} aria-hidden="true" style={{ color: "#0698C2" }} />
+            <Stethoscope size={28} aria-hidden="true" style={{ color: "#28B1CF" }} />
             <h2 className="text-xl font-semibold text-gray-800">
               Orientações de Parecer
             </h2>
@@ -324,7 +324,7 @@ export function OrientacoesParecerSection() {
               onPress={handleOpenCreate}
               size="sm"
               className="h-9 px-4 whitespace-nowrap flex-shrink-0"
-              style={{ backgroundColor: "#0698C2" }}
+              style={{ backgroundColor: "#28B1CF" }}
             >
               Nova Orientação
             </Button>

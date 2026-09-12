@@ -294,8 +294,8 @@ const BiometriaValidacaoModal: React.FC<BiometriaValidacaoModalProps> = ({ state
       size="sm"
       onClose={isTerminal ? onClose : undefined}
     >
-      <ModalContent className="border border-[#0698C2]/20">
-        <ModalHeader className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white flex flex-col gap-1">
+      <ModalContent className="border border-[#28B1CF]/20">
+        <ModalHeader className="bg-gradient-to-r from-[#28B1CF] to-[#44C2D5] text-white flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <span className="text-base font-semibold">Validação Biométrica</span>
           </div>

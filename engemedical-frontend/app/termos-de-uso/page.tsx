@@ -249,7 +249,7 @@ export default function TermosDeUsoPage() {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3 mb-2">
-            <FileText size={32} className="text-[#0698C2]" />
+            <FileText size={32} className="text-[#28B1CF]" />
             <h1 className="text-2xl font-bold text-gray-900">
               Termos de Uso
             </h1>
@@ -278,7 +278,7 @@ export default function TermosDeUsoPage() {
           >
             <div className="flex items-start gap-4">
               <div className="mt-1 flex-shrink-0">
-                <section.icon size={24} className="text-[#0698C2]" />
+                <section.icon size={24} className="text-[#28B1CF]" />
               </div>
               <div className="flex-1 text-gray-700 leading-relaxed text-sm space-y-2">
                 <h2 className="text-lg font-semibold text-gray-900 mb-3">
@@ -292,7 +292,7 @@ export default function TermosDeUsoPage() {
 
         <div className="bg-gray-100 rounded-lg border border-gray-200 p-6">
           <div className="flex items-start gap-4">
-            <ExternalLink size={24} className="text-[#0698C2] mt-1 flex-shrink-0" />
+            <ExternalLink size={24} className="text-[#28B1CF] mt-1 flex-shrink-0" />
             <div className="text-sm text-gray-600 space-y-2">
               <h2 className="text-lg font-semibold text-gray-900">
                 9. Atualizações e Vigência

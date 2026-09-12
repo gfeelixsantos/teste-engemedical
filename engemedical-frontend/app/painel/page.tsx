@@ -60,7 +60,7 @@ const PAINEL_CONFIG = {
   qtdFilaPainel: 12,
   tempoInatividadeMinutos: 1,
   duracaoIdleSegundos: 15,
-  welcomeMessage: "Bem-vindo ao Centro Médico de Saúde Ocupacional.",
+  welcomeMessage: "Bem-vindo à Engemedical Brasil.",
   audioUrls: {
     bemvindo: "/audio/bemvindo.mp3",
     notificacao: "/audio/painel3.mp3",
@@ -141,13 +141,13 @@ const { playNativeSpeechFallback, playPreparedAudioWithFallback } =
   painelAudioFallback;
 
 const COLOR_PALETTE = {
-  primary: "#0698C2",
-  accent: "#0AABD4",
+  primary: "#28B1CF",
+  accent: "#44C2D5",
   light: "#f8fcf9",
   white: "#ffffff",
   lightGray: "#f0f5f2",
   border: "#e1e9e4",
-  text: "#005C7A",
+  text: "#006782",
   textLight: "#6b7f76",
   dark: "#1a2a1f",
 };
@@ -283,7 +283,7 @@ const AudioActivationModal = ({ onActivate }: { onActivate: () => void }) => {
             style={{
               backgroundColor: COLOR_PALETTE.primary,
               backgroundImage:
-                "linear-gradient(135deg, #0698C2 0%, #0AABD4 100%)",
+                "linear-gradient(135deg, #28B1CF 0%, #44C2D5 100%)",
             }}
           >
             <Maximize2 className="text-white" size={20} />
@@ -477,7 +477,7 @@ const IdleScreen = ({ unidadeSelecionada }: IdleProps) => {
             transition={{ delay: 1.2, duration: 0.5 }}
           >
             <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-white/70 gap-1 sm:gap-2">
-              <span>{new Date().getFullYear()} • CMSO</span>
+                      <span>{new Date().getFullYear()} • Engemedical Brasil</span>
               <span className="truncate">{unidadeSelecionada}</span>
             </div>
           </motion.div>
@@ -1799,7 +1799,7 @@ export default function PainelPage() {
                   <div className="rounded-2xl p-1.5 sm:p-2 md:p-3">
                     {/* <Monitor className="text-white" size={16} /> */}
                     <Image
-                      alt="ícone CMSO"
+                      alt="ícone Engemedical Brasil"
                       src="/images/cmso_icone.png"
                       width={84}
                     />

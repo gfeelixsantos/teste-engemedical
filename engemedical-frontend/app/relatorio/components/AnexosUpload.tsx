@@ -426,7 +426,7 @@ const AnexosUpload: React.FC<AnexosUploadProps> = ({
         isOpen={alertModal.open}
         onClose={() => setAlertModal({ ...alertModal, open: false })}
       >
-        <ModalContent className="border border-[#0698C2]/20">
+        <ModalContent className="border border-[#28B1CF]/20">
           <ModalHeader
             className={
               alertModal.type === "success"
@@ -447,7 +447,7 @@ const AnexosUpload: React.FC<AnexosUploadProps> = ({
           </ModalBody>
           <ModalFooter>
             <Button
-              className="bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white"
+              className="bg-gradient-to-r from-[#28B1CF] to-[#44C2D5] text-white"
               onPress={() => setAlertModal({ ...alertModal, open: false })}
             >
               OK

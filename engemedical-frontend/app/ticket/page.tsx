@@ -1175,7 +1175,7 @@ export default function Home() {
     <div
       className="min-h-screen w-full flex flex-col items-center justify-center p-2 sm:p-4 md:p-6"
       style={{
-        background: `linear-gradient(135deg, ${COLOR_PALETTE.background} 0%, #E6F5FA 100%)`,
+        background: `linear-gradient(135deg, ${COLOR_PALETTE.background} 0%, #EFFBFD 100%)`,
       }}
     >
       <AnimatePresence mode="wait">
@@ -1216,7 +1216,7 @@ export default function Home() {
         style={{ color: COLOR_PALETTE.gray }}
         transition={{ delay: 0.5 }}
       >
-        <p>Centro Médico de Saúde Ocupacional</p>
+        <p>Engemedical Brasil</p>
         <p>© {new Date().getFullYear()} - Todos os direitos reservados</p>
       </motion.footer>
     </div>

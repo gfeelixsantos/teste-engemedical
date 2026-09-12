@@ -2,6 +2,47 @@
 
 @config "../tailwind.config.js";
 
+:root {
+  --brand-cyan: #28b1cf;
+  --brand-teal: #006782;
+  --brand-green: #00c853;
+  --brand-deep-green: #0b9516;
+  --brand-navy: #04151f;
+  --app-surface: #f2f9fb;
+  --app-surface-raised: #ffffff;
+  --app-line: #d6e8ee;
+  --app-text: #092b3a;
+  --app-muted: #647d89;
+}
+
+.dark {
+  --brand-cyan: #28b1cf;
+  --brand-teal: #39c1dc;
+  --brand-green: #32d878;
+  --brand-deep-green: #73dc84;
+  --brand-navy: #04151f;
+  --app-surface: #071827;
+  --app-surface-raised: #0b2030;
+  --app-line: rgba(255, 255, 255, 0.13);
+  --app-text: #effcff;
+  --app-muted: #9cb6bf;
+}
+
+body {
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+/* Permite rolagem sem exibir a barra lateral visualmente. */
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── Typewriter (CSS puro) ───────────────────────────── */
 @keyframes tw-reveal {
   from { max-width: 0 }
@@ -39,4 +80,29 @@
 
 .brand-card-shine > span[aria-hidden] {
   animation: card-shine-spin 5.8s linear infinite;
+}
+
+/* ── Loading system — progress and shimmer ──────────── */
+@keyframes loading-progress {
+  0% { transform: translateX(-160%); }
+  55% { transform: translateX(140%); }
+  100% { transform: translateX(280%); }
+}
+
+@keyframes loading-shimmer {
+  from { transform: translateX(-180%); }
+  to { transform: translateX(260%); }
+}
+
+.animate-shimmer {
+  animation: loading-shimmer 1.65s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer,
+  .typewriter-text,
+  .cyber-grid,
+  .brand-card-shine > span[aria-hidden] {
+    animation: none;
+  }
 }

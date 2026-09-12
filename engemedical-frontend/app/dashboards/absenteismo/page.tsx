@@ -2,9 +2,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { NEST_URL } from '@/config/constants';
-import { logout } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
-import { HeaderApp } from '@/components/shared/HeaderApp';
 import { KpiCards } from './components/KpiCards';
 import { EvolucaoMensal } from './components/EvolucaoMensal';
 import { CustosEmpresa } from './components/CustosEmpresa';
@@ -16,7 +13,6 @@ import type { AbsenteismoDashboardData } from './types';
 import { useState } from 'react';
 
 export default function AbsenteismoPage() {
-  const router = useRouter();
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
 
@@ -33,11 +29,6 @@ export default function AbsenteismoPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
-
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -51,14 +42,6 @@ export default function AbsenteismoPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <HeaderApp onLogout={handleLogout}>
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-gray-900">
-            Absenteísmo
-          </h1>
-        </div>
-      </HeaderApp>
-
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">

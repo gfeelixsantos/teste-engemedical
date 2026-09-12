@@ -11,7 +11,7 @@ export interface PscProviderStatusProps {
 
 // Estilo igual ao Servidor na Sidebar - dot simples sem bold
 const colorMap: Record<string, { dot: string; text: string }> = {
-  ativa: { dot: "bg-[#0698C2]", text: "text-[#0698C2] font-semibold" },
+  ativa: { dot: "bg-[#28B1CF]", text: "text-[#28B1CF] font-semibold" },
   inativa: { dot: "bg-red-500", text: "text-red-600" },
   loading: { dot: "border-2 border-amber-500 border-t-transparent", text: "text-amber-600" },
 };

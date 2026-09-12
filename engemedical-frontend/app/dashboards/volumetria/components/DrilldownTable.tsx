@@ -21,7 +21,7 @@ export function DrilldownTable({ data }: Props) {
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center gap-2">
-          <Building2 className="h-4 w-4 text-[#0698C2]" />
+          <Building2 className="h-4 w-4 text-[#28B1CF]" />
           <h3 className="text-sm font-semibold text-gray-700">
             Empresas com Mais Compromissos ({sorted.length} empresas)
           </h3>
@@ -71,7 +71,7 @@ export function DrilldownTable({ data }: Props) {
                   <td className="px-3 py-2 max-w-[220px] truncate font-medium text-gray-800">
                     {row.nomeEmpresa}
                   </td>
-                  <td className="px-3 py-2 text-[#0698C2] font-semibold">
+                  <td className="px-3 py-2 text-[#28B1CF] font-semibold">
                     {row.agendamentos.toLocaleString('pt-BR')}
                   </td>
                   <td className="px-3 py-2">

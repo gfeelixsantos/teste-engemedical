@@ -115,7 +115,7 @@ export function AuditoriaSection({ user }: AuditoriaSectionProps) {
   return (
     <Card className="bg-white rounded-lg border border-gray-200 shadow-sm">
       <CardHeader className="flex flex-row items-center gap-3 pb-2">
-        <ShieldCheck className="h-5 w-5 text-[#0698C2]" />
+        <ShieldCheck className="h-5 w-5 text-[#28B1CF]" />
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
             Auditoria Operacional

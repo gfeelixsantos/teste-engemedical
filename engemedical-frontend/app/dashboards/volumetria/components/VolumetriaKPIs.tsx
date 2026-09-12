@@ -7,9 +7,9 @@ import type { VolumetriaKPIs } from '../types';
 
 /* ── Smartrics brand palette ── */
 const BRAND = {
-  primary: '#0698C2', // ENGE Blue
+  primary: '#28B1CF', // ENGE Blue
   accent: '#a6ce39',  // ENGE Green
-  primaryLight: '#E6F5FA',
+  primaryLight: '#EFFBFD',
   accentLight: '#f0f9e4',
 };
 

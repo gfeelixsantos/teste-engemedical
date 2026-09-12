@@ -138,7 +138,7 @@ export function AssinaturaDigitalSection({
     <div className="space-y-6">
       <Card className="border border-gray-200 shadow-sm">
         <CardHeader className="flex flex-row items-center gap-2 pb-2">
-          <FileSignature className="h-5 w-5 text-[#0698C2]" />
+          <FileSignature className="h-5 w-5 text-[#28B1CF]" />
           <h2 className="text-xl font-semibold text-gray-900">
             Preferências de Assinatura
           </h2>
@@ -336,7 +336,7 @@ export function AssinaturaDigitalSection({
             )}
 
             <Button
-              className="w-full bg-[#0698C2]"
+              className="w-full bg-[#28B1CF]"
               color="primary"
               isLoading={isSaving}
               startContent={!isSaving && <Save className="h-4 w-4" />}
@@ -350,7 +350,7 @@ export function AssinaturaDigitalSection({
 
       <Card className="border border-gray-200 shadow-sm">
         <CardHeader className="flex flex-row items-center gap-2 pb-2">
-          <Shield className="h-5 w-5 text-[#0698C2]" />
+          <Shield className="h-5 w-5 text-[#28B1CF]" />
           <h2 className="text-xl font-semibold text-gray-900">
             Status do Provedor de Assinatura
           </h2>

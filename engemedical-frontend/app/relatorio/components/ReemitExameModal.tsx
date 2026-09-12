@@ -58,7 +58,7 @@ const ReemitExameModal: React.FC<ReemitExameModalProps> = ({
       case "preparing":
         return (
           <>
-            <ModalHeader className="flex flex-col gap-1 bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white">
+            <ModalHeader className="flex flex-col gap-1 bg-gradient-to-r from-[#28B1CF] to-[#44C2D5] text-white">
               Reemitir Exame
             </ModalHeader>
             <ModalBody className="py-5">
@@ -68,9 +68,9 @@ const ReemitExameModal: React.FC<ReemitExameModalProps> = ({
                 </p>
               </div>
             </ModalBody>
-            <ModalFooter className="border-t border-[#0698C2]/15">
+            <ModalFooter className="border-t border-[#28B1CF]/15">
               <Button
-                className="text-[#0698C2] hover:bg-[#E6F5FA]"
+                className="text-[#28B1CF] hover:bg-[#EFFBFD]"
                 color="default"
                 variant="light"
                 onPress={handleClose}
@@ -78,7 +78,7 @@ const ReemitExameModal: React.FC<ReemitExameModalProps> = ({
                 Cancelar
               </Button>
               <Button
-                className="bg-gradient-to-r from-[#0698C2] to-[#005C7A] text-white focus-visible:ring-2 focus-visible:ring-[#0698C2]/40"
+                className="bg-gradient-to-r from-[#28B1CF] to-[#006782] text-white focus-visible:ring-2 focus-visible:ring-[#28B1CF]/40"
                 startContent={<Printer size={16} />}
                 variant="solid"
                 onPress={handleConfirm}
@@ -92,7 +92,7 @@ const ReemitExameModal: React.FC<ReemitExameModalProps> = ({
       case "loading":
         return (
           <>
-            <ModalHeader className="flex flex-col gap-1 bg-gradient-to-r from-[#0698C2] to-[#0AABD4] text-white">
+            <ModalHeader className="flex flex-col gap-1 bg-gradient-to-r from-[#28B1CF] to-[#44C2D5] text-white">
               Reemitindo Exame
             </ModalHeader>
             <ModalBody className="py-8">
@@ -124,9 +124,9 @@ const ReemitExameModal: React.FC<ReemitExameModalProps> = ({
                 </p>
               </div>
             </ModalBody>
-            <ModalFooter className="border-t border-[#0698C2]/20 justify-center">
+            <ModalFooter className="border-t border-[#28B1CF]/20 justify-center">
               <Button
-                className="bg-gradient-to-r from-[#0698C2] to-[#005C7A] text-white"
+                className="bg-gradient-to-r from-[#28B1CF] to-[#006782] text-white"
                 variant="solid"
                 onPress={handleClose}
               >
@@ -212,7 +212,7 @@ const ReemitExameModal: React.FC<ReemitExameModalProps> = ({
       size="md"
       onClose={status === "preparing" ? handleClose : () => {}}
     >
-      <ModalContent className="border border-[#0698C2]/20">
+      <ModalContent className="border border-[#28B1CF]/20">
         {renderContent()}
       </ModalContent>
     </Modal>

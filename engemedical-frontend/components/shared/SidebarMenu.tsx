@@ -7,17 +7,20 @@ import { getCurrentUser } from "@/lib/utils";
 import {
   Activity, ChartNoAxesCombined, ChevronRight, FileCheck, FileText, Globe,
   HeartPulse, Home, LayoutGrid, Settings, Stethoscope, TrendingUp, UserX, Users,
-  CalendarDays,
+  CalendarDays, FolderOpen, ListChecks, Mail, ScanLine, Workflow,
 } from "lucide-react";
 
 type MenuItem = { title: string; icon: typeof Home; path: string; color?: string };
 type MenuGroup = { title: string; icon: typeof Home; items: readonly MenuItem[] };
 
-const GROUPS: readonly MenuGroup[] = [
+export const SIDEBAR_GROUPS: readonly MenuGroup[] = [
   { title: "Atendimento", icon: Stethoscope, items: [
     { title: "Atendimento", icon: Stethoscope, path: "/atendimento" },
     { title: "Prontuários", icon: FileText, path: "/prontuarios" },
     { title: "Recepção", icon: Users, path: "/recepcao" },
+  ]},
+  { title: "Automação", icon: Workflow, items: [
+    { title: "Coleta de Resultados", icon: ScanLine, path: "/automacao/coleta-resultados" },
   ]},
   { title: "Informativos", icon: ChartNoAxesCombined, items: [
     { title: "Absenteísmo", icon: UserX, path: "/dashboards/absenteismo", color: "text-orange-500" },
@@ -30,10 +33,9 @@ const GROUPS: readonly MenuGroup[] = [
   ]},
   { title: "Serviços", icon: LayoutGrid, items: [
     { title: "Agenda Compromissos", icon: CalendarDays, path: "/agenda" },
-    { title: "Campanhas de e-mail", icon: LayoutGrid, path: "/servicos?tab=campanhas" },
-    { title: "Explorador de arquivos", icon: FileText, path: "/servicos?tab=arquivos" },
-    { title: "Filas de processamento", icon: Activity, path: "/servicos?tab=filas" },
-    { title: "Painel de serviços", icon: LayoutGrid, path: "/servicos" },
+    { title: "Campanhas de e-mail", icon: Mail, path: "/servicos/campanhas" },
+    { title: "Explorador de arquivos", icon: FolderOpen, path: "/arquivos" },
+    { title: "Filas de processamento", icon: ListChecks, path: "/servicos/filas" },
   ]},
   { title: "Configurações", icon: Settings, items: [
     { title: "Configurações", icon: Settings, path: "/configuracoes" },
@@ -94,10 +96,6 @@ export function SidebarMenu({
 
   useEffect(() => () => cancelClose(), []);
   useEffect(() => {
-    const activeGroup = GROUPS.find((group) => group.items.some((item) => isActivePath(pathname, item.path)));
-    if (activeGroup) updateOpenGroup(activeGroup.title);
-  }, [pathname]);
-  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") updateOpenGroup(null);
     };
@@ -111,20 +109,20 @@ export function SidebarMenu({
   };
 
   return (
-    <nav aria-label="Menu de navegação" className="space-y-1" role="navigation">
+    <nav aria-label="Menu de navegação" className="space-y-0.5" role="navigation">
       <button
         type="button"
         aria-current={pathname === "/visao-geral" || pathname === "/inicio" ? "page" : undefined}
-        className={`group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${pathname === "/visao-geral" || pathname === "/inicio" ? "border-brand-500/30 bg-brand-50 text-brand-700" : "border-transparent text-gray-600 hover:border-brand-line hover:bg-brand-mist hover:text-gray-900"}`}
+        className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl border px-2.5 py-2.5 text-left text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${pathname === "/visao-geral" || pathname === "/inicio" ? "border-brand-cyan/50 bg-brand-teal text-white shadow-sm shadow-brand-cyan/10" : "border-transparent text-white/75 hover:border-brand-cyan/30 hover:bg-white/10 hover:text-white"}`}
         onClick={() => goTo(homeRoute)}
       >
         <Home className="h-4 w-4 shrink-0 text-brand-blue" />
         <span className={collapsed ? "sr-only" : "truncate"}>Página Inicial</span>
       </button>
 
-      <div className="my-2 border-t border-gray-200" />
+      <div className="my-2 border-t border-white/15" />
 
-      {GROUPS.map(({ title, icon: Icon, items }) => {
+      {SIDEBAR_GROUPS.map(({ title, icon: Icon, items }) => {
         const active = items.some((item) => isActivePath(pathname, item.path));
         const open = openGroup === title;
         return (
@@ -143,7 +141,7 @@ export function SidebarMenu({
               type="button"
               aria-expanded={open}
               aria-haspopup="menu"
-              className={`group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${active ? "border-brand-500/30 bg-brand-50 text-brand-700" : "border-transparent text-gray-600 hover:border-brand-line hover:bg-brand-mist hover:text-gray-900"}`}
+              className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl border px-2.5 py-2.5 text-left text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${active ? "border-brand-cyan/50 bg-brand-teal text-white shadow-sm shadow-brand-cyan/10" : "border-transparent text-white/75 hover:border-brand-cyan/30 hover:bg-white/10 hover:text-white"}`}
               onClick={(event) => open ? updateOpenGroup(null) : activateGroup(title, event.currentTarget)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
@@ -153,21 +151,21 @@ export function SidebarMenu({
                 }
               }}
             >
-              <Icon className={`h-4 w-4 shrink-0 ${active ? "text-brand-500" : "text-brand-blue"}`} />
+              <Icon className={`h-4 w-4 shrink-0 ${active ? "text-brand-cyan" : "text-brand-cyan"}`} />
               <span className={collapsed ? "sr-only" : "min-w-0 flex-1 truncate"}>{title}</span>
-              {!collapsed && <ChevronRight className={`h-4 w-4 shrink-0 transition-transform duration-200 ${open ? "translate-x-0.5 text-brand-500" : "text-gray-400"}`} />}
+              {!collapsed && <ChevronRight className={`h-4 w-4 shrink-0 transition-transform duration-200 ${open ? "translate-x-0.5 text-brand-cyan" : "text-white/40"}`} />}
             </button>
 
             {open && (
               <div
                 aria-label={`Itens de ${title}`}
-                className={`${inlineSubmenus ? "relative left-0 top-0 mt-1 ml-3 w-[calc(100%-0.75rem)] shadow-none" : "fixed z-[1000] max-h-[calc(100vh-1.5rem)] w-64 shadow-[0_18px_48px_rgba(0,69,96,0.14)]"} overflow-y-auto scrollbar-hidden rounded-2xl border border-brand-200/80 bg-white p-2`}
+                className={`${inlineSubmenus ? "relative left-0 top-0 mt-1 ml-3 w-[calc(100%-0.75rem)] shadow-none" : "fixed z-[1000] max-h-[calc(100vh-1.5rem)] w-64 shadow-[0_18px_48px_rgba(0,69,96,0.28)]"} overflow-y-auto scrollbar-hidden rounded-2xl border border-brand-cyan/30 bg-brand-deep p-2`}
                 role="menu"
                 style={inlineSubmenus ? undefined : submenuPosition}
                 onMouseEnter={cancelClose}
                 onMouseLeave={scheduleClose}
               >
-                <div className="border-b border-brand-200/80 px-3 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-700">{title}</div>
+                <div className="border-b border-white/15 px-3 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-cyan">{title}</div>
                 <div className="mt-1 space-y-0.5">
                   {items.map(({ title: itemTitle, icon: ItemIcon, path, color }) => {
                     const itemActive = isActivePath(pathname, path);
@@ -177,10 +175,10 @@ export function SidebarMenu({
                         type="button"
                         role="menuitem"
                         aria-current={itemActive ? "page" : undefined}
-                        className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${itemActive ? "border-brand-500/30 bg-brand-50 font-semibold text-brand-700 shadow-sm shadow-brand-500/10" : "border-transparent text-gray-600 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-900"}`}
+                        className={`flex w-full cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${itemActive ? "border-brand-cyan/50 bg-brand-teal font-semibold text-white shadow-sm shadow-brand-cyan/10" : "border-transparent text-white/75 hover:border-brand-cyan/30 hover:bg-white/10 hover:text-white"}`}
                         onClick={() => goTo(path)}
                       >
-                        <ItemIcon className={`h-4 w-4 shrink-0 ${itemActive ? "text-brand-500" : color ?? "text-brand-blue"}`} />
+                        <ItemIcon className={`h-4 w-4 shrink-0 ${itemActive ? "text-brand-cyan" : color ?? "text-brand-cyan"}`} />
                         <span className="truncate">{itemTitle}</span>
                       </button>
                     );

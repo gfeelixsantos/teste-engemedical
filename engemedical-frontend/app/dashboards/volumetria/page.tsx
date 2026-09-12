@@ -2,10 +2,7 @@
 
 import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { CalendarDays } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { HeaderApp } from '@/components/shared/HeaderApp';
-import { logout } from '@/lib/utils';
 import { VolumetriaKPIs } from './components/VolumetriaKPIs';
 import { AgendamentosChart } from './components/AgendamentosChart';
 import { SituacaoDonut } from './components/SituacaoDonut';
@@ -36,7 +33,6 @@ function aggregatePorSituacao(
 function VolumetriaSkeleton() {
   return (
     <div className="flex flex-col h-full">
-      <HeaderApp onLogout={logout} />
       <div className="flex-1 overflow-auto p-4 md:p-6 space-y-4">
         {/* KPI skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -113,7 +109,6 @@ export default function VolumetriaPage() {
   if (error || !data) {
     return (
       <div className="flex flex-col h-full">
-        <HeaderApp onLogout={logout} />
         <div className="flex items-center justify-center flex-1">
           <p className="text-red-500">Erro ao carregar dados</p>
         </div>
@@ -123,14 +118,8 @@ export default function VolumetriaPage() {
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
-      <HeaderApp onLogout={logout}>
-        <div className="flex items-center gap-2">
-          <CalendarDays className="h-4 w-4" />
-          <h1 className="text-lg font-semibold">Volumetria de Agendamentos</h1>
-        </div>
-      </HeaderApp>
-
       <div className="flex-1 overflow-auto p-4 md:p-6 space-y-4">
+        <h1 className="text-lg font-semibold text-gray-900">Volumetria de Agendamentos</h1>
         {/* ── TOP: 3 KPI Cards ── */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
