@@ -36,38 +36,53 @@ export class ConvocacaoService {
   // ─── Fetch dos 4 exports SOC ─────────────────────────────────────────────
 
   async fetchFuncionarios(): Promise<SocFuncionarioContagem[]> {
-    const hoje = new Date();
-    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-    const ano = hoje.getFullYear();
-
     const credentials = getSocExportCredentials(
       'SOC_ED_FUNCIONARIOS_CONTAGEM',
       this.configService,
     );
 
-    const url = buildSocExportDataUrl(
-      { ...credentials, tipoSaida: 'json', mes, ano },
-      this.configService,
-    );
+    // Buscar últimos 3 meses para pegar todos os funcionários ativos
+    const todosFuncionarios: SocFuncionarioContagem[] = [];
+    const hoje = new Date();
 
-    try {
-      this.logger.debug('Buscando funcionários da contagem');
-      const response = await fetch(url, {
-        signal: AbortSignal.timeout(60000),
-      });
-      if (!response.ok) {
-        this.logger.error(`Falha funcionários: ${response.status}`);
-        return [];
+    for (let i = 0; i < 3; i++) {
+      const dt = new Date(hoje);
+      dt.setMonth(hoje.getMonth() - i);
+      const mes = String(dt.getMonth() + 1).padStart(2, '0');
+      const ano = String(dt.getFullYear());
+
+      const url = buildSocExportDataUrl(
+        { ...credentials, tipoSaida: 'json', mes, ano },
+        this.configService,
+      );
+
+      try {
+        const response = await fetch(url, {
+          signal: AbortSignal.timeout(60000),
+        });
+        if (!response.ok) continue;
+
+        const buffer = await response.arrayBuffer();
+        const decoded = new TextDecoder('iso-8859-1').decode(buffer);
+        const data = safeParseSocJson<SocFuncionarioContagem>(decoded, 'funcionarios', this.logger);
+        this.logger.debug(`Funcionários mês ${mes}/${ano}: ${data.length} registros`);
+
+        // Deduplicar por empresa+codigo
+        for (const f of data) {
+          const key = `${f.CODIGOEMPRESA}|${f.CODIGOFUNCIONARIO}`;
+          if (!todosFuncionarios.some(
+            (x) => `${x.CODIGOEMPRESA}|${x.CODIGOFUNCIONARIO}` === key,
+          )) {
+            todosFuncionarios.push(f);
+          }
+        }
+      } catch {
+        // Continua para próximo mês
       }
-      const buffer = await response.arrayBuffer();
-      const decoded = new TextDecoder('iso-8859-1').decode(buffer);
-      const data = safeParseSocJson<SocFuncionarioContagem>(decoded, 'funcionarios', this.logger);
-      this.logger.debug(`Retornados ${data.length} funcionários`);
-      return data;
-    } catch (error) {
-      this.logger.error('Erro ao buscar funcionários:', error);
-      return [];
     }
+
+    this.logger.debug(`Total funcionários únicos: ${todosFuncionarios.length}`);
+    return todosFuncionarios;
   }
 
   /**
