@@ -51,7 +51,7 @@ import { EsocialModule } from './esocial/esocial.module';
 import { VidasModule } from './vidas/vidas.module';
 import { DocumentosModule } from './documentos/documentos.module';
 
-require('dotenv').config();
+require('dotenv').config({ override: true });
 
 @Module({
   imports: [

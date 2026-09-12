@@ -450,7 +450,56 @@ export class SftpIntegratorService implements OnModuleInit {
       }
     }
 
-    // Tentar Nodemailer direto (bypass Azure Queue)
+    // ─── Enfileirar na Cloudflare Queue (worker envia) ───
+    try {
+      const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || '';
+      const queueName = process.env.CLOUDFLARE_QUEUE_NAME || 'email-service';
+      const apiToken = process.env.CLOUDFLARE_API_TOKEN || '';
+
+      if (accountId && apiToken && queueName) {
+        // Converter Excel para base64 para enviar na fila
+        let excelBase64: string | undefined;
+        let excelContentType: string | undefined;
+        if (excelBuffer && excelFileName) {
+          excelBase64 = excelBuffer.toString('base64');
+          excelContentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        }
+
+        const queuePayload = {
+          to: recipients,
+          subject,
+          html,
+          attachments: excelBase64 && excelFileName ? [{
+            filename: excelFileName,
+            content: excelBase64,
+            contentType: excelContentType,
+          }] : undefined,
+        };
+
+        const queueUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/queues/${queueName}/messages`;
+        const response = await fetch(queueUrl, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ body: queuePayload }),
+        });
+
+        if (response.ok) {
+          this.logger.log(`[EMAIL] Relatorio enfileirado na Cloudflare Queue "${queueName}" para ${recipients.length} destinatarios`);
+          return;
+        } else {
+          this.logger.warn(`[EMAIL] Falha ao enfileirar: ${response.status} ${response.statusText}`);
+        }
+      } else {
+        this.logger.debug('[EMAIL] Cloudflare Queue nao configurada (ACCOUNT_ID/TOKEN/QUEUE_NAME)');
+      }
+    } catch (err) {
+      this.logger.warn(`[EMAIL] Falha ao enfileirar na Queue: ${err}`);
+    }
+
+    // ─── Fallback: Nodemailer direto ───
     try {
       const transporter = await getNodemailerTransporter();
       if (transporter) {
