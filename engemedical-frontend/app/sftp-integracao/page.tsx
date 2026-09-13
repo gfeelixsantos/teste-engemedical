@@ -16,6 +16,7 @@ import { Button } from "@heroui/react";
 
 import { AppShell } from "@/components/shared/AppShell";
 import AppLoading from "@/components/shared/AppLoading";
+import { PremiumFeedbackModal } from "@/components/shared/PremiumFeedbackModal";
 import { useSftpIntegration } from "@/hooks/useSftpIntegration";
 import { KpiCards } from "./components/KpiCards";
 import { ExecutionTable } from "./components/ExecutionTable";
@@ -34,14 +35,17 @@ export default function SftpIntegracaoPage() {
     isLoading,
     isPulling,
     isProcessing,
+    isCancelling,
     error,
     triggerPull,
+    cancelProcessing,
     downloadFile,
     downloadReport,
     refetch,
   } = useSftpIntegration();
 
   const [currentTime, setCurrentTime] = useState<string>("");
+  const [isExecutionConfirmationOpen, setIsExecutionConfirmationOpen] = useState(false);
   const hasHistory =
     kpis.totalExecutions > 0 || files.length > 0 || runs.length > 0;
   const integrationStatus: "empty" | "operational" | "error" = error
@@ -65,12 +69,13 @@ export default function SftpIntegracaoPage() {
   }, []);
 
   return (
-    <AppShell
-      onLogout={() => {
-        localStorage.removeItem("user");
-        router.push("/login");
-      }}
-    >
+    <>
+      <AppShell
+        onLogout={() => {
+          localStorage.removeItem("user");
+          router.push("/");
+        }}
+      >
       <div
         className="px-4 py-4 sm:px-6 lg:px-8"
         role="main"
@@ -173,14 +178,21 @@ export default function SftpIntegracaoPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={triggerPull}
-                      disabled={isPulling}
+                        onClick={() => setIsExecutionConfirmationOpen(true)}
+                        disabled={isPulling || isProcessing}
                       className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-cyan px-4 py-2.5 text-sm font-bold text-white transition hover:bg-brand-600 disabled:cursor-wait disabled:opacity-60"
                     >
                       <Play className="h-4 w-4 fill-current" />{" "}
-                      {isPulling ? "Executando..." : "Executar agora"}
-                    </button>
-                  </div>
+                        {isPulling || isProcessing ? "Processando..." : "Executar agora"}
+                      </button>
+                    </div>
+                    {(isPulling || isProcessing) && (
+                      <ProcessingFeedback
+                        isPulling={isPulling}
+                        isCancelling={isCancelling}
+                        onCancel={cancelProcessing}
+                      />
+                    )}
                   <div className="border-b border-brand-line bg-brand-green-50/60 px-5 py-4">
                     <div className="flex items-center gap-3">
                       <CheckCircle2 className="h-6 w-6 text-brand-green-600" />
@@ -259,7 +271,77 @@ export default function SftpIntegracaoPage() {
           )}
         </div>
       </div>
-    </AppShell>
+      </AppShell>
+      <PremiumFeedbackModal
+        isOpen={isExecutionConfirmationOpen}
+        variant="warning"
+        title="Executar integração no SOC?"
+        message="Uma nova planilha será recebida e os registros elegíveis serão enviados ao SOC."
+        detail="Essa ação pode levar alguns minutos. Você poderá acompanhar o processamento e cancelá-lo enquanto houver registros pendentes."
+        primaryLabel="Executar agora"
+        secondaryLabel="Voltar"
+        onPrimaryAction={() => {
+          setIsExecutionConfirmationOpen(false);
+          triggerPull().catch(() => undefined);
+        }}
+        onClose={() => setIsExecutionConfirmationOpen(false)}
+      />
+    </>
+  );
+}
+
+function ProcessingFeedback({
+  isPulling,
+  isCancelling,
+  onCancel,
+}: {
+  isPulling: boolean;
+  isCancelling: boolean;
+  onCancel: () => void;
+}) {
+  return (
+    <div
+      aria-live="polite"
+      className="border-b border-brand-cyan/20 bg-brand-cyan-50/70 px-5 py-4"
+    >
+      <div className="flex items-center gap-3">
+        <div className="h-8 w-8 animate-pulse rounded-full bg-brand-cyan/20 p-2">
+          <RefreshCw className="h-4 w-4 animate-spin text-brand-700" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-brand-midnight">
+            {isPulling ? "Recebendo planilha do SFTP" : "Enviando registros ao SOC"}
+          </p>
+          <p className="mt-0.5 text-xs text-brand-muted">
+            {isPulling
+              ? "Estamos preparando o arquivo armazenado no R2."
+              : "O processamento está ocorrendo com segurança. Você poderá acompanhar o relatório ao final."}
+          </p>
+        </div>
+        {!isPulling && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isCancelling}
+            className="shrink-0 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-700 transition hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+          >
+            {isCancelling ? "Cancelando..." : "Cancelar processamento"}
+          </button>
+        )}
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2 text-[11px] font-semibold">
+        {[
+          ["Receber", isPulling ? "active" : "done"],
+          ["Processar SOC", isPulling ? "pending" : "active"],
+          ["Relatório", "pending"],
+        ].map(([label, state]) => (
+          <div key={label} className="flex items-center gap-1.5 text-brand-muted">
+            <span className={`h-2 w-2 rounded-full ${state === "done" ? "bg-brand-green-500" : state === "active" ? "animate-pulse bg-brand-cyan" : "bg-brand-line"}`} />
+            {label}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

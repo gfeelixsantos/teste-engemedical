@@ -143,6 +143,40 @@ export async function POST(req: NextRequest) {
       return Response.json(await response.json(), { status: response.status });
     }
 
+    if (action === "process-soc") {
+      const { fileId } = body;
+      if (!fileId) {
+        return Response.json({ error: "Arquivo recebido sem identificador" }, { status: 400 });
+      }
+      const response = await fetch(
+        `${BACKEND_URL}/internal/sftp-integrator/${SFTP_CLIENT_KEY}/files/${fileId}/process-soc-limited`,
+        {
+          method: "POST",
+          headers: {
+            "x-internal-token": INTERNAL_TOKEN || "",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            executionId: body.executionId,
+            requestedByEmail: body.requestedByEmail,
+          }),
+        },
+      );
+      return Response.json(await response.json(), { status: response.status });
+    }
+
+    if (action === "cancel-processing") {
+      const { executionId } = body;
+      if (!executionId) {
+        return Response.json({ error: "Execução sem identificador" }, { status: 400 });
+      }
+      const response = await fetch(
+        `${BACKEND_URL}/internal/sftp-integrator/${SFTP_CLIENT_KEY}/executions/${encodeURIComponent(executionId)}/cancel`,
+        { method: "POST", headers: { "x-internal-token": INTERNAL_TOKEN || "" } },
+      );
+      return Response.json(await response.json(), { status: response.status });
+    }
+
     if (action === "download-file") {
       const { fileId } = body;
       const response = await fetch(

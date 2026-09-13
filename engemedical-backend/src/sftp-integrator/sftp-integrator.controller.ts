@@ -1,19 +1,25 @@
 import {
   Controller,
+  Body,
   Get,
   Headers,
   Param,
   Post,
   Query,
   Res,
+  Optional,
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { SftpIntegratorService } from './sftp-integrator.service';
+import { SftpExecutionCancellationRegistry } from './sftp-execution-cancellation';
 
 @Controller('internal/sftp-integrator')
 export class SftpIntegratorController {
-  constructor(private readonly service: SftpIntegratorService) {}
+  constructor(
+    private readonly service: SftpIntegratorService,
+    @Optional() private readonly cancellation?: SftpExecutionCancellationRegistry,
+  ) {}
 
   private assertInternalAuth(token?: string) {
     const expected = process.env.INTERNAL_WORKER_TOKEN;
@@ -119,8 +125,27 @@ export class SftpIntegratorController {
     @Param('clientKey') clientKey: string,
     @Param('id') id: string,
     @Headers('x-internal-token') token?: string,
+    @Body('executionId') executionId?: string,
+    @Body('requestedByEmail') requestedByEmail?: string,
   ) {
     this.assertInternalAuth(token);
-    return this.service.processSocLimited(clientKey, id);
+    if (executionId) this.cancellation?.start(executionId);
+    try {
+      return executionId
+        ? await this.service.processSocLimited(clientKey, id, executionId, requestedByEmail)
+        : await this.service.processSocLimited(clientKey, id);
+    } finally {
+      if (executionId) this.cancellation?.finish(executionId);
+    }
+  }
+
+  @Post(':clientKey/executions/:executionId/cancel')
+  cancelExecution(
+    @Param('executionId') executionId: string,
+    @Headers('x-internal-token') token?: string,
+  ) {
+    this.assertInternalAuth(token);
+    this.cancellation?.cancel(executionId);
+    return { executionId, status: 'cancellation_requested' };
   }
 }

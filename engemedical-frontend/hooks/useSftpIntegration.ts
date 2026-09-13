@@ -9,6 +9,7 @@ import type {
   SftpKpis,
   SftpScheduleInfo,
 } from "@/sftp-integracao/types";
+import { getCurrentUser } from "@/lib/utils";
 
 /* ─── Supabase Client ────────────────────────────────── */
 /* ─── API Fetcher ────────────────────────────────────── */
@@ -23,6 +24,7 @@ async function fetchSftpDashboard(): Promise<SftpDashboardData> {
 
 export function useSftpIntegration() {
   const [lastError, setLastError] = useState<string | null>(null);
+  const [executionId, setExecutionId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // Query para dados do dashboard
@@ -55,6 +57,42 @@ export function useSftpIntegration() {
     onError: (error: Error) => {
       setLastError(error.message);
     },
+  });
+
+  const processMutation = useMutation({
+    mutationFn: async ({ fileId, executionId }: { fileId: string; executionId: string }) => {
+      const response = await fetch("/api/sftp-integracao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "process-soc",
+          fileId,
+          executionId,
+          requestedByEmail: getCurrentUser()?.email,
+        }),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || "Falha ao processar registros no SOC");
+      }
+      return response.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sftp-dashboard"] }),
+    onError: (error: Error) => setLastError(error.message),
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch("/api/sftp-integracao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel-processing", executionId: id }),
+      });
+      if (!response.ok) throw new Error("Falha ao solicitar cancelamento");
+      return response.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sftp-dashboard"] }),
+    onError: (error: Error) => setLastError(error.message),
   });
 
   /* ─── KPIs ───────────────────────────────────────────── */
@@ -90,8 +128,22 @@ export function useSftpIntegration() {
 
   const triggerPull = useCallback(async () => {
     setLastError(null);
-    await pullMutation.mutateAsync();
-  }, [pullMutation]);
+    const result = await pullMutation.mutateAsync();
+    const fileId = result?.file?._id || result?.file?.id;
+    if (!fileId) throw new Error("A planilha foi recebida sem identificador para processamento");
+    const nextExecutionId = crypto.randomUUID();
+    setExecutionId(nextExecutionId);
+    try {
+      await processMutation.mutateAsync({ fileId: String(fileId), executionId: nextExecutionId });
+    } finally {
+      setExecutionId(null);
+    }
+  }, [pullMutation, processMutation]);
+
+  const cancelProcessing = useCallback(async () => {
+    if (!executionId) return;
+    await cancelMutation.mutateAsync(executionId);
+  }, [cancelMutation, executionId]);
 
   const downloadFile = useCallback(async (fileId: string) => {
     try {
@@ -156,7 +208,8 @@ export function useSftpIntegration() {
     // State
     isLoading,
     isPulling: pullMutation.isPending,
-    isProcessing: false,
+    isProcessing: processMutation.isPending,
+    isCancelling: cancelMutation.isPending,
     error:
       lastError ??
       (queryError instanceof Error
@@ -166,6 +219,7 @@ export function useSftpIntegration() {
           : null),
     // Actions
     triggerPull,
+    cancelProcessing,
     downloadFile,
     downloadReport,
     // Refresh

@@ -35,6 +35,7 @@ export type SftpSocProcessOptions = {
   limit: number;
   delayMs: number;
   lookupCompanyCode?: string;
+  shouldCancel?: () => boolean;
 };
 
 export type SftpSocProcessRowResult = {
@@ -88,6 +89,8 @@ export class SftpSocProcessor {
     const safeLimit = Math.max(Number(options.limit) || 0, 0);
     const selected = payloads.slice(0, safeLimit);
     const rows: SftpSocProcessRowResult[] = [];
+    let cancelled = false;
+    let stoppedOnError = false;
     const criarSetor = getEnvFlag('SFTP_INTEGRATOR_GRUPO_TORA_CRIAR_SETOR', false);
     const criarCargo = getEnvFlag('SFTP_INTEGRATOR_GRUPO_TORA_CRIAR_CARGO', false);
     this.logger.log(
@@ -99,6 +102,10 @@ export class SftpSocProcessor {
     );
 
     for (let index = 0; index < selected.length; index++) {
+      if (options.shouldCancel?.()) {
+        cancelled = true;
+        break;
+      }
       const payload = selected[index];
       try {
         const lookupResults = await this.employeeLookup.findByCpf(
@@ -124,6 +131,10 @@ export class SftpSocProcessor {
         }
 
         for (const lookup of lookupResults) {
+          if (options.shouldCancel?.()) {
+            cancelled = true;
+            break;
+          }
           const response = await this.callFuncionarioModelo2(lookup.employee, {
             lookupKey: payload.lookupKey,
             overwriteSituacao: payload.situationToSend,
@@ -157,6 +168,10 @@ export class SftpSocProcessor {
             xml: response.xml,
             responseText: response.responseText,
           });
+          if (!functionalSuccess) {
+            stoppedOnError = true;
+            break;
+          }
         }
       } catch (error) {
         rows.push({
@@ -172,7 +187,10 @@ export class SftpSocProcessor {
           success: false,
           error: error instanceof Error ? error.message : String(error),
         });
+        stoppedOnError = true;
       }
+
+      if (cancelled || stoppedOnError) break;
 
       // Log progresso a cada 10 registros
       if ((index + 1) % 10 === 0 || index === selected.length - 1) {
@@ -186,7 +204,7 @@ export class SftpSocProcessor {
       }
 
       // Delay randômico entre chamadas
-      const delayMs = Math.floor(Math.random() * 700) + 100;
+      const delayMs = Math.floor(Math.random() * 1401) + 100;
       if (index < selected.length - 1) {
         await this.delay(delayMs);
       }
@@ -197,7 +215,7 @@ export class SftpSocProcessor {
     const notInBase = rows.filter((r) => r.notInBase).length;
 
     this.logger.log(
-      `[SOC_PROCESSOR] Processamento concluido: ${selected.length} processados | ` +
+      `[SOC_PROCESSOR] Processamento concluido: ${rows.length} avaliados de ${selected.length} selecionados | ` +
       `sucesso: ${success} | falhas: ${failed} | naoBase: ${notInBase}`,
     );
 
@@ -206,11 +224,14 @@ export class SftpSocProcessor {
       summary: {
         totalRows: payloads.length,
         totalSelected: selected.length,
+        totalProcessed: rows.length,
         success,
         failed,
         notInBase,
         skippedByLimit: Math.max(payloads.length - selected.length, 0),
         delayMs: options.delayMs,
+        cancelled,
+        stoppedOnError,
       },
     };
   }

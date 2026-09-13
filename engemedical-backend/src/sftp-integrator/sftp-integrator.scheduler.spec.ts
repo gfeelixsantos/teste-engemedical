@@ -19,8 +19,8 @@ describe('SftpIntegratorScheduler', () => {
 
   function createService() {
     return {
-      pullLatestAndRunDryRun: jest.fn().mockResolvedValue({
-        pull: { file: { _id: 'file-123', remoteName: 'LOG.xlsx' } },
+      pullLatest: jest.fn().mockResolvedValue({
+        file: { _id: 'file-123', remoteName: 'LOG.xlsx' },
       }),
       processSocLimited: jest.fn().mockResolvedValue({
         summary: { success: 1, failed: 0 },
@@ -37,22 +37,23 @@ describe('SftpIntegratorScheduler', () => {
         scheduler.runGrupoToraDailyIntegration,
       ),
     ).toEqual({
-      cronTime: '30 18 * * *',
+      cronTime: '30 18 * * 1-5',
       timeZone: 'America/Sao_Paulo',
     });
   });
 
   it('does not run when the Grupo Tora cron flag is disabled', async () => {
+    process.env.SFTP_INTEGRATOR_GRUPO_TORA_CRON_ENABLED = 'false';
     const service = createService();
     const scheduler = new SftpIntegratorScheduler(service as any);
 
     await scheduler.runGrupoToraDailyIntegration();
 
-    expect(service.pullLatestAndRunDryRun).not.toHaveBeenCalled();
+    expect(service.pullLatest).not.toHaveBeenCalled();
     expect(service.processSocLimited).not.toHaveBeenCalled();
   });
 
-  it('runs dry-run and SOC processing when both flags are enabled', async () => {
+  it('pulls the latest file and processes it in production when both flags are enabled', async () => {
     process.env.SFTP_INTEGRATOR_GRUPO_TORA_CRON_ENABLED = 'true';
     process.env.SFTP_INTEGRATOR_GRUPO_TORA_SOC_ENABLED = 'true';
     const service = createService();
@@ -60,7 +61,7 @@ describe('SftpIntegratorScheduler', () => {
 
     await scheduler.runGrupoToraDailyIntegration();
 
-    expect(service.pullLatestAndRunDryRun).toHaveBeenCalledWith('grupo-tora');
+    expect(service.pullLatest).toHaveBeenCalledWith('grupo-tora');
     expect(service.processSocLimited).toHaveBeenCalledWith(
       'grupo-tora',
       'file-123',
@@ -72,11 +73,11 @@ describe('SftpIntegratorScheduler', () => {
     process.env.SFTP_INTEGRATOR_GRUPO_TORA_SOC_ENABLED = 'true';
     let releaseDryRun!: () => void;
     const service = createService();
-    service.pullLatestAndRunDryRun.mockReturnValue(
+    service.pullLatest.mockReturnValue(
       new Promise((resolve) => {
         releaseDryRun = () =>
           resolve({
-            pull: { file: { _id: 'file-123', remoteName: 'LOG.xlsx' } },
+            file: { _id: 'file-123', remoteName: 'LOG.xlsx' },
           });
       }),
     );
@@ -87,7 +88,7 @@ describe('SftpIntegratorScheduler', () => {
     releaseDryRun();
     await firstRun;
 
-    expect(service.pullLatestAndRunDryRun).toHaveBeenCalledTimes(1);
+    expect(service.pullLatest).toHaveBeenCalledTimes(1);
     expect(service.processSocLimited).toHaveBeenCalledTimes(1);
   });
 });

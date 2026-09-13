@@ -706,6 +706,10 @@ describe('SftpIntegratorService', () => {
         }),
       }),
     );
-    expect(sendReportDirect).toHaveBeenCalledWith(expect.objectContaining({ status: 'soc_limited' }), 'soc_limited');
+    expect(sendReportDirect).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'soc_limited' }),
+      'soc_limited',
+      undefined,
+    );
   });
 });

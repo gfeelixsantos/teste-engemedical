@@ -31,6 +31,7 @@ import {
 } from './sftp-report-email.template';
 import { generateSocReportExcel } from './sftp-report-excel.generator';
 import { R2SftpReportService } from './sftp-r2-report.service';
+import { SftpExecutionCancellationRegistry } from './sftp-execution-cancellation';
 
 // ─── Nodemailer direto (bypass Azure Queue) ───
 let nodemailerTransporter: any = null;
@@ -79,6 +80,7 @@ export class SftpIntegratorService implements OnModuleInit {
     @Inject('SFTP_INTEGRATOR_BACKEND_ROOT')
     backendRoot: string | Record<string, unknown> = process.cwd(),
     @Optional() reportStorage?: R2SftpReportService | string,
+    @Optional() private readonly cancellation?: SftpExecutionCancellationRegistry,
   ) {
     // Compatibilidade com fixtures antigas que passavam o root na posição extra.
     this.backendRootValue = typeof backendRoot === 'string'
@@ -326,7 +328,12 @@ export class SftpIntegratorService implements OnModuleInit {
     return result;
   }
 
-  async processSocLimited(clientKey: string, id: string) {
+  async processSocLimited(
+    clientKey: string,
+    id: string,
+    executionId?: string,
+    requestedByEmail?: string,
+  ) {
     const normalizedClientKey = normalizeSftpIntegratorClientKey(clientKey);
     if (!isEnabled(
       process.env[`SFTP_INTEGRATOR_${envClientKey(normalizedClientKey)}_SOC_ENABLED`],
@@ -354,6 +361,9 @@ export class SftpIntegratorService implements OnModuleInit {
         process.env[
           `SFTP_INTEGRATOR_${envClientKey(normalizedClientKey)}_SOC_LOOKUP_COMPANY_CODE`
         ],
+      shouldCancel: executionId
+        ? () => this.cancellation?.isCancelled(executionId) ?? false
+        : undefined,
     });
     const now = new Date();
     const run: SftpIntegratorParseRun = {
@@ -387,7 +397,7 @@ export class SftpIntegratorService implements OnModuleInit {
       },
     };
 
-    await this.sendReportDirect(result, 'soc_limited');
+    await this.sendReportDirect(result, 'soc_limited', requestedByEmail);
     return result;
   }
 
@@ -419,10 +429,15 @@ export class SftpIntegratorService implements OnModuleInit {
       file: { remoteName: string; sha256: string; size: number };
     },
     mode: 'dry_run' | 'soc_limited',
+    requestedByEmail?: string,
   ) {
     const recipients = parseEmailList(
       process.env.SFTP_INTEGRATOR_GRUPO_TORA_REPORT_EMAIL_TO,
     );
+    const requester = normalizeEmail(requestedByEmail);
+    if (mode === 'soc_limited' && requester && !recipients.includes(requester)) {
+      recipients.push(requester);
+    }
     if (!recipients.length) {
       this.logger.debug('[EMAIL] Nenhum destinatario configurado para relatorio SFTP');
       return;
@@ -624,6 +639,11 @@ function parseEmailList(value?: string): string[] {
     .split(',')
     .map((email) => email.trim())
     .filter(Boolean);
+}
+
+function normalizeEmail(value?: string): string | undefined {
+  const email = String(value || '').trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : undefined;
 }
 
 function maskCpf(value: string): string {

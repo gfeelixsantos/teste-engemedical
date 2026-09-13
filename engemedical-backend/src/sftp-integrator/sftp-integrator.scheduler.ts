@@ -5,12 +5,12 @@ import { SftpIntegratorService } from './sftp-integrator.service';
 const GRUPO_TORA_CLIENT_KEY = 'grupo-tora';
 const GRUPO_TORA_ENV_PREFIX = 'SFTP_INTEGRATOR_GRUPO_TORA';
 function resolveFileId(result: unknown): string {
-  const file = (result as any)?.pull?.file || (result as any)?.file;
+  const file = (result as any)?.file;
   return String(file?._id || '');
 }
 
 function resolveFileName(result: unknown): string {
-  const file = (result as any)?.pull?.file || (result as any)?.file;
+  const file = (result as any)?.file;
   return String(file?.remoteName || 'arquivo nao identificado');
 }
 
@@ -38,20 +38,20 @@ export class SftpIntegratorScheduler {
     this.grupoToraRunning = true;
     try {
       this.logger.log('[SFTP] Iniciando rotina diaria Grupo Tora.');
-      const dryRun = await this.sftpIntegratorService.pullLatestAndRunDryRun(
+      const pull = await this.sftpIntegratorService.pullLatest(
         GRUPO_TORA_CLIENT_KEY,
       );
-      const fileId = resolveFileId(dryRun);
-      const fileName = resolveFileName(dryRun);
+      const fileId = resolveFileId(pull);
+      const fileName = resolveFileName(pull);
 
       if (!fileId) {
-        throw new Error('Dry-run SFTP concluido sem identificador de arquivo');
+        throw new Error('Pull SFTP concluido sem identificador de arquivo');
       }
 
-      this.logger.log(`[SFTP] Dry-run Grupo Tora concluido: ${fileName}.`);
+      this.logger.log(`[SFTP] Arquivo Grupo Tora recebido: ${fileName}.`);
       if (String(process.env.SFTP_INTEGRATOR_GRUPO_TORA_SOC_ENABLED || '').toLowerCase() !== 'true') {
         this.logger.log(
-          '[SFTP] Processamento SOC Grupo Tora desabilitado apos dry-run.',
+          '[SFTP] Processamento SOC Grupo Tora desabilitado por configuracao.',
         );
         return;
       }

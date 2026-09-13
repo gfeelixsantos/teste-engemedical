@@ -152,4 +152,37 @@ describe('SftpIntegratorController', () => {
       '66f000000000000000000001',
     );
   });
+
+  it('accepts a cancellation request with the internal token', () => {
+    const cancellation = { cancel: jest.fn() };
+    const controller = new SftpIntegratorController({} as any, cancellation as any);
+
+    expect(controller.cancelExecution('exec-123', 'token-test')).toEqual({
+      executionId: 'exec-123',
+      status: 'cancellation_requested',
+    });
+    expect(cancellation.cancel).toHaveBeenCalledWith('exec-123');
+  });
+
+  it('forwards the requesting user email only for manual processing', async () => {
+    const result = { status: 'soc_limited' };
+    const service = { processSocLimited: jest.fn().mockResolvedValue(result) };
+    const controller = new SftpIntegratorController(service as any);
+
+    await expect(
+      controller.processSocLimited(
+        'grupo-tora',
+        '66f000000000000000000001',
+        'token-test',
+        'exec-123',
+        'usuario@empresa.com',
+      ),
+    ).resolves.toBe(result);
+    expect(service.processSocLimited).toHaveBeenCalledWith(
+      'grupo-tora',
+      '66f000000000000000000001',
+      'exec-123',
+      'usuario@empresa.com',
+    );
+  });
 });

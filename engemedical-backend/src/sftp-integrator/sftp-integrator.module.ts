@@ -13,6 +13,7 @@ import { CloudflareR2Service } from './sftp-r2-storage.service';
 import { CloudflareR2SftpService } from './sftp-r2-sftp-storage.service';
 import { R2SftpReportService } from './sftp-r2-report.service';
 import { CloudflareQueueService } from './sftp-queue.service';
+import { SftpExecutionCancellationRegistry } from './sftp-execution-cancellation';
 
 @Module({
   imports: [forwardRef(() => MongoModule), NodemailerModule],
@@ -28,6 +29,7 @@ import { CloudflareQueueService } from './sftp-queue.service';
     CloudflareR2SftpService,
     R2SftpReportService,
     CloudflareQueueService,
+    SftpExecutionCancellationRegistry,
     {
       provide: 'SFTP_CLIENT_ADAPTER',
       useClass: Ssh2SftpClientAdapter,

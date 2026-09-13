@@ -150,6 +150,46 @@ describe('SFTP API Route', () => {
   });
 
   describe('POST Handler', () => {
+    it('should forward the production SOC processing action for a received file', async () => {
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ status: 'soc_limited' }) });
+
+      const response = await POST(new NextRequest('http://localhost/api/sftp-integracao', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'process-soc',
+          fileId: 'file-123',
+          executionId: 'exec-123',
+          requestedByEmail: 'usuario@empresa.com',
+        }),
+        headers: { 'Content-Type': 'application/json' },
+      }));
+
+      expect(response.status).toBe(200);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/files/file-123/process-soc-limited'),
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('usuario@empresa.com'),
+        }),
+      );
+    });
+
+    it('should forward a processing cancellation request', async () => {
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ status: 'cancellation_requested' }) });
+
+      const response = await POST(new NextRequest('http://localhost/api/sftp-integracao', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'cancel-processing', executionId: 'exec-123' }),
+        headers: { 'Content-Type': 'application/json' },
+      }));
+
+      expect(response.status).toBe(200);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/executions/exec-123/cancel'),
+        expect.objectContaining({ method: 'POST' }),
+      );
+    });
+
     describe('Pull Action', () => {
       it('should trigger pull from backend', async () => {
         mockFetch.mockResolvedValue({ ok: true, json: async () => ({ success: true }) });
