@@ -75,7 +75,7 @@ describe('scraper-diagnostic-report', () => {
         thresholdsBelowCurrentAccepted: [],
         providerAttempts: [
           {
-            provider: 'Cedill',
+            provider: 'Medical',
             candidatesFound: 2,
             pdfsDownloaded: 1,
             pdfsAnalyzed: 1,
@@ -84,7 +84,7 @@ describe('scraper-diagnostic-report', () => {
         ],
         pdfSignals: [
           {
-            provider: 'Cedill',
+            provider: 'Medical',
             reportTextLength: 0,
             gateReason: 'pdf_text_empty_or_poor',
             aiMatchFound: false,
@@ -100,7 +100,7 @@ describe('scraper-diagnostic-report', () => {
         thresholdsBelowCurrentAccepted: [],
         providerAttempts: [
           {
-            provider: 'Cedill',
+            provider: 'Medical',
             candidatesFound: 2,
             pdfsDownloaded: 1,
             pdfsAnalyzed: 1,
@@ -109,7 +109,7 @@ describe('scraper-diagnostic-report', () => {
         ],
         pdfSignals: [
           {
-            provider: 'Cedill',
+            provider: 'Medical',
             reportTextLength: 450,
             gateReason: 'identity:minimum_evidence_missing',
             aiMatchFound: false,

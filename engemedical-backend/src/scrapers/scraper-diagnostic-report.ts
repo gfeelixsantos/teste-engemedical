@@ -2,8 +2,6 @@ import { ThresholdComparisonOutcome } from './exam-match-threshold-analysis';
 
 export type DiagnosticProviderName =
   | 'Worklab'
-  | 'Cedill'
-  | 'Veitieka'
   | 'Medical';
 
 export type ExamDiagnosticReason =

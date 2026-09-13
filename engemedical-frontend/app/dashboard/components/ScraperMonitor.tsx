@@ -4,12 +4,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { motion } from "framer-motion";
 import {
-  Activity,
-  AlertCircle,
   CheckCircle2,
   Clock,
   Database,
-  XCircle,
+  ChevronDown,
+  FileCheck2,
+  RefreshCw,
 } from "lucide-react";
 
 import { WORKER_SCRAPER_STATUS, WORKER_WS_URL } from "@/config/constants";
@@ -30,7 +30,7 @@ interface ProviderMetrics {
 const POLLING_INTERVAL_MS = 60000;
 const RECONCILIATION_INTERVAL_MS = 5 * 60000;
 const WS_CONNECTION_TIMEOUT_MS = 10000;
-const SCRAPER_METRICS_CACHE_KEY = "dashboard_scraper_metrics_cache_v1";
+const SCRAPER_METRICS_CACHE_KEY = "dashboard_scraper_metrics_cache_v2";
 const SCRAPER_METRICS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 interface ScraperMetricsCache {
@@ -73,7 +73,10 @@ const loadCachedMetrics = (): ScraperMetricsCache | null => {
       return null;
     }
 
-    return parsed;
+    return {
+      ...parsed,
+      metrics: parsed.metrics,
+    };
   } catch {
     return null;
   }
@@ -135,26 +138,19 @@ const mergeProviderMetrics = (
   };
 };
 
-const mergeIncomingWithCache = (
+export const mergeIncomingWithCache = (
   incoming: ProviderMetrics[],
   cached: ProviderMetrics[],
 ) => {
-  if (!incoming.length) return cached;
+  if (!incoming.length) return [];
 
   const cachedByProvider = new Map(cached.map((item) => [item.provider, item]));
-  const incomingByProvider = new Set(incoming.map((item) => item.provider));
 
-  const merged = incoming.map((item) =>
+  return incoming
+    .map((item) =>
     mergeProviderMetrics(item, cachedByProvider.get(item.provider)),
-  );
-
-  cached.forEach((cachedItem) => {
-    if (!incomingByProvider.has(cachedItem.provider)) {
-      merged.push(cachedItem);
-    }
-  });
-
-  return merged.sort((a, b) => a.provider.localeCompare(b.provider));
+    )
+    .sort((a, b) => a.provider.localeCompare(b.provider));
 };
 
 const getStatusConfig = (status: ProviderStatus) => {
@@ -182,6 +178,7 @@ export const ScraperMonitor: React.FC = () => {
   const [metrics, setMetrics] = useState<ProviderMetrics[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
+  const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
   const wsFailedRef = useRef(false);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isConnectedRef = useRef(false);
@@ -304,65 +301,115 @@ export const ScraperMonitor: React.FC = () => {
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
-      className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+      className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_18px_50px_-32px_rgba(15,55,85,0.45)]"
       initial={{ opacity: 0, y: 20 }}
     >
       <div className="flex items-center justify-between border-b border-brand-500/20 bg-gradient-to-br from-brand-500 to-brand-700 px-5 py-4">
-        <div>
-          <h3 className="text-lg font-semibold text-white">
-            Monitoramento
-          </h3>
-        </div>
+        <h3 className="text-lg font-semibold text-white">Monitoramento</h3>
 
         <div className="text-right">
-          {metrics[0]?.scheduleLabel && (
-            <p className="text-sm text-white/90">
-              Horários de coleta: {metrics[0].scheduleLabel}
-            </p>
-          )}
+          <p className="text-xs font-bold text-white">Coleta automática pausada</p>
+          <p className="mt-1 text-[11px] text-white/65">
+            Pausa temporária para validação da equipe
+          </p>
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="p-4 sm:p-6">
         {metrics.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
-            Aguardando dados...
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-4 py-10 text-center text-sm text-slate-500">
+            <RefreshCw className="mx-auto mb-3 h-5 w-5 animate-spin text-brand-500" />
+            Aguardando informações da coleta...
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-5">
-            {metrics.map((row) => {
-              const config = getStatusConfig(row.status);
+          <div>
+            <div className="mb-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-600">
+                Prestadores acompanhados
+              </p>
+            </div>
 
-              return (
-                <article
-                  key={row.provider}
-                  className="rounded-lg bg-white px-3 py-2 border border-gray-200"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Database className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-800">
-                          {row.provider}
-                        </h4>
-                        <span className={`text-[11px] ${row.status === "Processando" ? "text-blue-600" : "text-gray-500"}`}>
-                          {row.status}
-                        </span>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              {metrics.map((row) => {
+                const config = getStatusConfig(row.status);
+                const isExpanded = expandedProvider === row.provider;
+                const detailsId = `scraper-provider-details-${row.provider.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+                return (
+                  <article key={row.provider} className="border-b border-slate-100 last:border-b-0">
+                    <button
+                      type="button"
+                      aria-controls={detailsId}
+                      aria-expanded={isExpanded}
+                      className="group flex w-full items-center gap-3 px-4 py-4 text-left transition hover:bg-slate-50/70 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-400 sm:px-5"
+                      onClick={() => setExpandedProvider(isExpanded ? null : row.provider)}
+                    >
+                      <div className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center text-brand-600">
+                        <Database className="h-5 w-5 transition-colors group-hover:text-brand-700" />
                       </div>
-                    </div>
 
-                    <div className="text-right">
-                      <p className="text-[9px] font-semibold uppercase tracking-wide text-gray-400">
-                        Recebidos
-                      </p>
-                      <p className="text-lg font-semibold text-brand-500">
-                        {row.receivedToday || 0}
-                      </p>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="truncate text-sm font-bold text-slate-800 sm:text-base">
+                            {row.provider}
+                          </h4>
+                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-bold ${row.status === "Erro" ? "bg-red-50 text-red-700" : row.status === "Processando" ? "bg-blue-50 text-blue-700" : "bg-emerald-50 text-emerald-700"}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${config.dotClass}`} />
+                            {row.status}
+                          </span>
+                        </div>
+                        <p className="mt-1 truncate text-xs text-slate-400">
+                          {row.lastProcessed ? `Última coleta ${new Date(row.lastProcessed).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}` : "Nenhuma coleta realizada hoje"}
+                        </p>
+                      </div>
+
+                      <div className="hidden min-w-[110px] text-right sm:block">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                          Recebidos hoje
+                        </p>
+                        <p className="mt-1 text-xl font-bold tracking-tight text-brand-600">
+                          {row.receivedToday || 0}
+                        </p>
+                      </div>
+
+                      <ChevronDown className={`h-5 w-5 shrink-0 text-slate-400 transition-transform ${isExpanded ? "rotate-180 text-brand-600" : "group-hover:text-brand-600"}`} />
+                    </button>
+
+                    <motion.div
+                      id={detailsId}
+                      animate={{ height: isExpanded ? "auto" : 0, opacity: isExpanded ? 1 : 0 }}
+                      className="overflow-hidden"
+                      initial={false}
+                    >
+                      <div className="grid grid-cols-1 gap-3 border-t border-slate-100 bg-slate-50/45 px-4 pb-4 pt-3 sm:grid-cols-3 sm:px-5">
+                        <div className="rounded-xl bg-white px-3 py-3 ring-1 ring-slate-100">
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <FileCheck2 className="h-4 w-4" />
+                            <span className="text-[10px] font-bold uppercase tracking-[0.14em]">Exames verificados hoje</span>
+                          </div>
+                          <p className="mt-2 text-lg font-bold text-slate-800">{row.analyzedToday || 0}</p>
+                        </div>
+                        <div className="rounded-xl bg-white px-3 py-3 ring-1 ring-slate-100">
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <span className="text-[10px] font-bold uppercase tracking-[0.14em]">Resultados recebidos</span>
+                          </div>
+                          <p className="mt-2 text-lg font-bold text-slate-800">{row.receivedToday || 0}</p>
+                        </div>
+                        <div className="rounded-xl bg-white px-3 py-3 ring-1 ring-slate-100">
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <Clock className="h-4 w-4" />
+                            <span className="text-[10px] font-bold uppercase tracking-[0.14em]">Próxima atualização</span>
+                          </div>
+                          <p className="mt-2 text-sm font-bold text-slate-800">Coleta pausada</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </article>
+                );
+              })}
+            </div>
+
           </div>
         )}
 

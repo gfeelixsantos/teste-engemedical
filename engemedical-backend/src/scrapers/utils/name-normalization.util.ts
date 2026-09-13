@@ -164,22 +164,6 @@ export function buildMedicalNameSearchVariants(name: string): string[] {
   return full;
 }
 
-export function buildCedillNameSearchVariants(name: string): string[] {
-  const original = collapseSpaces(name || '');
-  const normalized = collapseSpaces(stripDiacritics(original));
-  const tokens = splitNameTokens(original);
-  
-  const cleanName = tokens.join(' ');
-  const firstLast = tokens.length >= 2 ? `${tokens[0]} ${tokens[tokens.length - 1]}` : '';
-  
-  const firstTwo = tokens.length >= 2 ? `${tokens[0]} ${tokens[1]}` : '';
-  
-  const variants = [original, normalized, cleanName, firstLast, firstTwo]
-    .map((item) => collapseSpaces(item))
-    .filter((item) => item.length > 0);
-  return [...new Set(variants)];
-}
-
 export function levenshteinDistance(a: string, b: string): number {
   const matrix: number[][] = [];
   for (let i = 0; i <= b.length; i++) matrix[i] = [i];
@@ -234,4 +218,3 @@ export function fuzzyTokenMatchInText(token: string, textTokens: string[], maxTo
   }
   return false;
 }
-

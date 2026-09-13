@@ -6,17 +6,13 @@ import { ExamStatus } from '../mongo/enum/scheduling.enum';
 import { ExamMatcherService } from './exam-matcher.service';
 import { AzureService } from '../azure/azure.service';
 import { WorklabScraper } from './providers/worklab.scraper';
-import { CedillScraper } from './providers/cedill.scraper';
-import { VeitiekaScraper } from './providers/veitieka.scraper';
 import { MedicalScraper } from './providers/medical.scraper';
-import { AbelScraper } from './providers/abel.scraper';
 import { SchedulingDocument } from '../mongo/types/scheduling';
 import { ScraperMetricsService } from './scraper-metrics.service';
 import { EmailService } from '../nodemailer/nodemailer.service';
 import {
   buildMedicalNameSearchVariants,
   buildNameSearchVariants,
-  buildCedillNameSearchVariants,
 } from './utils/name-normalization.util';
 import {
   matchesAllowedGroups,
@@ -32,6 +28,7 @@ import {
   buildSearchAttemptSummary,
 } from './utils/scraper-diagnostics.util';
 import { buildScraperReportEmailView } from './utils/scraper-report-email.util';
+import { isScraperCronEnabled } from './scraper-cron.config';
 
 const parsePositiveInt = (value: string | undefined, fallback: number) => {
   const parsed = Number(value);
@@ -116,6 +113,10 @@ export class ScraperService implements OnModuleInit {
 
   @Cron(SCRAPER_AUTOMATIC_SCHEDULE, { timeZone: SCRAPER_TIME_ZONE })
   async handleAutomaticScraping() {
+    if (!isScraperCronEnabled()) {
+      this.logger.debug('[CRON][SCRAPER] Execução automática desativada por configuração.');
+      return;
+    }
     this.logger.log({
       event: 'SCRAPER_CRON_TRIGGERED',
       message: 'Iniciando rotina automatica do scraper (06, 09, 14, 18 hrs).',
@@ -125,6 +126,10 @@ export class ScraperService implements OnModuleInit {
 
   @Cron(SCRAPER_MIDDAY_SCHEDULE, { timeZone: SCRAPER_TIME_ZONE })
   async handleMiddayScraping() {
+    if (!isScraperCronEnabled()) {
+      this.logger.debug('[CRON][SCRAPER] Execução automática desativada por configuração.');
+      return;
+    }
     this.logger.log({
       event: 'SCRAPER_MIDDAY_CRON_TRIGGERED',
       message: 'Iniciando rotina automatica de meio-dia do scraper (11:30 hrs).',
@@ -145,13 +150,12 @@ export class ScraperService implements OnModuleInit {
   }
 
   /**
-   * Execução no startup (SCRAPER_RUN_ON_STARTUP=true) — processa APENAS Veitieka e Cedill.
-   * Usado para debug/investigação de provedores específicos.
+   * Execução no startup (SCRAPER_RUN_ON_STARTUP=true) — processa os provedores ativos.
    */
   async runStartup(): Promise<void> {
     this.logger.log({
       event: 'SCRAPER_STARTUP_TRIGGER',
-      message: 'Execucao de startup do scraper (Veitieka + Cedill apenas).',
+      message: 'Execucao de startup do scraper (provedores ativos).',
     });
 
     const report: ScrapeReport = {
@@ -171,17 +175,16 @@ export class ScraperService implements OnModuleInit {
 
       report.processedCount = pendingSchedulings.length;
 
-      // APENAS Veitieka (RaioX) e Cedill (Laboratorio)
       await this.processBatch(
-        'Veitieka',
+        'Worklab',
         pendingSchedulings,
-        [this.canonicalGroups.RAIOX],
+        ['Laboratório', 'LABORATORIO'],
         report,
       );
       await this.processBatch(
-        'Cedill',
+        'Medical',
         pendingSchedulings,
-        ['Laboratório', 'LABORATORIO'],
+        [this.canonicalGroups.EEG, this.canonicalGroups.ECG, this.canonicalGroups.RAIOX],
         report,
       );
 
@@ -268,25 +271,7 @@ export class ScraperService implements OnModuleInit {
       if (pendingSchedulings.length > 0) {
         // Executa por provedor (Lotes)
         await this.processBatch(
-          'Veitieka',
-          pendingSchedulings,
-          [this.canonicalGroups.RAIOX],
-          report,
-        );
-        await this.processBatch(
           'Worklab',
-          pendingSchedulings,
-          ['Laboratório', 'LABORATORIO'],
-          report,
-        );
-        await this.processBatch(
-          'Cedill',
-          pendingSchedulings,
-          ['Laboratório', 'LABORATORIO'],
-          report,
-        );
-        await this.processBatch(
-          'Abel',
           pendingSchedulings,
           ['Laboratório', 'LABORATORIO'],
           report,
@@ -531,9 +516,7 @@ export class ScraperService implements OnModuleInit {
     const variants =
       provider === 'Medical'
         ? [...new Set(buildMedicalNameSearchVariants(patientName))]
-        : provider === 'Cedill'
-          ? buildCedillNameSearchVariants(patientName)
-          : buildNameSearchVariants(patientName);
+        : buildNameSearchVariants(patientName);
     const attempts: Array<{ query: string; resultCount: number }> = [];
 
     const searchContext = {
@@ -640,75 +623,11 @@ export class ScraperService implements OnModuleInit {
     switch (provider) {
       case 'Worklab':
         return new WorklabScraper();
-      case 'Cedill':
-        return new CedillScraper();
-      case 'Veitieka':
-        return new VeitiekaScraper();
       case 'Medical':
         return new MedicalScraper();
-      case 'Abel':
-        return new AbelScraper();
       default:
         throw new Error(`Provedor desconhecido: ${provider}`);
     }
-  }
-
-  /**
-   * Extrai o nome da empresa do texto do laudo Cedill.
-   * O laudo exibe o campo "Empresa" numa linha após o cabeçalho.
-   * Ex: "Empresa\nINDUSTRIA DE FRIOS E EMBUTIDOS NALIN LTDA"
-   */
-  private extractCedillCompanyFromText(text: string): string | null {
-    if (!text) return null;
-
-    // Padrão 1: campo "Empresa" seguido do valor na mesma linha ou na próxima
-    const inlineMatch = text.match(/empresa\s*[:\-]?\s*([^\r\n]{3,80})/i);
-    if (inlineMatch?.[1]?.trim()) {
-      return inlineMatch[1].trim().toUpperCase();
-    }
-
-    // Padrão 2: linha que diz "Empresa" seguida de próxima linha com o valor
-    const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-    for (let i = 0; i < lines.length; i++) {
-      if (/^empresa$/i.test(lines[i]) && lines[i + 1]) {
-        return lines[i + 1].toUpperCase();
-      }
-    }
-
-    return null;
-  }
-
-  // Tokens genéricos de razão social que NÃO devem ser usados na comparação
-  private readonly COMPANY_NOISE_TOKENS = new Set([
-    'ltda', 'sa', 'ss', 'me', 'eireli', 'epp', 'sas', 'ind', 'com',
-    'industria', 'comercio', 'servicos', 'solucoes', 'grupo', 'cia', 'de',
-    'do', 'da', 'dos', 'das', 'e', 'em', 'para', 'por', 'no', 'na',
-  ]);
-
-  /**
-   * Verifica se empresa do laudo e empresa do prontuário têm pelo menos
-   * 1 token significativo em comum (≥5 chars, não-genérico).
-   */
-  private cedillCompanyMatches(reportCompany: string, docCompany: string): boolean {
-    const normalize = (s: string) =>
-      s
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/[^a-z0-9 ]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-    const tokenize = (s: string) =>
-      normalize(s)
-        .split(' ')
-        .filter((t) => t.length >= 5 && !this.COMPANY_NOISE_TOKENS.has(t));
-
-    const reportTokens = new Set(tokenize(reportCompany));
-    const docTokens = tokenize(docCompany);
-
-    const overlap = docTokens.filter((t) => reportTokens.has(t));
-    return overlap.length > 0;
   }
 
   private async handleResultFound(
@@ -734,33 +653,6 @@ export class ScraperService implements OnModuleInit {
     const pendingGroups = [
       ...new Set(pendingExams.map((exam) => normalizeScraperGroup(exam.grupo))),
     ];
-
-    // ── Validação de empresa para Cedill ──────────────────────────────────────
-    // O laudo Cedill inclui o campo "Empresa" no PDF. Se o nome da empresa no
-    // laudo não tiver tokens em comum com o NOMEEMPRESA do prontuário, o PDF
-    // pertence a outro paciente homônimo de outra empresa e deve ser rejeitado.
-    if (provider === 'Cedill' && doc.NOMEEMPRESA) {
-      const companyInReport = this.extractCedillCompanyFromText(text);
-      if (companyInReport) {
-        const matches = this.cedillCompanyMatches(companyInReport, doc.NOMEEMPRESA);
-        if (!matches) {
-          this.logger.warn({
-            event: 'SCRAPER_CEDILL_COMPANY_MISMATCH',
-            provider,
-            patient: doc.NOME,
-            schedulingId: String(doc._id),
-            expectedCompany: doc.NOMEEMPRESA,
-            reportCompany: companyInReport,
-            message: 'Laudo Cedill rejeitado: empresa do laudo difere do prontuário (homonimo de outra empresa).',
-          });
-          return false;
-        }
-        this.logger.debug(
-          `[Cedill][COMPANY_OK] patient="${doc.NOME}" reportCompany="${companyInReport}" docCompany="${doc.NOMEEMPRESA}"`,
-        );
-      }
-    }
-    // ─────────────────────────────────────────────────────────────────────────
 
     this.logger.debug(
       `[SCRAPER][MATCHER][INPUT] provider=${provider} patient="${doc.NOME}" pendingGroups=${pendingGroups.join(',') || 'NONE'} downloadedPdfs=${downloadedPdfCount} examsToMatch=${pendingExams.length}`,

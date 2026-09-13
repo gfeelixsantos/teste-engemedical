@@ -5,7 +5,6 @@
 
 import { rankDateAwareCandidates } from './utils/medical-candidate-ranking.util';
 import { WorklabScraper } from './providers/worklab.scraper';
-import { VeitiekaScraper } from './providers/veitieka.scraper';
 import { MedicalScraper } from './providers/medical.scraper';
 
 describe('Preservation: providers nao-bugados nao sofrem reordenacao', () => {
@@ -65,12 +64,6 @@ describe('Preservation: candidato com matchedTokens=0 nao promovido por data', (
 describe('Preservation: interface searchPatient retrocompativel sem segundo argumento', () => {
   it('WorklabScraper.searchPatient aceita apenas name', () => {
     const scraper = new WorklabScraper();
-    expect(typeof scraper.searchPatient).toBe('function');
-    expect(scraper.searchPatient.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it('VeitiekaScraper.searchPatient aceita apenas name', () => {
-    const scraper = new VeitiekaScraper();
     expect(typeof scraper.searchPatient).toBe('function');
     expect(scraper.searchPatient.length).toBeGreaterThanOrEqual(1);
   });

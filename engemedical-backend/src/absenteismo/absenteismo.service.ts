@@ -25,6 +25,42 @@ import type {
   AbsenteismoDashboardData,
 } from './absenteismo.types';
 
+const getDatePartsInSaoPaulo = (date: Date) => {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+
+  return {
+    year: values.year,
+    month: values.month,
+    day: values.day,
+  };
+};
+
+const formatDateForSoc = (value: string): string => {
+  const trimmed = value.trim();
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+
+  return isoMatch ? `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}` : trimmed;
+};
+
+export const resolveAbsenteismoDateRange = (dataInicial?: string, dataFinal?: string, now = new Date()) => {
+  const { year, month, day } = getDatePartsInSaoPaulo(now);
+
+  return {
+    dataInicio: dataInicial?.trim()
+      ? formatDateForSoc(dataInicial)
+      : `01/01/${year}`,
+    dataFim: dataFinal?.trim()
+      ? formatDateForSoc(dataFinal)
+      : `${day}/${month}/${year}`,
+  };
+};
+
 @Injectable()
 export class AbsenteismoService {
   private cache: { data: AbsenteismoDashboardData; expires: number } | null = null;
@@ -41,6 +77,7 @@ export class AbsenteismoService {
     dataInicial?: string,
     dataFinal?: string,
   ): Promise<SocLicencaMedica[]> {
+    const dateRange = resolveAbsenteismoDateRange(dataInicial, dataFinal);
     const credentials = getSocExportCredentials(
       'SOC_ED_LICENCA_MEDICA',
       this.configService,
@@ -50,8 +87,8 @@ export class AbsenteismoService {
       ...credentials,
       tipoSaida: 'json',
       listaFuncionario: '',
-      dataInicio: dataInicial || '',
-      dataFim: dataFinal || '',
+      dataInicio: dateRange.dataInicio,
+      dataFim: dateRange.dataFim,
       dataInicioCriacao: '',
       dataFimCriacao: '',
       dataAlteracao: '',
@@ -274,6 +311,7 @@ export class AbsenteismoService {
     dataInicial?: string,
     dataFinal?: string,
   ): Promise<AbsenteismoDashboardData> {
+    const dateRange = resolveAbsenteismoDateRange(dataInicial, dataFinal);
     const raw = await this.fetchLicencas(dataInicial, dataFinal);
     const dados = raw.map((r) => this.normalizeLicenca(r));
 
@@ -369,8 +407,8 @@ export class AbsenteismoService {
       totalRegistros: dados.length || 265,
       filtros: {
         empresas,
-        dataInicio: dataInicial || '',
-        dataFim: dataFinal || '',
+        dataInicio: dateRange.dataInicio,
+        dataFim: dateRange.dataFim,
       },
     };
 

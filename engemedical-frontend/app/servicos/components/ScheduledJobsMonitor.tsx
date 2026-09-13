@@ -61,18 +61,18 @@ export const ScheduledJobsMonitor: React.FC = () => {
       expression: "0 6,9,14,18 * * *",
       scheduleDescription: "Às 06:00, 09:00, 14:00 e 18:00",
       service: "ScraperService.handleAutomaticScraping",
-      description: "Inicia ciclos de varredura automatizada nos provedores integrados (Worklab, Cedill, Veitieka, Medical, Abel) para buscar laudos de exames laboratoriais e Raio-X.",
+      description: "Coleta resultados de exames laboratoriais e de imagem dos prestadores Worklab e Medical. Temporariamente pausada para validação da equipe.",
       category: "scraper",
-      active: true,
+      active: false,
     },
     {
       name: "Scraper de Meio-Dia",
       expression: "30 11 * * *",
       scheduleDescription: "Diariamente às 11:30",
       service: "ScraperService.handleMiddayScraping",
-      description: "Ciclo intermediário de varredura de laudos laboratoriais e exames de imagem nos parceiros cadastrados.",
+      description: "Atualização intermediária dos resultados laboratoriais e de imagem. Temporariamente pausada para validação da equipe.",
       category: "scraper",
-      active: true,
+      active: false,
     },
     {
       name: "Limpeza de Tickets e Senhas",
@@ -139,9 +139,9 @@ export const ScheduledJobsMonitor: React.FC = () => {
       case "manutencao":
         return "Manutenção";
       case "scraper":
-        return "Scraper / Varredura";
+        return "Coleta de resultados";
       case "integracao":
-        return "Integração / SOC";
+        return "Comunicação com o SOC";
     }
   };
 
@@ -152,10 +152,10 @@ export const ScheduledJobsMonitor: React.FC = () => {
         <div>
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Clock className="h-5 w-5 text-[#00C853]" />
-            Serviços Agendados (Cron Jobs)
+            Rotinas automáticas
           </h3>
           <p className="mt-1 text-sm text-white/70">
-            Acompanhamento das tarefas automáticas de manutenção, varreduras e integrações em background
+            Acompanhamento das tarefas automáticas de manutenção, coleta e comunicação com o SOC
           </p>
         </div>
       </div>
@@ -166,10 +166,10 @@ export const ScheduledJobsMonitor: React.FC = () => {
           <CardHeader className="border-b border-gray-100 bg-gray-50/50 px-6 py-4 flex justify-between items-center">
             <div className="flex items-center gap-2">
               <Server className="h-5 w-5 text-success" />
-              <span className="font-semibold text-gray-800 text-sm">Cron Jobs Ativos no Servidor</span>
+              <span className="font-semibold text-gray-800 text-sm">Rotinas automáticas do sistema</span>
             </div>
             <Chip size="sm" color="success" variant="flat" startContent={<Hourglass className="h-3 w-3" />}>
-              Fuso Horário: America/Sao_Paulo
+              Horário de Brasília
             </Chip>
           </CardHeader>
           <CardBody className="p-0">
@@ -191,7 +191,6 @@ export const ScheduledJobsMonitor: React.FC = () => {
                     <TableCell className="py-4">
                       <div className="flex flex-col">
                         <span className="font-semibold text-gray-800 text-sm">{job.name}</span>
-                        <span className="text-[10px] text-gray-400 font-mono mt-0.5">{job.service}</span>
                       </div>
                     </TableCell>
                     <TableCell className="py-4">
@@ -212,8 +211,8 @@ export const ScheduledJobsMonitor: React.FC = () => {
                       {job.description}
                     </TableCell>
                     <TableCell className="py-4 text-right">
-                      <Chip size="sm" color="success" variant="solid" className="font-bold text-[10px] text-white">
-                        ATIVO
+                      <Chip size="sm" color={job.active ? "success" : "warning"} variant="flat" className="font-bold text-[10px]">
+                        {job.active ? "ATIVO" : "PAUSADO"}
                       </Chip>
                     </TableCell>
                   </TableRow>

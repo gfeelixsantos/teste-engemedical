@@ -143,7 +143,7 @@ export default function ImportacaoHistoricoPage() {
     <AppShell
       onLogout={() => {
         localStorage.removeItem("user");
-        router.push("/login");
+        router.push("/");
       }}
     >
       <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 lg:px-8">
@@ -180,7 +180,7 @@ export default function ImportacaoHistoricoPage() {
     {busy && (
       <div className="mb-4 flex items-center gap-3 rounded-xl border border-brand-cyan/30 bg-brand-cyan-50 px-4 py-3 text-sm font-semibold text-brand-800" role="status" aria-live="polite">
         <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-cyan/30 border-t-brand-cyan" />
-        {analysis ? "Preparando a confirmação do lote…" : "Arquivo recebido. Lendo o pacote e analisando os catálogos…"}
+        {analysis ? "Preparando a confirmação da importação…" : "Arquivo recebido. Lendo e organizando os documentos…"}
       </div>
     )}
             {message && (
@@ -199,7 +199,7 @@ export default function ImportacaoHistoricoPage() {
                   </p>
                   <p className="text-xs text-brand-muted">
                     {analysis
-                      ? `${(analysis.size / 1024 / 1024).toFixed(1)} MB · Análise concluída`
+                      ? `${(analysis.size / 1024 / 1024).toFixed(1)} MB · Leitura concluída`
                       : "Selecione um arquivo RAR ou ZIP"}
                   </p>
                 </div>
@@ -280,7 +280,7 @@ export default function ImportacaoHistoricoPage() {
                   ))}
                   {analysis && !employees.length && (
                     <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-800">
-                      Nenhum colaborador identificado no catálogo.
+                      Nenhum colaborador encontrado nos documentos.
                     </p>
                   )}
                   {employees.length > PAGE_SIZE && (
@@ -337,7 +337,7 @@ export default function ImportacaoHistoricoPage() {
                               <th className="px-3 py-3">Colaborador</th>
                               <th className="px-3 py-3">Data</th>
                               <th className="px-3 py-3">
-                                Status do pareamento
+                                Situação da associação
                               </th>
                             </tr>
                           </thead>
@@ -386,7 +386,7 @@ export default function ImportacaoHistoricoPage() {
                                     className={`inline-flex rounded-full px-2 py-1 font-semibold ${document.status === "MATCHED" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}
                                   >
                                     {document.status === "MATCHED"
-                                      ? "Pareado automaticamente"
+                                      ? "Associado automaticamente"
                                       : "Necessita confirmação"}
                                   </span>
                                 </td>
@@ -424,7 +424,7 @@ export default function ImportacaoHistoricoPage() {
                         Nenhum documento para revisar
                       </p>
                       <p className="mt-1 max-w-xs text-xs text-brand-muted">
-                        Envie um pacote para iniciar o pareamento.
+                        Envie um arquivo para iniciar a associação.
                       </p>
                     </div>
                   )}
@@ -436,7 +436,7 @@ export default function ImportacaoHistoricoPage() {
                 <strong>Revisão manual obrigatória.</strong>
                 <br />
                 <span className="text-xs">
-                  Documentos sem pareamento não podem ser enviados ao SOC.
+                  Documentos sem associação não podem ser enviados ao SOC.
                 </span>
               </p>
               <button

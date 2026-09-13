@@ -139,15 +139,6 @@ export function hasMinimumIdentityEvidence(
     }
   }
 
-  // CEDILL: Laudos HTML lamina do portal veusserver.com contêm NOME COMPLETO do paciente,
-  // mas NÃO contêm CPF, data de nascimento (apenas idade), nem data de agendamento (apenas data coleta).
-  // Exige TODOS os tokens do nome (ratio 1.0) — variantes de 1 token causam falsos positivos.
-  if (grupo === 'CEDILL') {
-    if (nameTokens.length >= 1 && matchedNameTokens >= nameTokens.length) {
-      return true;
-    }
-  }
-
   // WORKLAB: Laudos de laboratório muitas vezes não contêm CPF, data de nascimento, 
   // e a data de cadastro pode diferir da data de agendamento original.
   if (grupo === 'WORKLAB') {
@@ -420,7 +411,7 @@ function normalizeRaioxToken(token: string): string[] {
 }
 
 /**
- * Indicadores de exame radiológico (RX) presentes em laudos do Veitieka.
+ * Indicadores de exame radiológico (RX) presentes em laudos do portal.
  * Inclui termos de laudos OIT, radiografia convencional e TC.
  */
 const RAIOX_REPORT_INDICATORS = [
@@ -957,7 +948,7 @@ export class ExamMatcherService {
     try {
       const firstBytes = pdfBuffer.slice(0, 4).toString('utf-8');
 
-      // HTML lamina do Cedill — extrair texto removendo tags
+          // Laudos HTML — extrair texto removendo tags
       if (firstBytes.trimStart().startsWith('<') || firstBytes.includes('<!')) {
         const html = pdfBuffer.toString('utf-8');
         return html
@@ -1035,11 +1026,9 @@ export class ExamMatcherService {
         ? 'ECG'
         : anyEeg
           ? 'EEG'
-          : provider === 'Cedill'
-            ? 'CEDILL'
-            : provider === 'Worklab'
-              ? 'WORKLAB'
-              : undefined;
+          : provider === 'Worklab'
+            ? 'WORKLAB'
+            : undefined;
 
     if (!hasMinimumIdentityEvidence(text, patientInfo, identityGrupo)) {
       const normalizedReport = normalizeString(text);

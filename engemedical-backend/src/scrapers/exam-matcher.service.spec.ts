@@ -318,7 +318,7 @@ describe('ExamMatcherService', () => {
     );
   });
 
-  it('rejects Veitieka OIT from prior year (Leonardo Chavoni Zachetti case)', () => {
+  it('rejects an OIT report from a prior year', () => {
     // Caso real do report: agendamento em 18/08/2026, PDF tem anos [2011, 2025]
     const leonardoInfo = {
       ...patientInfo,

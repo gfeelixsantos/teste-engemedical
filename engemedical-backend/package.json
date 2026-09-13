@@ -44,7 +44,6 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@swc/core",
-      "puppeteer",
       "protobufjs"
     ]
   },
@@ -91,9 +90,6 @@
     "pdfmake": "^0.2.20",
     "pg": "^8.16.3",
     "pnpm": "^10.20.0",
-    "puppeteer": "^25.2.1",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "qs": "^6.11.0",
     "read-excel-file": "^9.3.10",
     "reflect-metadata": "^0.2.2",

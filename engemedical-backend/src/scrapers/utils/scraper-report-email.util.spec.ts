@@ -35,7 +35,7 @@ describe('scraper-report-email.util', () => {
         makeDetail('Paciente 3', 'Empresa B', 'Worklab', 'SUCCESS', 1),
         makeDetail('Paciente 4', 'Empresa C', 'Medical', 'SUCCESS', 2),
         makeDetail('Paciente 5', 'Empresa D', 'Medical', 'FAILED'),
-        makeDetail('Paciente 6', 'Empresa E', 'Cedill', 'FAILED'),
+        makeDetail('Paciente 6', 'Empresa E', 'Medical', 'FAILED'),
       ],
     };
 
@@ -48,7 +48,7 @@ describe('scraper-report-email.util', () => {
       {
         provider: 'Medical',
         successCount: 3,
-        failedCount: 1,
+        failedCount: 2,
         matchedExamsTotal: 5,
       },
       {
@@ -56,12 +56,6 @@ describe('scraper-report-email.util', () => {
         successCount: 1,
         failedCount: 0,
         matchedExamsTotal: 1,
-      },
-      {
-        provider: 'Cedill',
-        successCount: 0,
-        failedCount: 1,
-        matchedExamsTotal: 0,
       },
     ]);
     expect(view.topCompanies).toEqual([
