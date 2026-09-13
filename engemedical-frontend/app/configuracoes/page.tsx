@@ -4,15 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
-import {
-  IUserInfo,
-  IUserInfoSettings,
-  IPscAuthStatus,
-} from "@/lib/user/interfaces/IUser";
+import { IUserInfo, IUserInfoSettings, IPscAuthStatus } from "@/lib/user/interfaces/IUser";
 import { getCurrentUser, logout } from "@/lib/utils";
 import { getUserSettings } from "@/lib/user/services/user-settings.service";
-import { HeaderApp } from "@/components/shared/HeaderApp";
-import EngemedicalLoading from "@/components/shared/EngemedicalLoading";
+import { AppShell } from "@/components/shared/AppShell";
+import AppLoading from "@/components/shared/AppLoading";
 
 import { SectionId } from "./components/types";
 import { SettingsSidebar } from "./components/SettingsSidebar";
@@ -51,7 +47,6 @@ export default function ConfiguracoesPage() {
 
       if (!currentUser) {
         router.push("/");
-
         return;
       }
 
@@ -76,9 +71,10 @@ export default function ConfiguracoesPage() {
     initPage();
   }, [router]);
 
-  if (isLoading || !user) {
-    return <EngemedicalLoading />;
-  }
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
 
   function renderSection() {
     switch (activeSection) {
@@ -112,44 +108,39 @@ export default function ConfiguracoesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <HeaderApp
-        onLogout={() => {
-          logout();
-          router.push("/");
-        }}
-      >
-        <></>
-      </HeaderApp>
-
-      <main
-        aria-label="Configurações do usuário"
-        className="w-full px-4 sm:px-6 lg:px-8 py-6"
-      >
-        <motion.div
-          animate={{ opacity: 1, y: 0 }}
-          initial={{ opacity: 0, y: 20 }}
-          transition={{ duration: 0.5 }}
+    <AppShell showSidebar={false} onLogout={handleLogout}>
+      {isLoading || !user ? (
+        <AppLoading title="Carregando configurações" description="Preparando seus dados..." />
+      ) : (
+        <main
+          aria-label="Configurações do usuário"
+          className="w-full px-4 sm:px-6 lg:px-8 py-6"
         >
-          <h1 className="text-2xl font-semibold text-gray-900 mb-4">
-            Configurações
-          </h1>
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-2xl font-semibold text-gray-900 mb-4">
+              Configurações
+            </h1>
 
-          <div className="flex flex-col md:flex-row items-start gap-6">
-            {/* Sidebar */}
-            <div className="md:w-64 md:flex-shrink-0">
-              <SettingsSidebar
-                activeSection={activeSection}
-                onSectionChange={setActiveSection}
-                userPerfil={user?.perfil}
-              />
+            <div className="flex flex-col md:flex-row items-start gap-6">
+              {/* Sidebar */}
+              <div className="md:w-64 md:flex-shrink-0">
+                <SettingsSidebar
+                  activeSection={activeSection}
+                  onSectionChange={setActiveSection}
+                  userPerfil={user?.perfil}
+                />
+              </div>
+
+              {/* Área de conteúdo */}
+              <div className="flex-1 min-w-0">{renderSection()}</div>
             </div>
-
-            {/* Área de conteúdo */}
-            <div className="flex-1 min-w-0">{renderSection()}</div>
-          </div>
-        </motion.div>
-      </main>
-    </div>
+          </motion.div>
+        </main>
+      )}
+    </AppShell>
   );
 }

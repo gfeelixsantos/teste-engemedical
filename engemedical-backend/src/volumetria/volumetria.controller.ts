@@ -7,31 +7,31 @@ export class VolumetriaController {
 
   @Get('dashboard')
   async getDashboard(
-    @Query('dataInicial') dataInicial?: string,
-    @Query('dataFinal') dataFinal?: string,
-    @Query('codigosAgenda') codigosAgenda?: string,
+    @Query('agenda') agenda?: string,
+    @Query('status') status?: string,
+    @Query('refresh') refresh?: string,
   ) {
-    const agendas = codigosAgenda ? codigosAgenda.split(',').map((a) => a.trim()) : undefined;
-    return this.volumetriaService.getDashboardData(dataInicial, dataFinal, agendas);
+    const forceRefresh = refresh === 'true' || refresh === '1';
+    return this.volumetriaService.getDashboardData(agenda, status, forceRefresh);
   }
 
-  @Get('agendas')
-  async getAgendas() {
-    const data = await this.volumetriaService.getDashboardData();
-    return {
-      agendas: data.filtros.agendas,
-      empresas: data.empresas,
-      tiposCompromisso: data.tiposCompromisso,
-    };
+  @Get('dados-gerais')
+  async getDadosGerais(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('agenda') agenda?: string,
+    @Query('status') status?: string,
+    @Query('empresa') empresa?: string,
+  ) {
+    const pageNum = parseInt(page || '1', 10);
+    const limitNum = parseInt(limit || '50', 10);
+    return this.volumetriaService.getRegistros(pageNum, limitNum, agenda, status, empresa);
   }
 
   @Get('refresh')
-  async refresh() {
+  async refreshCache() {
     this.volumetriaService.clearCache();
-    const data = await this.volumetriaService.getDashboardData();
-    return {
-      success: true,
-      ultimaAtualizacao: data.kpis.ultimaAtualizacao,
-    };
+    await this.volumetriaService.getDashboardData(undefined, undefined, true);
+    return { success: true, timestamp: new Date().toISOString() };
   }
 }

@@ -35,6 +35,7 @@ export async function fetchBodyJson<T>(
   url: string,
   method: string,
   body: object,
+  options?: Pick<RequestInit, "signal">,
 ): Promise<T> {
   try {
     const response = await fetch(url, {
@@ -43,6 +44,7 @@ export async function fetchBodyJson<T>(
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
+      signal: options?.signal,
     });
 
     if (!response.ok) {
@@ -55,7 +57,12 @@ export async function fetchBodyJson<T>(
 
     return (await response.json()) as T;
   } catch (err) {
-    console.error(err);
+    const errorName = (err as { name?: unknown })?.name;
+
+    if (errorName !== "AbortError") {
+      console.error(err);
+    }
+
     throw err;
   }
 }

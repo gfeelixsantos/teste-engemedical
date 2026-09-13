@@ -6,7 +6,7 @@ import { UploadSocged } from './types/azure.types';
 @Injectable()
 export class AzureQueueService {
   private readonly logger = new Logger(AzureQueueService.name);
-  private readonly queueServiceClient: QueueServiceClient;
+  private readonly queueServiceClient?: QueueServiceClient;
   private readonly queueName = 'aso-processing';
   private readonly enrichmentQueueName =
     process.env.AZURE_QUEUE_ASO_ENRIQUECIMENTO || 'aso-enriquecimento';
@@ -16,15 +16,23 @@ export class AzureQueueService {
   constructor() {
     const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
     if (!connectionString) {
-      throw new Error('AZURE_STORAGE_CONNECTION_STRING não configurado');
+      this.logger.warn('Azure Queue não configurado; operação em modo degradado.');
+      return;
     }
     this.queueServiceClient =
       QueueServiceClient.fromConnectionString(connectionString);
   }
 
+  private requireQueueServiceClient(): QueueServiceClient {
+    if (!this.queueServiceClient) {
+      throw new Error('Azure Queue não configurado: AZURE_STORAGE_CONNECTION_STRING ausente.');
+    }
+    return this.queueServiceClient;
+  }
+
   async sendAsoMessage(message: AsoQueueMessage): Promise<void> {
     try {
-      const queueClient = this.queueServiceClient.getQueueClient(
+      const queueClient = this.requireQueueServiceClient().getQueueClient(
         this.queueName,
       );
 
@@ -57,7 +65,7 @@ export class AzureQueueService {
 
   async sendSocgedMessage(payload: UploadSocged): Promise<void> {
     try {
-      const queueClient = this.queueServiceClient.getQueueClient(
+      const queueClient = this.requireQueueServiceClient().getQueueClient(
         this.socgedQueueName,
       );
       await queueClient.createIfNotExists();
@@ -83,7 +91,7 @@ export class AzureQueueService {
 
   async sendEmailMessage(payload: any): Promise<void> {
     try {
-      const queueClient = this.queueServiceClient.getQueueClient(
+      const queueClient = this.requireQueueServiceClient().getQueueClient(
         this.emailQueueName,
       );
       await queueClient.createIfNotExists();

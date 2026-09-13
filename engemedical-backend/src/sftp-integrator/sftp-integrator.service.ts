@@ -30,7 +30,7 @@ import {
   buildSftpSocReportEmail,
 } from './sftp-report-email.template';
 import { generateSocReportExcel } from './sftp-report-excel.generator';
-import { CloudflareR2Service } from './sftp-r2-storage.service';
+import { R2SftpReportService } from './sftp-r2-report.service';
 
 // ─── Nodemailer direto (bypass Azure Queue) ───
 let nodemailerTransporter: any = null;
@@ -65,6 +65,8 @@ function wildcardToRegExp(pattern: string): RegExp {
 export class SftpIntegratorService implements OnModuleInit {
   private readonly logger = new Logger(SftpIntegratorService.name);
   private readonly collectionName = 'sftp_integrator_files';
+  private readonly backendRootValue: string;
+  private readonly reportStorageValue?: R2SftpReportService;
 
   constructor(
     private readonly mongoService: MongoService,
@@ -75,8 +77,17 @@ export class SftpIntegratorService implements OnModuleInit {
     private readonly socProcessor: SftpSocProcessor,
     @Optional()
     @Inject('SFTP_INTEGRATOR_BACKEND_ROOT')
-    private readonly backendRoot = process.cwd(),
-  ) {}
+    backendRoot: string | Record<string, unknown> = process.cwd(),
+    @Optional() reportStorage?: R2SftpReportService | string,
+  ) {
+    // Compatibilidade com fixtures antigas que passavam o root na posição extra.
+    this.backendRootValue = typeof backendRoot === 'string'
+      ? backendRoot
+      : typeof reportStorage === 'string'
+        ? reportStorage
+        : process.cwd();
+    this.reportStorageValue = typeof reportStorage === 'object' ? reportStorage : undefined;
+  }
 
   async onModuleInit() {
     // Aguarda MongoDB estar pronto (guard contra race condition)
@@ -98,20 +109,6 @@ export class SftpIntegratorService implements OnModuleInit {
     }
     // Inicializar R2 (injected via module)
     this.logger.log('[SFTP] Servico inicializado com suporte a Cloudflare R2');
-  }
-
-  // ─── Inject Cloudflare R2 (lazy para evitar circular) ───
-  private _r2: CloudflareR2Service | null = null;
-  private get r2(): CloudflareR2Service | null {
-    if (this._r2) return this._r2;
-    // Tenta resolver do container NestJS
-    try {
-      const moduleRef = (this as any).__module_ref__;
-      if (moduleRef) {
-        this._r2 = moduleRef.get(CloudflareR2Service, { strict: false });
-      }
-    } catch { /* R2 não injetado */ }
-    return this._r2;
   }
 
   async pullLatest(clientKey: string): Promise<SftpPullResult> {
@@ -147,17 +144,34 @@ export class SftpIntegratorService implements OnModuleInit {
     }
 
     // 1. Download do SFTP para disco local
-    const localDir = path.resolve(this.backendRoot, config.downloadDir);
+    const localDir = path.resolve(this.backendRootValue, config.downloadDir);
     const localPath = path.resolve(localDir, latest.name);
     await this.fs.mkdir(localDir);
     await this.sftpClient.download(config, latest.path, localPath);
     const stat = await this.fs.stat(localPath);
     const now = new Date();
+    let r2Key: string | undefined;
+    if (this.reportStorageValue?.uploadSftpFile) {
+      try {
+        const stored = await this.reportStorageValue.uploadSftpFile(
+          config.clientKey,
+          localPath,
+        );
+        r2Key = stored.key;
+        await this.fs.unlink(localPath);
+        this.logger.log(`[R2] Arquivo original persistido e temporário removido: ${r2Key}`);
+      } catch (err) {
+        await this.fs.unlink(localPath).catch(() => undefined);
+        throw new Error(`Falha ao persistir arquivo recebido no R2: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+
     const record: SftpIntegratorFileRecord = {
       clientKey: config.clientKey,
       remotePath: latest.path,
       remoteName: latest.name,
-      localPath,
+      localPath: r2Key ? '' : localPath,
+      ...(r2Key ? { r2Key } : {}),
       size: stat.size,
       sha256: await this.fs.sha256(localPath),
       remoteMtime: latest.mtime,
@@ -165,19 +179,6 @@ export class SftpIntegratorService implements OnModuleInit {
       createdAt: now,
       updatedAt: now,
     };
-
-    // 2. Upload para Cloudflare R2 (backup)
-    try {
-      const r2Service = this.r2;
-      if (r2Service) {
-        const fileBuffer = await fs.readFile(localPath);
-        const r2Key = `sftp-integrator/${clientKey}/${latest.name}`;
-        await r2Service.upload(r2Key, fileBuffer, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        this.logger.log(`[R2] Arquivo salvo: ${r2Key}`);
-      }
-    } catch (err) {
-      this.logger.warn(`[R2] Upload falhou (arquivo mantido local): ${err}`);
-    }
 
     const inserted = await this.collection().insertOne(record);
     return {
@@ -233,6 +234,9 @@ export class SftpIntegratorService implements OnModuleInit {
     });
     if (!file) {
       throw new NotFoundException('Arquivo nao encontrado');
+    }
+    if (file.r2Key && this.reportStorageValue) {
+      return { file, buffer: await this.reportStorageValue.download(file.r2Key) };
     }
     const resolvedPath = await this.resolveDownloadPath(
       normalizedClientKey,
@@ -389,7 +393,7 @@ export class SftpIntegratorService implements OnModuleInit {
 
   async resolveDownloadPath(clientKey: string, filePath: string): Promise<string> {
     const config = getSftpIntegratorConfig(clientKey);
-    const root = path.resolve(this.backendRoot, config.downloadDir);
+    const root = path.resolve(this.backendRootValue, config.downloadDir);
     const resolved = path.isAbsolute(filePath)
       ? path.resolve(filePath)
       : path.resolve(root, filePath);
@@ -445,6 +449,14 @@ export class SftpIntegratorService implements OnModuleInit {
           excelFileName,
         );
         this.logger.log(`[EMAIL] Excel gerado: ${excelFileName} (${excelBuffer.length} bytes)`);
+        if (this.reportStorageValue && (run as any)._id) {
+          const key = `relatorios-soc/${run.clientKey}/${excelFileName}`;
+          await this.reportStorageValue.upload(key, excelBuffer, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+          await this.runsCollection().updateOne(
+            { _id: (run as any)._id },
+            { $set: { reportKey: key, reportFileName: excelFileName } },
+          );
+        }
       } catch (err) {
         this.logger.warn(`[EMAIL] Falha ao gerar Excel: ${err}`);
       }
@@ -534,6 +546,21 @@ export class SftpIntegratorService implements OnModuleInit {
     } catch { /* ignore */ }
   }
 
+  async getRunReportForDownload(clientKey: string, id: string) {
+    if (!ObjectId.isValid(id) || !this.reportStorageValue) {
+      throw new NotFoundException('Relatorio nao encontrado');
+    }
+    const run = await this.runsCollection().findOne({
+      _id: new ObjectId(id),
+      clientKey: normalizeSftpIntegratorClientKey(clientKey),
+    });
+    if (!run?.reportKey) throw new NotFoundException('Relatorio nao encontrado');
+    return {
+      buffer: await this.reportStorageValue.download(run.reportKey),
+      fileName: run.reportFileName || 'relatorio-sftp.xlsx',
+    };
+  }
+
   // ═══════════════════════════════════════════════════════════════
 
   private collection(): Collection {
@@ -556,6 +583,15 @@ export class SftpIntegratorService implements OnModuleInit {
     });
     if (!file) {
       throw new NotFoundException('Arquivo nao encontrado');
+    }
+    if (file.r2Key && this.reportStorageValue) {
+      const config = getSftpIntegratorConfig(normalizedClientKey);
+      const root = path.resolve(this.backendRootValue, config.downloadDir);
+      const temporaryPath = path.join(root, `.r2-${fileId.toHexString()}-${file.remoteName}`);
+      await this.fs.mkdir(root);
+      await fs.writeFile(temporaryPath, await this.reportStorageValue.download(file.r2Key));
+      setTimeout(() => fs.unlink(temporaryPath).catch(() => undefined), 60_000).unref();
+      return { normalizedClientKey, fileId, file, resolvedPath: temporaryPath };
     }
     const resolvedPath = await this.resolveDownloadPath(
       normalizedClientKey,

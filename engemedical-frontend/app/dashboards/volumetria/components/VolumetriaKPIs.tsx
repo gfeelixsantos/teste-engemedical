@@ -35,15 +35,16 @@ function TrendBadge({ percent }: { percent: number | null }) {
 }
 
 export function VolumetriaKPIs({ kpis }: { kpis: VolumetriaKPIs }) {
+  const totalAtendidos = kpis.totalAtendidos ?? kpis.atendidos ?? 0;
   const indiceAtendidos =
     kpis.totalAgendamentos > 0
-      ? Math.round((kpis.totalAtendidos / kpis.totalAgendamentos) * 1000) / 10
+      ? Math.round((totalAtendidos / kpis.totalAgendamentos) * 1000) / 10
       : 0;
 
   const cards = [
     {
       label: 'Agendamentos',
-      value: kpis.totalAgendamentos,
+      value: kpis.totalAgendamentos ?? 0,
       icon: Calendar,
       color: BRAND.primary,
       bg: BRAND.primaryLight,
@@ -51,7 +52,7 @@ export function VolumetriaKPIs({ kpis }: { kpis: VolumetriaKPIs }) {
     },
     {
       label: 'Atendimentos',
-      value: kpis.totalAtendidos,
+      value: totalAtendidos,
       icon: CalendarCheck,
       color: BRAND.accent,
       bg: BRAND.accentLight,

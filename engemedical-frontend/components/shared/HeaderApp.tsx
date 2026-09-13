@@ -45,17 +45,21 @@ const getSpecialtyColor = (especialidade: string) => {
   const colorMap: Record<string, string> = {
     MASTER: "bg-brand-100 text-brand-900 border-brand-200",
     MÉDICO: "bg-brand-100 text-brand-700 border-brand-200",
-    ENFERMAGEM: "bg-brand-green-100 text-brand-green-700 border-brand-green-200",
+    ENFERMAGEM:
+      "bg-brand-green-100 text-brand-green-700 border-brand-green-200",
     FONOAUDIOLOGA: "bg-brand-100 text-brand-800 border-brand-300",
     ADMINISTRATIVO: "bg-brand-50 text-brand-700 border-brand-200",
     COMERCIAL: "bg-brand-green-100 text-brand-green-700 border-brand-green-200",
     ATENDIMENTO: "bg-brand-100 text-brand-700 border-brand-200",
-    LABORATORIO: "bg-brand-green-100 text-brand-green-700 border-brand-green-200",
+    LABORATORIO:
+      "bg-brand-green-100 text-brand-green-700 border-brand-green-200",
     CONVIDADO: "bg-brand-50 text-brand-600 border-brand-200",
     ENGENHARIA: "bg-brand-100 text-brand-800 border-brand-300",
   };
 
-  return colorMap[especialidade] || "bg-brand-50 text-brand-700 border-brand-200";
+  return (
+    colorMap[especialidade] || "bg-brand-50 text-brand-700 border-brand-200"
+  );
 };
 
 const getAvatarColor = (especialidade: string) => {
@@ -104,7 +108,10 @@ const getInitials = (nome: string): string => {
 
 function cleanTitle(title: string): string {
   return title
-    .replace(/^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}]\s*/u, "")
+    .replace(
+      /^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}]\s*/u,
+      "",
+    )
     .trim();
 }
 
@@ -141,11 +148,7 @@ const NotificationsList: React.FC<{
   notifications: AppNotification[];
   onMarkAsRead: (id: string) => void;
   onOpenAction: (notification: AppNotification) => void;
-}> = ({
-  notifications,
-  onMarkAsRead,
-  onOpenAction,
-}) => {
+}> = ({ notifications, onMarkAsRead, onOpenAction }) => {
   const recentNotifications = notifications.slice(0, 8);
 
   return (
@@ -181,7 +184,8 @@ const NotificationsList: React.FC<{
                   </h4>
                   <span className="shrink-0 text-[11px] font-normal text-gray-400">
                     {notification.date.includes(",")
-                      ? notification.date.split(",")[1]?.trim() || notification.date
+                      ? notification.date.split(",")[1]?.trim() ||
+                        notification.date
                       : notification.date}
                   </span>
                 </div>
@@ -202,7 +206,9 @@ const NotificationsList: React.FC<{
                     >
                       {notification.actionLabel || "Abrir"}
                     </Button>
-                  ) : <div />}
+                  ) : (
+                    <div />
+                  )}
 
                   {!notification.read ? (
                     <button
@@ -229,7 +235,10 @@ interface HeaderProps {
   children?: React.ReactNode;
 }
 
-export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
+export const HeaderApp: React.FC<HeaderProps> = ({
+  onLogout,
+  children,
+}) => {
   const router = useRouter();
   const [user, setUser] = useState<IUserInfo | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -336,15 +345,20 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
   const closeCommandPalette = () => setIsCommandPaletteOpen(false);
 
   return (
-    <motion.header
-      animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-40 border-b border-gray-100 bg-white/95 shadow-sm backdrop-blur-md"
-      initial={{ y: -80, opacity: 0 }}
+    <>
+    <header
+      className={`header-brand-shine z-40 border-b border-gray-100 bg-white/95 shadow-sm backdrop-blur-md ${
+        "sticky top-0"
+      }`}
       role="banner"
-      transition={{ duration: 0.6, ease: "easeOut" }}
     >
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <motion.div
+          animate={{ y: 0, opacity: 1 }}
+          className="flex h-16 items-center justify-between"
+          initial={{ y: -20, opacity: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <Link
             aria-label="Ir para o dashboard"
             className="flex items-center gap-2 rounded-lg p-1 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -444,7 +458,9 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
                     role="menu"
                     transition={{ duration: 0.2 }}
                   >
-                    <div className={`px-4 py-3 ${getAvatarColor(user?.perfil ?? "")} rounded-t-xl`}>
+                    <div
+                      className={`px-4 py-3 ${getAvatarColor(user?.perfil ?? "")} rounded-t-xl`}
+                    >
                       <p className="text-sm font-semibold text-white">
                         {user?.nome}
                       </p>
@@ -463,7 +479,11 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
                                 aria-label="Grupo anterior"
                                 className={`cursor-pointer rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 ${quickGroupIndex === 0 ? "invisible" : ""}`}
                                 disabled={quickGroupIndex === 0}
-                                onClick={() => setQuickGroupIndex((current) => Math.max(0, current - 1))}
+                                onClick={() =>
+                                  setQuickGroupIndex((current) =>
+                                    Math.max(0, current - 1),
+                                  )
+                                }
                               >
                                 <ChevronLeft className="h-4 w-4" />
                               </button>
@@ -476,24 +496,37 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
                               <button
                                 aria-label="Próximo grupo"
                                 className={`cursor-pointer rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 ${quickGroupIndex === SIDEBAR_GROUPS.length - 1 ? "invisible" : ""}`}
-                                disabled={quickGroupIndex === SIDEBAR_GROUPS.length - 1}
-                                onClick={() => setQuickGroupIndex((current) => Math.min(SIDEBAR_GROUPS.length - 1, current + 1))}
+                                disabled={
+                                  quickGroupIndex === SIDEBAR_GROUPS.length - 1
+                                }
+                                onClick={() =>
+                                  setQuickGroupIndex((current) =>
+                                    Math.min(
+                                      SIDEBAR_GROUPS.length - 1,
+                                      current + 1,
+                                    ),
+                                  )
+                                }
                               >
                                 <ChevronRight className="h-4 w-4" />
                               </button>
                             </div>
 
                             <div className="space-y-0.5">
-                              {group.items.map(({ title, icon: ItemIcon, path, color }) => (
-                                <button
-                                  key={path}
-                                  className={`flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs text-gray-600 transition-colors ${getHoverColor(user?.perfil ?? "")}`}
-                                  onClick={() => handleNavigate(path)}
-                                >
-                                  <ItemIcon className={`h-4 w-4 shrink-0 ${color ?? "text-brand-blue"}`} />
-                                  <span className="truncate">{title}</span>
-                                </button>
-                              ))}
+                              {group.items.map(
+                                ({ title, icon: ItemIcon, path, color }) => (
+                                  <button
+                                    key={path}
+                                    className={`flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs text-gray-600 transition-colors ${getHoverColor(user?.perfil ?? "")}`}
+                                    onClick={() => handleNavigate(path)}
+                                  >
+                                    <ItemIcon
+                                      className={`h-4 w-4 shrink-0 ${color ?? "text-brand-blue"}`}
+                                    />
+                                    <span className="truncate">{title}</span>
+                                  </button>
+                                ),
+                              )}
                             </div>
                           </>
                         );
@@ -508,7 +541,9 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
                         className="flex flex-1 items-center cursor-pointer py-0.5"
                         onClick={() =>
                           setView((current) =>
-                            current === "notifications" ? "menu" : "notifications",
+                            current === "notifications"
+                              ? "menu"
+                              : "notifications",
                           )
                         }
                       >
@@ -519,7 +554,10 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
                       <div className="flex items-center gap-0.5">
                         <NotificationToggle isIconOnly />
 
-                        <Tooltip content="Marcar todas como lidas" placement="bottom">
+                        <Tooltip
+                          content="Marcar todas como lidas"
+                          placement="bottom"
+                        >
                           <Button
                             isIconOnly
                             isDisabled={unreadNotificationsCount === 0}
@@ -555,7 +593,9 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
                           className="ml-1 p-1 cursor-pointer"
                           onClick={() =>
                             setView((current) =>
-                              current === "notifications" ? "menu" : "notifications",
+                              current === "notifications"
+                                ? "menu"
+                                : "notifications",
                             )
                           }
                         >
@@ -603,9 +643,13 @@ export const HeaderApp: React.FC<HeaderProps> = ({ onLogout, children }) => {
               </AnimatePresence>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-      <CommandPalette open={isCommandPaletteOpen} onClose={closeCommandPalette} />
-    </motion.header>
+      <CommandPalette
+        open={isCommandPaletteOpen}
+        onClose={closeCommandPalette}
+      />
+    </header>
+    </>
   );
 };

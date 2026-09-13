@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { NEST_URL } from '@/config/constants';
+import { getDynamicNestUrl } from '@/config/constants';
 import { RefreshCw, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -15,7 +15,7 @@ import { TopEmpresasBarChart } from './components/TopEmpresasBarChart';
 import { UnidadesPendenciasBarChart } from './components/UnidadesPendenciasBarChart';
 import { DrilldownTable } from './components/DrilldownTable';
 import { ConvocacaoFilters } from './components/ConvocacaoFilters';
-import EngemedicalLoading from '@/components/shared/EngemedicalLoading';
+import AppLoading from '@/components/shared/AppLoading';
 import type { DashboardData } from './types';
 
 const PAGE_SIZE = 25;
@@ -28,7 +28,7 @@ export default function ConvocacaoPage() {
   const [filtroExame, setFiltroExame] = useState('');
 
   const fetchDashboard = useCallback(async (): Promise<DashboardData> => {
-    const res = await fetch(`${NEST_URL}convocacao/dashboard`);
+    const res = await fetch(`${getDynamicNestUrl()}convocacao/dashboard`);
     if (!res.ok) throw new Error('Erro ao buscar dados do dashboard');
     return res.json();
   }, []);
@@ -43,7 +43,7 @@ export default function ConvocacaoPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
-        <EngemedicalLoading />
+        <AppLoading title="Carregando convocações" description="Buscando dados do dashboard..." />
       </div>
     );
   }

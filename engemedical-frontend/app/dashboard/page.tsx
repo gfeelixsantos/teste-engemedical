@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Users,
@@ -16,7 +15,6 @@ import {
   LayoutGrid,
   Bell,
   X,
-  ChevronDown,
   RefreshCw,
 } from "lucide-react";
 import {
@@ -39,12 +37,9 @@ import {
 
 import { IUserInfo } from "@/lib/user/interfaces/IUser";
 import { getCurrentUser, logout } from "@/lib/utils";
-import { HeaderApp } from "@/components/shared/HeaderApp";
-import EngemedicalLoading from "@/components/shared/EngemedicalLoading";
-import PremiumCyberLoading from "@/components/shared/PremiumCyberLoading";
+import { AppShell } from "@/components/shared/AppShell";
+import AppLoading from "@/components/shared/AppLoading";
 import { usePscAuthStatus } from "@/hooks/usePscAuthStatus";
-import { SidebarMenu } from "@/components/shared/SidebarMenu";
-import { getHomeRoute } from "@/lib/user/home-route.mjs";
 
 // Constantes
 const SESSION_MESSAGE_KEY = "dashboard_current_message";
@@ -189,244 +184,6 @@ const clearSessionMessage = (): void => {
   }
 };
 
-const DASHBOARDS_PREMIUM = [
-  { title: "Convocação de Exames", path: "/dashboards/convocacao" },
-  { title: "Volumetria", path: "/dashboards/volumetria" },
-  { title: "Absenteísmo", path: "/dashboards/absenteismo" },
-  { title: "eSocial", path: "/dashboards/esocial" },
-  { title: "Gestão de Vidas", path: "/dashboards/vidas" },
-  { title: "Documentos SST", path: "/dashboards/documentos" },
-] as const;
-
-const dashboardNavItems = {
-  primary: [
-    {
-      title: "Atendimento",
-      description: "Fluxo clínico e exames",
-      icon: Stethoscope,
-      path: "/atendimento",
-    },
-    {
-      title: "Recepção",
-      description: "Fila, chegada e triagem",
-      icon: Users,
-      path: "/recepcao",
-    },
-    {
-      title: "Relatórios",
-      description: "Indicadores e documentos",
-      icon: ChartNoAxesCombined,
-      path: "/relatorio",
-    },
-    {
-      title: "Prontuários",
-      description: "Histórico ocupacional",
-      icon: FileText,
-      path: "/prontuarios",
-    },
-  ],
-  secondary: [
-    { title: "Dashboards Premium", icon: BarChart3, path: "/dashboards" },
-    { title: "Agenda", icon: CalendarDays, path: "/agenda" },
-    { title: "Configurações", icon: Settings, path: "/configuracoes" },
-    { title: "Serviços", icon: LayoutGrid, path: "/servicos" },
-  ],
-} as const;
-
-const LegacyDashboardNavSidebar: React.FC<{
-  onNavigate: (path: string) => void;
-}> = ({ onNavigate }) => {
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-  const [dashboardsExpanded, setDashboardsExpanded] = useState(false);
-  const pathname = usePathname();
-
-  const isActive = (path: string) =>
-    pathname === path || pathname.startsWith(path + "/");
-
-  return (
-    <motion.aside
-      animate={{ width: isSidebarExpanded ? 288 : 84 }}
-      aria-label="Menu principal do dashboard"
-      className="group fixed left-4 top-24 z-30 hidden h-[calc(100vh-7rem)] overflow-hidden rounded-2xl border border-brand-line/70 bg-white/95 text-slate-900 shadow-[0_18px_48px_rgba(15,23,42,0.10)] backdrop-blur-xl transition-shadow duration-300 hover:shadow-[0_20px_56px_rgba(15,23,42,0.14)] lg:block"
-      initial={false}
-      onMouseEnter={() => setIsSidebarExpanded(true)}
-      onMouseLeave={() => setIsSidebarExpanded(false)}
-    >
-      <div className="flex h-full flex-col p-3">
-        {/* Logo */}
-        <div className="mb-5 flex h-14 items-center gap-3 rounded-xl border border-brand-line/70 bg-brand-mist/70 px-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-brand-line bg-white shadow-sm">
-            <Image
-              alt="Engemedical Brasil"
-              className="h-8 w-8 object-contain"
-              height={28}
-              src="/images/logo.png"
-              width={28}
-            />
-          </div>
-          <motion.div
-            animate={{
-              opacity: isSidebarExpanded ? 1 : 0,
-              x: isSidebarExpanded ? 0 : -8,
-            }}
-            className="min-w-0"
-          >
-            <p className="truncate text-sm font-semibold text-brand-midnight">
-              Engemedical
-            </p>
-            <p className="truncate text-[11px] uppercase tracking-[0.18em] text-brand-blue">
-              Connect
-            </p>
-          </motion.div>
-        </div>
-
-        {/* Primary Nav */}
-        <nav className="space-y-2" role="navigation">
-          {dashboardNavItems.primary.map(
-            ({ title, description, icon: Icon, path }) => {
-              const active = isActive(path);
-              return (
-                <button
-                  key={title}
-                  aria-label={`Acessar ${title}`}
-                  className={`group/item flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-cyan/40 ${
-                    active
-                      ? "border-brand-500/30 bg-brand-50"
-                      : "border-transparent hover:border-brand-green-300 hover:bg-brand-mist"
-                  }`}
-                  type="button"
-                  onClick={() => onNavigate(path)}
-                >
-                  <span
-                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg border shadow-sm transition-all duration-200 ${
-                      active
-                        ? "border-brand-500/30 bg-brand-100 text-brand-600"
-                        : "border-brand-line bg-white text-brand-blue group-hover/item:border-brand-green/40 group-hover/item:bg-brand-mist group-hover/item:text-brand-green"
-                    }`}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <motion.span
-                    animate={{
-                      opacity: isSidebarExpanded ? 1 : 0,
-                      width: isSidebarExpanded ? "auto" : 0,
-                    }}
-                    className="min-w-0 overflow-hidden"
-                  >
-                    <span className="block whitespace-nowrap text-sm font-semibold text-slate-900">
-                      {title}
-                    </span>
-                    <span className="block whitespace-nowrap text-xs text-slate-500">
-                      {description}
-                    </span>
-                  </motion.span>
-                </button>
-              );
-            },
-          )}
-        </nav>
-
-        {/* Separator */}
-        <div className="my-3 mx-2 border-t border-brand-line/50" />
-
-        {/* Secondary Nav */}
-        <nav
-          aria-label="Navegação secundária"
-          className="space-y-1"
-          role="navigation"
-        >
-          {dashboardNavItems.secondary.map(
-            ({ title, icon: Icon, path }) => {
-              const active = isActive(path);
-              const isDashboards = title === "Dashboards Premium";
-              return (
-                <div key={title}>
-                  <button
-                    aria-label={`Acessar ${title}`}
-                    className={`group/item flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-cyan/40 ${
-                      active
-                        ? "border-brand-500/30 bg-brand-50"
-                        : "border-transparent hover:border-brand-green-300 hover:bg-brand-mist"
-                    }`}
-                    type="button"
-                    onClick={() => {
-                      if (isDashboards) {
-                        setDashboardsExpanded(!dashboardsExpanded);
-                      } else {
-                        onNavigate(path);
-                      }
-                    }}
-                  >
-                    <span
-                      className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border shadow-sm transition-all duration-200 ${
-                        active
-                          ? "border-brand-500/30 bg-brand-100 text-brand-600"
-                          : "border-brand-line bg-white text-brand-blue group-hover/item:border-brand-green/40 group-hover/item:bg-brand-mist group-hover/item:text-brand-green"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <motion.span
-                      animate={{
-                        opacity: isSidebarExpanded ? 1 : 0,
-                        width: isSidebarExpanded ? "auto" : 0,
-                      }}
-                      className="min-w-0 overflow-hidden"
-                    >
-                      <span className="block whitespace-nowrap text-sm font-medium text-slate-700">
-                        {title}
-                      </span>
-                    </motion.span>
-                    {isDashboards && isSidebarExpanded && (
-                      <ChevronDown className={`h-3 w-3 shrink-0 ml-auto transition-transform ${dashboardsExpanded ? "rotate-180" : ""}`} />
-                    )}
-                  </button>
-
-                  {/* Sub-menu dos dashboards premium */}
-                  {isDashboards && dashboardsExpanded && isSidebarExpanded && (
-                    <div className="ml-11 mt-0.5 space-y-0.5 border-l-2 border-gray-200 pl-2">
-                      {DASHBOARDS_PREMIUM.map(({ title: dashTitle, path: dashPath }) => (
-                        <button
-                          key={dashPath}
-                          type="button"
-                          onClick={() => onNavigate(dashPath)}
-                          className={`flex w-full items-center rounded-lg px-2 py-1 text-left text-[11px] font-medium transition-all ${
-                            isActive(dashPath)
-                              ? "bg-brand-50 text-brand-700"
-                              : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                          }`}
-                        >
-                          <span className="truncate">{dashTitle}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            },
-          )}
-        </nav>
-
-        {/* Decorative bar */}
-        <div className="mt-auto flex justify-center border-t border-brand-line/70 pt-4">
-          <span className="h-1.5 w-8 rounded-full bg-gradient-to-r from-brand-blue to-brand-green" />
-        </div>
-      </div>
-    </motion.aside>
-  );
-};
-
-const DashboardNavSidebar: React.FC = () => (
-  <aside
-    aria-label="Menu principal do dashboard"
-    className="sticky top-16 relative z-[1000] hidden h-[calc(100vh-4rem)] w-56 shrink-0 self-start overflow-y-auto overscroll-contain scrollbar-hidden text-slate-900 lg:block"
-  >
-    <div className="min-h-full w-56 rounded-r-2xl border-r border-white/10 bg-brand-deep p-2.5 shadow-[8px_0_24px_rgba(4,21,31,0.14)]">
-      <SidebarMenu openOnHover />
-    </div>
-  </aside>
-);
-
 type StatisticsMeta = {
   lastUpdate: string;
   isCache: boolean;
@@ -436,60 +193,85 @@ const WelcomeSection: React.FC<{
   name: string;
   statisticsMeta: StatisticsMeta;
   isRefreshing: boolean;
+  refreshFeedback: boolean;
   onRefresh: () => void;
-}> = ({ name, statisticsMeta, isRefreshing, onRefresh }) => (
-  <motion.section
-    animate={{ opacity: 1, y: 0 }}
-    aria-labelledby="welcome-title"
-    className="mb-6"
-    initial={{ opacity: 0, y: 20 }}
-    transition={{ duration: 0.5 }}
-  >
-    <section className="flex items-start justify-between gap-6">
-      <div>
-        <h1
-          className="text-3xl font-bold text-gray-900 tracking-tight"
-          id="welcome-title"
+}> = ({ name, statisticsMeta, isRefreshing, refreshFeedback, onRefresh }) => {
+  const displayName = name
+    .trim()
+    .toLocaleLowerCase("pt-BR")
+    .replace(
+      /(^|\s)(\p{L})/gu,
+      (_, separator, letter) =>
+        `${separator}${letter.toLocaleUpperCase("pt-BR")}`,
+    );
+
+  return (
+    <motion.section
+      animate={{ opacity: 1, y: 0 }}
+      aria-labelledby="welcome-title"
+      className="mb-6"
+      initial={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.5 }}
+    >
+      <section className="flex items-start justify-between gap-6">
+        <div>
+          <h1
+            className="font-display text-3xl font-bold tracking-tight text-gray-900"
+            id="welcome-title"
+          >
+            Bem-vindo,{" "}
+            <span className="bg-gradient-to-r from-brand-700 via-brand-600 to-brand-green-600 bg-clip-text text-transparent">
+              {displayName}
+            </span>
+          </h1>
+          <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-600">
+            <CalendarDays className="h-4 w-4" />
+            <span>
+              {new Date().toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+            {statisticsMeta.lastUpdate && (
+              <>
+                <span className="text-gray-300">•</span>
+                <Clock className="h-4 w-4" />
+                <span>
+                  Atualizado às {statisticsMeta.lastUpdate}
+                  {statisticsMeta.isCache && " (cache)"}
+                </span>
+              </>
+            )}
+          </p>
+        </div>
+        <Button
+          aria-live="polite"
+          className={`mt-1 flex shrink-0 items-center gap-2 rounded-lg border px-4 py-2.5 transition-all duration-200 ${
+            isRefreshing
+              ? "cursor-not-allowed border-brand-200 bg-brand-50 text-brand-700 opacity-90"
+              : refreshFeedback
+                ? "cursor-pointer border-brand-green-200 bg-brand-green-50 text-brand-deep hover:bg-brand-green-100"
+                : "cursor-pointer border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+          disabled={isRefreshing}
+          onClick={onRefresh}
         >
-          Bem-vindo,{" "}
-          <span className="bg-gradient-to-r from-brand-700 via-brand-600 to-brand-green-600 bg-clip-text text-transparent">
-            {name.split(" ")[0]} {name.split(" ")[1]}
+          <RefreshCw
+            className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+          />
+          <span className="font-medium">
+            {isRefreshing
+              ? "Atualizando..."
+              : refreshFeedback
+                ? "Atualizado agora"
+                : "Atualizar Dados"}
           </span>
-        </h1>
-        <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-600">
-          <CalendarDays className="h-4 w-4" />
-          <span>
-            {new Date().toLocaleDateString("pt-BR", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            })}
-          </span>
-          {statisticsMeta.lastUpdate && (
-            <>
-              <span className="text-gray-300">•</span>
-              <Clock className="h-4 w-4" />
-              <span>
-                Atualizado às {statisticsMeta.lastUpdate}
-                {statisticsMeta.isCache && " (cache)"}
-              </span>
-            </>
-          )}
-        </p>
-      </div>
-      <Button
-        className="mt-1 flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-4 py-2.5 text-gray-700 transition-all duration-200 hover:bg-gray-200"
-        disabled={isRefreshing}
-        onClick={onRefresh}
-      >
-        <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-        <span className="font-medium">
-          {isRefreshing ? "Atualizando..." : "Atualizar Dados"}
-        </span>
-      </Button>
-    </section>
-  </motion.section>
-);
+        </Button>
+      </section>
+    </motion.section>
+  );
+};
 
 // Componente Principal
 export default function DashboardPage() {
@@ -500,13 +282,13 @@ export default function DashboardPage() {
   });
   const [refreshSignal, setRefreshSignal] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshFeedback, setRefreshFeedback] = useState(false);
 
   const [user, setUser] = useState<IUserInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentMessage, setCurrentMessage] = useState<Message | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
-  const [showPostLoginTransition, setShowPostLoginTransition] = useState(false);
 
   const {
     pscAuthStatus,
@@ -520,10 +302,21 @@ export default function DashboardPage() {
   const pscAuthWindowRef = useRef<Window | null>(null);
   const [pscAuthWindowUrl, setPscAuthWindowUrl] = useState<string>("");
 
-  const handlePostLoginComplete = useCallback(() => {
-    setShowPostLoginTransition(false);
-    router.replace(getHomeRoute(getCurrentUser()), { scroll: false });
-  }, [router]);
+  useEffect(() => {
+    if (!refreshFeedback) return;
+
+    const timeout = window.setTimeout(() => setRefreshFeedback(false), 2500);
+    return () => window.clearTimeout(timeout);
+  }, [refreshFeedback]);
+
+  const handleRefreshSuccess = useCallback(() => {
+    setRefreshFeedback(true);
+  }, []);
+
+  const handleRefreshRequest = useCallback(() => {
+    setRefreshFeedback(false);
+    setRefreshSignal((current) => current + 1);
+  }, []);
 
   // Buscar mensagem atual
   const fetchAndSetMessage = async () => {
@@ -552,13 +345,6 @@ export default function DashboardPage() {
         router.push("/");
 
         return;
-      }
-
-      if (
-        new URLSearchParams(window.location.search).get("loginTransition") ===
-        "1"
-      ) {
-        setShowPostLoginTransition(true);
       }
 
       setUser(currentUser);
@@ -713,43 +499,24 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, [refetchPscStatus]);
 
-  if (isLoading || !user) {
-    return <EngemedicalLoading />;
-  }
-
-  if (showPostLoginTransition) {
-    return (
-      <PremiumCyberLoading
-        duration={2600}
-        onComplete={handlePostLoginComplete}
-      />
-    );
-  }
+  const handleLogout = () => {
+    clearSessionMessage();
+    logout();
+    router.push("/");
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <HeaderApp
-        onLogout={() => {
-          // Limpar mensagem ao fazer logout
-          clearSessionMessage();
-          logout();
-          router.push("/");
-        }}
-      >
-        <></>
-      </HeaderApp>
-
-      <div className="flex min-h-[calc(100vh-4rem)] items-start">
-        <DashboardNavSidebar />
-        <main
-          aria-label="Dashboard principal"
-          className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8"
-        >
+    <AppShell onLogout={handleLogout}>
+      {isLoading || !user ? (
+        <AppLoading title="Carregando dashboard" description="Preparando seus dados..." />
+      ) : (
+        <div className="px-4 py-4 sm:px-6 lg:px-8">
         <WelcomeSection
           name={user.nome}
           statisticsMeta={statisticsMeta}
           isRefreshing={isRefreshing}
-          onRefresh={() => setRefreshSignal((current) => current + 1)}
+          refreshFeedback={refreshFeedback}
+          onRefresh={handleRefreshRequest}
         />
 
         <section aria-labelledby="stats-title" className="mt-8">
@@ -757,6 +524,7 @@ export default function DashboardPage() {
             <StatisticsSection
               onMetaChange={setStatisticsMeta}
               onRefreshStateChange={setIsRefreshing}
+              onRefreshSuccess={handleRefreshSuccess}
               refreshSignal={refreshSignal}
             />
           </div>
@@ -775,8 +543,8 @@ export default function DashboardPage() {
             </a>
           </p>
         </motion.footer>
-        </main>
       </div>
+      )}
 
       {/* Modal de consentimento LGPD */}
       <ConsentModal />
@@ -816,30 +584,6 @@ export default function DashboardPage() {
           </ModalFooter>
         </ModalContent>
       </Modal>
-
-      {/* Modal de Mensagem desabilitado temporariamente */}
-      {/* 
-      <MessageModal
-        isOpen={showModal}
-        message={currentMessage}
-        onClose={() => {
-          markMessageAsSeen();
-          setShowModal(false);
-        }}
-      />
-      */}
-
-      {/* Botão flutuante para mensagens desabilitado temporariamente */}
-      {/* 
-      {currentMessage && (
-        <MessageFloatingButton
-          hasMessage={hasNewMessage}
-          onClick={() => {
-            setShowModal(true);
-          }}
-        />
-      )}
-      */}
-    </div>
+    </AppShell>
   );
 }

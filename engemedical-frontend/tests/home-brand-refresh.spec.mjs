@@ -99,8 +99,8 @@ test("home login uses the Engemedical Connect brand system", async () => {
   assert.doesNotMatch(loginPage, /Gestão ocupacional em um ambiente conectado/);
   assert.match(loginPage, /bg-brand-midnight/);
   assert.match(loginPage, /shadow-\[0_18px_44px_rgba\(0,46,66,0\.22\)\]/);
-  assert.match(loginPage, /Entrar/);
-  assert.match(loginPage, /Entrando\.\.\./);
+  assert.match(loginPage, /Conectar/);
+  assert.match(loginPage, /Conectando\.\.\./);
   assert.match(loginPage, /Recuperar senha/);
   assert.match(loginPage, /Criar nova senha/);
   assert.match(loginPage, /Salvar nova senha/);

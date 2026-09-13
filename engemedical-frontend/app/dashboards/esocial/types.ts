@@ -34,7 +34,7 @@ export interface StatusMesItem {
   pendente: number;
   excluido: number;
   assinado: number;
-  outros: number;
+  outros?: number;
 }
 
 export interface EmpresaStatusItem {
@@ -47,18 +47,81 @@ export interface EmpresaStatusItem {
   assinado: number;
 }
 
-export interface RegistroEsocial {
-  codigoEmpresa: string;
+export interface EmpresaComparativoItem {
   empresa: string;
-  cnpj: string;
-  subgrupo: string;
-  unidade: string;
+  totalRegistros: number;
+  concluidos: number;
+  pctConcluido: number;
+}
+
+export interface MatrixEmpresaNode {
+  nome: string;
+  concluido: number;
+  inconsistencias: number;
+  pendente: number;
+  assinado: number;
+  excluido: number;
+}
+
+export interface MatrixEventoNode {
+  evento: string;
+  concluido: number;
+  inconsistencias: number;
+  pendente: number;
+  assinado: number;
+  excluido: number;
+  empresas: MatrixEmpresaNode[];
+}
+
+export interface MatrixMesNode {
+  mes: string;
+  concluido: number;
+  inconsistencias: number;
+  pendente: number;
+  assinado: number;
+  excluido: number;
+  eventos: MatrixEventoNode[];
+}
+
+export interface MatrixAnoNode {
+  ano: string;
+  concluido: number;
+  inconsistencias: number;
+  pendente: number;
+  assinado: number;
+  excluido: number;
+  meses: MatrixMesNode[];
+}
+
+export interface MatrixStructure {
+  totais: {
+    concluido: number;
+    inconsistencias: number;
+    pendente: number;
+    assinado: number;
+    excluido: number;
+  };
+  anos: MatrixAnoNode[];
+}
+
+export interface RegistroEsocial {
+  codigoEmpresa?: string;
+  empresa: string;
+  cnpj?: string;
+  subgrupo?: string;
+  unidade?: string;
+  classificacaoEmpresa?: string;
   layout: LayoutEvento;
+  evento?: string;
   dataGeracao: string;
+  codigoGed?: string;
+  nomeArquivo?: string;
+  codigoFuncionario?: string;
   funcionario: string;
   statusEvento: StatusEvento;
-  nrRecibo: string;
-  erro: string;
+  nrRecibo?: string;
+  erro?: string;
+  codigoErroEsocial?: string;
 }
 
 export interface EsocialDashboardData {
@@ -71,9 +134,11 @@ export interface EsocialDashboardData {
     por_mes: EvolucaoMensalItem[];
     por_mes_status: StatusMesItem[];
     por_empresa: StatusItem[];
+    por_empresa_comparativo?: EmpresaComparativoItem[];
     por_empresa_status: EmpresaStatusItem[];
     por_erro: StatusItem[];
   };
+  matrix?: MatrixStructure;
   rows: RegistroEsocial[];
   meta: {
     periodo: { dataInicio: string; dataFim: string };

@@ -1,0 +1,12 @@
+import fs from "node:fs";
+import path from "node:path";
+import assert from "node:assert/strict";
+const root = path.resolve(import.meta.dirname, "..");
+const sidebar = fs.readFileSync(path.join(root, "components/shared/SidebarMenu.tsx"), "utf8");
+const page = fs.readFileSync(path.join(root, "app/automacao/inativacao-massa/page.tsx"), "utf8");
+assert.match(sidebar, /Inativação em Massa/);
+assert.match(sidebar, /\/automacao\/inativacao-massa/);
+assert.match(page, /Empresas sob acompanhamento/);
+assert.match(page, /download-report/);
+assert.match(page, /Cron ativo/);
+console.log("inativacao massa contract ok");

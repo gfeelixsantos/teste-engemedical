@@ -101,6 +101,8 @@ export const config = {
   matcher: [
     "/atendimento/:path*",
     "/dashboard/:path*",
+    "/visao-geral/:path*",
+    "/inicio/:path*",
     "/prontuarios/:path*",
     "/recepcao/:path*",
     "/relatorio/:path*",

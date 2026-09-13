@@ -54,4 +54,12 @@ describe('getSftpIntegratorConfig', () => {
       filePattern: 'LOG_INTEGRACAO_*.xlsx',
     });
   });
+
+  it('enables the Grupo Tora schedule by default when no override is provided', () => {
+    process.env.SFTP_INTEGRATOR_GRUPO_TORA_HOST = 'sftp.example.com';
+    process.env.SFTP_INTEGRATOR_GRUPO_TORA_USERNAME = 'grupo';
+    delete process.env.SFTP_INTEGRATOR_GRUPO_TORA_CRON_ENABLED;
+
+    expect(getSftpIntegratorConfig('grupo-tora').cronEnabled).toBe(true);
+  });
 });

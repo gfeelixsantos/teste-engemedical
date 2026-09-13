@@ -24,9 +24,8 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@/sftp-integracao/*": ["./app/sftp-integracao/*"]
     }
   },
   "include": [

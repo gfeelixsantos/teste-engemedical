@@ -223,7 +223,7 @@ export function SidebarRecepcao({
   return (
     <aside
       aria-label="Painel lateral de filtros e controles"
-      className="w-68 min-h-0 bg-brand-navy border-r border-white/10 shadow-[8px_0_24px_rgba(4,21,31,0.16)] h-full overflow-y-auto scrollbar-hidden transition-all relative"
+      className="w-64 min-h-0 bg-brand-navy border-r border-white/10 shadow-[8px_0_24px_rgba(4,21,31,0.16)] h-full overflow-y-auto scrollbar-hidden transition-all relative"
       role="complementary"
     >
       <main className="p-4 pt-4">

@@ -1,5 +1,3 @@
-export type SituacaoAtestado = 'Ativo' | 'Inativo';
-
 export interface AbsenteismoKPIs {
   totalFuncionarios: number;
   totalAtestados: number;
@@ -10,6 +8,8 @@ export interface AbsenteismoKPIs {
   custoDireto: number;
   custoIndireto: number;
   custoTotal: number;
+  atestadosFeminino?: number;
+  atestadosMasculino?: number;
   ultimaAtualizacao: string;
 }
 
@@ -18,6 +18,7 @@ export interface PorMesLinha {
   mesNum: number;
   diasPerdidos: number;
   atestados: number;
+  indiceAbsenteismo?: number;
 }
 
 export interface PorEmpresaBar {
@@ -31,16 +32,63 @@ export interface PorCidBar {
   descricao: string;
   grupo: string;
   atestados: number;
+  percentual: number;
 }
 
-export interface PorTipoBar {
-  tipo: string;
+export interface PorCidGrupoItem {
+  grupo: string;
+  diasPerdidos: number;
+  cids: string[];
+}
+
+export interface PorDiaSemanaItem {
+  dia: string;
+  diasPerdidos: number;
+}
+
+export interface PorFuncionarioItem {
+  nome: string;
   atestados: number;
 }
 
-export interface LicencaDetalhe {
+export interface PorFaixaEtariaSexoItem {
+  faixa: string;
+  feminino: number;
+  pctFeminino: number;
+  masculino: number;
+  pctMasculino: number;
+}
+
+export interface PorFaixaDiasPerdidosItem {
+  faixa: string;
+  funcionarios: number;
+}
+
+export interface PorUnidadeItem {
+  unidade: string;
+  atestados: number;
+}
+
+export interface PorSetorItem {
+  setor: string;
+  atestados: number;
+}
+
+export interface PorCargoItem {
+  cargo: string;
+  atestados: number;
+}
+
+export interface PorTipoAfastamento {
+  tipo: string;
+  atestados: number;
+  diasPerdidos: number;
+}
+
+export interface LicencaNormalizada {
   codigoSequencial: string;
   codigoFuncionario: string;
+  nomeFuncionario?: string;
   cpfFuncionario: string;
   matriculaFuncionario: string;
   dataFicha: string;
@@ -53,6 +101,13 @@ export interface LicencaDetalhe {
   cidGrupo: string;
   descricaoMotivo: string;
   empresaCodigo: string;
+  empresaNome?: string;
+  unidade?: string;
+  setor?: string;
+  cargo?: string;
+  sexo?: string;
+  idade?: number;
+  faixaEtaria?: string;
   custoDireto: number;
   custoIndireto: number;
   custoTotal: number;
@@ -63,8 +118,16 @@ export interface AbsenteismoDashboardData {
   porMes: PorMesLinha[];
   porEmpresa: PorEmpresaBar[];
   porCid: PorCidBar[];
-  porTipo: PorTipoBar[];
-  detalhes: LicencaDetalhe[];
+  porCidGrupo: PorCidGrupoItem[];
+  diasPorDiaSemana: PorDiaSemanaItem[];
+  porFuncionario: PorFuncionarioItem[];
+  porFaixaEtariaSexo: PorFaixaEtariaSexoItem[];
+  porFaixaDiasPerdidos: PorFaixaDiasPerdidosItem[];
+  porUnidade: PorUnidadeItem[];
+  porSetor: PorSetorItem[];
+  porCargo: PorCargoItem[];
+  porTipoAfastamento: PorTipoAfastamento[];
+  detalhes: LicencaNormalizada[];
   empresas: string[];
   totalRegistros: number;
   filtros: {

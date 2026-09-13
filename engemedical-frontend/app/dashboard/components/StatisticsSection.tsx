@@ -22,7 +22,7 @@ import {
   Gauge,
   Info,
 } from "lucide-react";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 
 import SlaChart from "./SlaChart";
 import {
@@ -93,7 +93,9 @@ const OperationalMetric = ({
 }) => (
   <div className="rounded-xl border border-gray-200/80 bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
     <div className="flex items-start justify-between gap-2">
-      <p className="text-xs font-medium leading-4 text-gray-600">{title}</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-semibold leading-tight text-gray-600">{title}</p>
+      </div>
       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-100" style={{ color: accent }}>
         <Icon className="h-4 w-4" />
       </span>
@@ -794,10 +796,12 @@ export function StatisticsSection({
   onMetaChange,
   refreshSignal = 0,
   onRefreshStateChange,
+  onRefreshSuccess,
 }: {
   onMetaChange?: (meta: StatisticsMeta) => void;
   refreshSignal?: number;
   onRefreshStateChange?: (isRefreshing: boolean) => void;
+  onRefreshSuccess?: () => void;
 }) {
   const { data, loading, error, refetch } = useStatistics({
     autoRefresh: true,
@@ -808,6 +812,22 @@ export function StatisticsSection({
   const [expandedExamUnit, setExpandedExamUnit] = useState<string | null>(null);
   const [showAllExams, setShowAllExams] = useState<Record<string, boolean>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const refreshGenerationRef = useRef(0);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+      refreshGenerationRef.current += 1;
+      if (refreshTimerRef.current !== null) {
+        clearTimeout(refreshTimerRef.current);
+        refreshTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const statisticsData = data as unknown as StatisticsResponseDto;
 
@@ -937,13 +957,45 @@ export function StatisticsSection({
 
   // 🔄 Refresh handler
   const handleRefresh = useCallback(async () => {
+    if (!isMountedRef.current) return;
+
+    const refreshGeneration = ++refreshGenerationRef.current;
+
+    if (refreshTimerRef.current !== null) {
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+
     setIsRefreshing(true);
     try {
-      await refetch();
+      const refreshSucceeded = await refetch();
+      if (
+        refreshSucceeded &&
+        isMountedRef.current &&
+        refreshGeneration === refreshGenerationRef.current
+      ) {
+        onRefreshSuccess?.();
+      }
     } finally {
-      setTimeout(() => setIsRefreshing(false), 500);
+      if (
+        !isMountedRef.current ||
+        refreshGeneration !== refreshGenerationRef.current
+      ) {
+        return;
+      }
+
+      refreshTimerRef.current = setTimeout(() => {
+        if (
+          !isMountedRef.current ||
+          refreshGeneration !== refreshGenerationRef.current
+        ) {
+          return;
+        }
+        setIsRefreshing(false);
+        refreshTimerRef.current = null;
+      }, 500);
     }
-  }, [refetch]);
+  }, [onRefreshSuccess, refetch]);
 
   useEffect(() => {
     if (refreshSignal === 0) return;
@@ -1018,6 +1070,7 @@ export function StatisticsSection({
     totais?.atendimentosPrevistos > 0
       ? Math.round((totalFinalizados / totais.atendimentosPrevistos) * 100)
       : 0;
+  const hasEfficiencyBase = (totais?.atendimentosPrevistos ?? 0) > 0;
   const statusData = Object.entries(totais?.atendimentosPorStatus || {})
     .map(([status, value]) => ({
       name: STATUS_LABELS[status] || status.replace(/_/g, " "),
@@ -1046,11 +1099,8 @@ export function StatisticsSection({
       >
         <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
           <div className="border-b border-gray-200/80 bg-gradient-to-r from-gray-50 to-white px-5 py-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-blue">
-              Resumo operacional
-            </p>
-            <h2 className="mt-1 text-lg font-semibold text-gray-950">
-              Acompanhamento do fluxo de atendimento
+            <h2 className="font-display text-lg font-bold text-brand-700">
+              Resumo Operacional
             </h2>
           </div>
 
@@ -1065,25 +1115,32 @@ export function StatisticsSection({
               </div>
 
               <div className="grid items-center gap-4 md:grid-cols-[190px_minmax(0,1fr)]">
-                <div className="relative h-48">
-                  <ResponsiveContainer height="100%" width="100%">
-                    <PieChart>
-                      <Pie
-                        cx="50%"
-                        cy="50%"
-                        data={statusData}
-                        dataKey="value"
-                        innerRadius="62%"
-                        outerRadius="88%"
-                        paddingAngle={2}
-                        stroke="none"
-                      >
-                        {statusData.map((entry) => (
-                          <Cell key={entry.status} fill={statusColor(entry.status)} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
+                <div className="relative mx-auto h-48 aspect-square md:mx-0 md:aspect-auto">
+                  {statusData.length === 0 ? (
+                    <div
+                      aria-label="Nenhum atendimento registrado hoje"
+                      className="absolute inset-5 rounded-full border-[18px] border-dashed border-brand-100/80 bg-brand-surface/40"
+                    />
+                  ) : (
+                    <ResponsiveContainer height="100%" width="100%">
+                      <PieChart>
+                        <Pie
+                          cx="50%"
+                          cy="50%"
+                          data={statusData}
+                          dataKey="value"
+                          innerRadius="62%"
+                          outerRadius="88%"
+                          paddingAngle={2}
+                          stroke="none"
+                        >
+                          {statusData.map((entry) => (
+                            <Cell key={entry.status} fill={statusColor(entry.status)} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
                   <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-2xl font-bold text-gray-950">{statusTotal.toLocaleString("pt-BR")}</span>
                     <span className="text-[11px] text-gray-500">atendimentos</span>
@@ -1092,7 +1149,10 @@ export function StatisticsSection({
 
                 <div className="space-y-2">
                   {statusData.length === 0 ? (
-                    <p className="text-sm text-gray-500">Nenhum status disponível.</p>
+                    <div className="rounded-lg border border-brand-100 bg-brand-surface/60 px-3 py-2">
+                      <p className="text-sm font-medium text-gray-700">Ainda não há atendimentos registrados hoje</p>
+                      <p className="mt-1 text-xs text-gray-500">Os indicadores serão atualizados assim que houver movimentação.</p>
+                    </div>
                   ) : (
                     statusData.map((entry) => (
                       <div key={entry.status} className="flex items-center justify-between gap-3 text-xs">
@@ -1117,22 +1177,31 @@ export function StatisticsSection({
                     <p className="text-sm font-semibold text-gray-950">Eficiência do dia</p>
                     <p className="text-xs text-gray-500">Finalizados sobre previstos</p>
                   </div>
-                  <div className="relative h-16 w-16">
-                    <ResponsiveContainer height="100%" width="100%">
-                      <RadialBarChart
-                        cx="50%"
-                        cy="50%"
-                        data={[{ fill: COLORS.secondary, value: eficienciaOperacional }]}
-                        endAngle={-270}
-                        innerRadius="68%"
-                        outerRadius="94%"
-                        startAngle={90}
-                      >
-                        <PolarAngleAxis angleAxisId={0} domain={[0, 100]} tick={false} type="number" />
-                        <RadialBar background cornerRadius={8} dataKey="value" />
-                      </RadialBarChart>
-                    </ResponsiveContainer>
-                    <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-gray-950">{eficienciaOperacional}%</span>
+                  <div className="flex flex-col items-center gap-2 sm:items-end">
+                    <div className="relative h-16 w-16">
+                      <ResponsiveContainer height="100%" width="100%">
+                        <RadialBarChart
+                          cx="50%"
+                          cy="50%"
+                          data={[{ fill: COLORS.secondary, value: eficienciaOperacional }]}
+                          endAngle={-270}
+                          innerRadius="68%"
+                          outerRadius="94%"
+                          startAngle={90}
+                        >
+                          <PolarAngleAxis angleAxisId={0} domain={[0, 100]} tick={false} type="number" />
+                          <RadialBar background cornerRadius={8} dataKey="value" />
+                        </RadialBarChart>
+                      </ResponsiveContainer>
+                      <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-gray-950">
+                        {hasEfficiencyBase ? `${eficienciaOperacional}%` : "—"}
+                      </span>
+                    </div>
+                    {!hasEfficiencyBase && (
+                      <p className="max-w-[14rem] text-center text-xs font-medium leading-4 text-gray-500">
+                        Aguardando dados do período
+                      </p>
+                    )}
                   </div>
                 </div>
               </article>

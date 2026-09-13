@@ -4,11 +4,6 @@ import { SftpIntegratorService } from './sftp-integrator.service';
 
 const GRUPO_TORA_CLIENT_KEY = 'grupo-tora';
 const GRUPO_TORA_ENV_PREFIX = 'SFTP_INTEGRATOR_GRUPO_TORA';
-
-function isEnabled(value?: string): boolean {
-  return String(value || '').toLowerCase() === 'true';
-}
-
 function resolveFileId(result: unknown): string {
   const file = (result as any)?.pull?.file || (result as any)?.file;
   return String(file?._id || '');
@@ -26,9 +21,9 @@ export class SftpIntegratorScheduler {
 
   constructor(private readonly sftpIntegratorService: SftpIntegratorService) {}
 
-  @Cron('30 18 * * *', { timeZone: 'America/Sao_Paulo' })
+  @Cron('30 18 * * 1-5', { timeZone: 'America/Sao_Paulo' })
   async runGrupoToraDailyIntegration() {
-    if (!isEnabled(process.env[`${GRUPO_TORA_ENV_PREFIX}_CRON_ENABLED`])) {
+    if (String(process.env[`${GRUPO_TORA_ENV_PREFIX}_CRON_ENABLED`] ?? 'true').toLowerCase() !== 'true') {
       this.logger.debug('[SFTP] Cron Grupo Tora desabilitado.');
       return;
     }
@@ -54,7 +49,7 @@ export class SftpIntegratorScheduler {
       }
 
       this.logger.log(`[SFTP] Dry-run Grupo Tora concluido: ${fileName}.`);
-      if (!isEnabled(process.env[`${GRUPO_TORA_ENV_PREFIX}_SOC_ENABLED`])) {
+      if (String(process.env.SFTP_INTEGRATOR_GRUPO_TORA_SOC_ENABLED || '').toLowerCase() !== 'true') {
         this.logger.log(
           '[SFTP] Processamento SOC Grupo Tora desabilitado apos dry-run.',
         );

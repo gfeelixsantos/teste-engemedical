@@ -86,7 +86,7 @@ export function getSftpIntegratorConfig(
       `data/sftp-integrator/${normalizedClientKey}/incoming`,
     cronEnabled:
       String(
-        firstEnv([`${prefix}_CRON_ENABLED`, ...enabledLegacy]) || 'false',
+        firstEnv([`${prefix}_CRON_ENABLED`, ...enabledLegacy]) || 'true',
       ).toLowerCase() === 'true',
   };
 }

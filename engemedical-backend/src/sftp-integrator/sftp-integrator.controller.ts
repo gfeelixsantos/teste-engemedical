@@ -71,8 +71,27 @@ export class SftpIntegratorController {
     @Res() res: Response,
   ) {
     this.assertInternalAuth(token);
-    const { file, path } = await this.service.getFileForDownload(clientKey, id);
-    res.download(path, file.remoteName);
+    const { file, path, buffer } = await this.service.getFileForDownload(clientKey, id);
+    if (buffer) {
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${file.remoteName}"`);
+      return res.send(buffer);
+    }
+    return res.download(path, file.remoteName);
+  }
+
+  @Get(':clientKey/runs/:id/report')
+  async downloadReport(
+    @Param('clientKey') clientKey: string,
+    @Param('id') id: string,
+    @Headers('x-internal-token') token: string | undefined,
+    @Res() res: Response,
+  ) {
+    this.assertInternalAuth(token);
+    const report = await this.service.getRunReportForDownload(clientKey, id);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${report.fileName}"`);
+    res.send(report.buffer);
   }
 
   @Post(':clientKey/files/:id/parse')

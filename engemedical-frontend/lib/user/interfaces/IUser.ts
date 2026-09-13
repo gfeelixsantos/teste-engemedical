@@ -3,19 +3,33 @@ import { WebsocketType } from "@/lib/websocket/enums/websocket.enum";
 export interface IUserInfo {
   codigo: string;
   nome: string;
-  cpf: string;
+  cpf?: string;
+  email?: string;
   conselho?: string;
   ufconselho?: string;
   perfil: string;
+  tipoUsuario?: "interno" | "cliente";
+  registrationCode?: string;
 }
 
 export interface IUserLogin {
-  cpf: string;
+  email: string;
   password: string;
 }
 
-export interface IUserRegister extends IUserLogin {
+export interface IUserRegister {
+  email: string;
+  password: string;
   codigo: string;
+  cpf?: string;
+  tipoUsuario?: "interno" | "cliente";
+  registrationCode?: string;
+}
+
+export interface IUserReauth {
+  email?: string;
+  cpf?: string;
+  password: string;
 }
 
 export interface IPscAuthStatus {

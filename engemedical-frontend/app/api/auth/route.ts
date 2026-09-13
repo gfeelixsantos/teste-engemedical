@@ -12,7 +12,12 @@ import { ZodError } from "zod";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
-async function logUserAction(acao: string, userInfo?: Partial<IUserInfo>, ip?: string, userAgent?: string) {
+async function logUserAction(
+  acao: string,
+  userInfo?: Partial<IUserInfo>,
+  ip?: string,
+  userAgent?: string,
+) {
   try {
     await fetch("/api/audit-log", {
       method: "POST",
@@ -35,11 +40,33 @@ async function logUserAction(acao: string, userInfo?: Partial<IUserInfo>, ip?: s
 export async function POST(
   req: NextRequest,
 ): Promise<NextResponse<IApiResponse<IUserInfo>>> {
-  const ip = (req as any).ip ?? req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? undefined;
+  const ip =
+    (req as any).ip ??
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    undefined;
   const userAgent = req.headers.get("user-agent") ?? undefined;
 
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+
+    if (!rawBody.trim()) {
+      return NextResponse.json(
+        new ApiResponse(HttpCodes.BAD_REQUEST, ApiMessages.USER_INPUT_INVALID),
+        { status: HttpCodes.BAD_REQUEST },
+      );
+    }
+
+    let body: unknown;
+
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return NextResponse.json(
+        new ApiResponse(HttpCodes.BAD_REQUEST, ApiMessages.USER_INPUT_INVALID),
+        { status: HttpCodes.BAD_REQUEST },
+      );
+    }
+
     const data = userLoginSchema.parse(body);
 
     const userLogged = await UserService.login(data);
@@ -98,10 +125,7 @@ export async function POST(
 
     if (err instanceof ZodError) {
       return NextResponse.json(
-        new ApiResponse(
-          HttpCodes.BAD_REQUEST,
-          ApiMessages.USER_INPUT_INVALID,
-        ),
+        new ApiResponse(HttpCodes.BAD_REQUEST, ApiMessages.USER_INPUT_INVALID),
         { status: HttpCodes.BAD_REQUEST },
       );
     }

@@ -969,7 +969,7 @@ const AtendimentoPage: React.FC = () => {
   useEffect(() => { calcularEstatisticas(); }, [agendamentosGeral, codigosDeAtendimento, tickets, calcularEstatisticas, exameSelecionado, unidadeSelecionada]);
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-white">
+    <div className="flex flex-col h-screen overflow-hidden bg-brand-surface">
       <HeaderApp onLogout={() => { logout(); router.push('/'); }}>
         {conectado && socketRef.current && (
           <SenhasEstatisticas
@@ -1021,7 +1021,7 @@ const AtendimentoPage: React.FC = () => {
               settings?.assinaturaProvider !== "BRYKMS" &&
               pscAuthStatus.status !== "ACTIVE" ? (
                 <Button
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-medium bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 hover:text-gray-700 transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-medium bg-white/10 text-white/80 border border-white/15 hover:bg-white/15 hover:text-white transition-all"
                   onPress={handlePscClick}
                 >
                   {pscAuthStatus.status === "EXPIRED"
@@ -1034,7 +1034,7 @@ const AtendimentoPage: React.FC = () => {
             isTelemedicinaModo={isTelemedicinaModo}
             toggleTelemedicinaModo={() => setIsTelemedicinaModo((prev) => !prev)}
           />
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-brand-surface p-6 lg:p-8">
           {isLoading ? (
             <EngemedicalCircularLoading />
           ) : conectado && socket ? (

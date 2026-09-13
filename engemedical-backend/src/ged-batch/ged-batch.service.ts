@@ -76,6 +76,11 @@ export class GedBatchService implements OnModuleInit {
   }
 
   private async expireOrphanJobs() {
+    if (!this.mongoService.db) {
+      this.logger.warn('MongoDB indisponível; manutenção de jobs GED adiada para a próxima inicialização.');
+      return;
+    }
+
     const cutoff = new Date(Date.now() - this.staleTimeoutMs);
     const orphanJobs = await this.collection
       .find({

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 import { NEST_SCHEDULINGS_STATISTICS } from "@/config/constants";
 
@@ -112,9 +112,29 @@ export function useStatistics({
   const [statistics, setStatistics] = useState<StatisticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const isMountedRef = useRef(true);
+  const requestSequenceRef = useRef(0);
 
-  const fetchStatistics = useCallback(async () => {
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+      requestSequenceRef.current += 1;
+    };
+  }, []);
+
+  const fetchStatistics = useCallback(async (): Promise<boolean> => {
+    if (!isMountedRef.current) return false;
+
+    const requestSequence = ++requestSequenceRef.current;
+    const isLatestRequest = () =>
+      isMountedRef.current &&
+      requestSequence === requestSequenceRef.current;
+
     try {
+      if (!isLatestRequest()) return false;
+
       setLoading(true);
       setError(null);
 
@@ -134,12 +154,20 @@ export function useStatistics({
 
       const result = await response.json();
 
+      if (!isLatestRequest()) return false;
+
       setStatistics(result);
+      return true;
     } catch (err) {
-      setError(err as Error);
-      console.error("Erro ao buscar estatísticas:", err);
+      if (isLatestRequest()) {
+        setError(err as Error);
+        console.error("Erro ao buscar estatísticas:", err);
+      }
+      return false;
     } finally {
-      setLoading(false);
+      if (isLatestRequest()) {
+        setLoading(false);
+      }
     }
   }, [unidade, data]);
 

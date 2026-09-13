@@ -1,72 +1,101 @@
-export type SituacaoCompromisso = 'Atendido' | 'NaoAtendido' | 'AguardandoAtendimento' | 'Cancelado' | 'NaoCompareceu';
-
-export interface TipoCompromisso {
-  codigo: number;
-  nome: string;
-}
-
 export interface VolumetriaKPIs {
   totalAgendamentos: number;
-  totalAtendidos: number;
-  totalNaoAtendidos: number;
-  totalAguardando: number;
-  totalFuncionarios: number;
   totalExames: number;
+  mediaExamesPorAgendamento: number;
+  totalFuncionarios: number;
+  atendidos: number;
+  naoAtendidos: number;
+  aguardandoAtendimento: number;
+  totalAtendidos?: number;
   ultimaAtualizacao: string;
 }
+
+export interface PorAgendaItem {
+  agenda: string;
+  agendamentos: number;
+  atendimentos: number;
+  percentAgendamentos: number;
+  percentAtendimentos: number;
+}
+
+export interface PorPeriodoItem {
+  periodo: string;
+  agendamentos: number;
+  exames: number;
+}
+
+export interface PorTipoCompromissoItem {
+  tipoCompromisso: string;
+  aguardandoAtendimento: number;
+  atendido: number;
+  naoAtendido: number;
+  percentAguardando: number;
+  percentAtendido: number;
+  percentNaoAtendido: number;
+}
+
+export interface PorVolumeExameItem {
+  exame: string;
+  quantidade: number;
+}
+
+export interface PorHorarioItem {
+  horario: string;
+  quantidade: number;
+}
+
+export interface PorDiaSemanaItem {
+  diaSemana: string;
+  quantidade: number;
+}
+
+export interface HeatmapItem {
+  diaSemana: string;
+  horarios: Record<string, number>;
+  totalDia: number;
+}
+
+export interface PorSituacaoDetalhadaItem {
+  situacao: string;
+  quantidade: number;
+}
+
+export interface PorEmpresaItem {
+  empresa: string;
+  quantidade: number;
+}
+
+export interface PorSubgrupoItem {
+  subgrupo: string;
+  agendamentos: number;
+  atendimentos: number;
+}
+
+export interface VolumetriaRegistroItem {
+  empresa: string;
+  sequencialSituacaoDivergente: string;
+  verificacaoDuplicidade: string;
+  nome: string;
+  sequencialFicha: string;
+  dataCompromisso: string;
+  dataFicha: string;
+  dataExame: string;
+  situacao: string;
+  horaInicio: string;
+  statusSituacao: string;
+  tipoCompromisso: string;
+  exame: string;
+  subgrupo?: string;
+  agenda?: string;
+}
+
+// --- Tipos adicionais usados pelos componentes do dashboard de volumetria ---
 
 export interface PorAgendaBar {
   nomeAgenda: string;
   agendamentos: number;
   atendidos: number;
   naoAtendidos: number;
-}
-
-export interface PorTipoCompromissoGrouped {
-  tipoCompromisso: string;
-  AguardandoAtendimento: number;
-  Atendido: number;
-  NaoAtendido: number;
-}
-
-export interface PorAnoLine {
-  ano: number;
-  agendamentos: number;
-  atendidos: number;
-  exames: number;
-}
-
-export interface PorSubGrupoBar {
-  subGrupo: string;
-  agendamentos: number;
-  atendidos: number;
-}
-
-export interface PorSituacaoItem {
-  situacao: string;
-  quantidade: number;
-}
-
-export interface CompromissoDetalhe {
-  codigoAgenda: string;
-  nomeAgenda: string;
-  codigoEmpresa: string;
-  nomeEmpresa: string;
-  codigoFuncionario: string;
-  nomeFuncionario: string;
-  cpfFuncionario: string;
-  tipoCompromisso: string;
-  tipoCompromissoNome: string;
-  dataCompromisso: string;
-  horaInicio: string;
-  horaFim: string;
-  nomeCompromisso: string;
-  situacao: string;
-  situacaoNome: SituacaoCompromisso;
-  setorFuncionario: string;
-  unidadeFuncionario: string;
-  cargoFuncionario: string;
-  codigoSequencialFicha: string;
 }
 
 export interface PorEmpresaRow {
@@ -76,22 +105,42 @@ export interface PorEmpresaRow {
   exames: number;
 }
 
-export interface VolumetriaDashboardData {
+export type SituacaoCompromisso = 'Atendido' | 'Não Atendido' | 'Aguardando' | string;
+
+export interface PorTipoCompromissoGrouped {
+  tipoCompromisso: string;
+  atendidos: number;
+  naoAtendidos: number;
+  aguardando: number;
+}
+
+export interface PorSituacaoItem {
+  situacao: string;
+  quantidade: number;
+}
+
+export interface PorAnoLine {
+  periodo: string;
+  agendamentos: number;
+  atendidos: number;
+}
+
+export interface VolumetriaDashboardResponse {
   kpis: VolumetriaKPIs;
-  porAgenda: PorAgendaBar[];
-  porEmpresa: PorEmpresaRow[];
-  porTipoCompromisso: PorTipoCompromissoGrouped[];
-  porAno: PorAnoLine[];
-  porSubGrupo: PorSubGrupoBar[];
-  detalhes: CompromissoDetalhe[];
-  agendas: { codigo: string; nome: string }[];
-  empresas: string[];
-  tiposCompromisso: string[];
-  totalCompromissos: number;
-  filtros: {
-    agendas: { codigo: string; nome: string }[];
-    empresas: string[];
-    situacoes: SituacaoCompromisso[];
-    tiposCompromisso: string[];
+  agendasDisponiveis: string[];
+  porAgenda: PorAgendaItem[];
+  porPeriodo: PorPeriodoItem[];
+  porTipoCompromisso: PorTipoCompromissoItem[];
+  porVolumeExame: PorVolumeExameItem[];
+  porHorario: PorHorarioItem[];
+  porDiaSemana: PorDiaSemanaItem[];
+  heatmap: {
+    horariosColunas: string[];
+    dias: HeatmapItem[];
+    totaisPorHorario: Record<string, number>;
+    totalGeral: number;
   };
+  porSituacaoDetalhada: PorSituacaoDetalhadaItem[];
+  porEmpresa: PorEmpresaItem[];
+  porSubgrupo: PorSubgrupoItem[];
 }

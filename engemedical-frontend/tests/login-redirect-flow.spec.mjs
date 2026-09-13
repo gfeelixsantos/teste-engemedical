@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
-test("post-login transition runs inside the authenticated dashboard route", async () => {
+test("post-login transition runs once inside the login route", async () => {
   const loginPage = await readFile(
     new URL("../components/login/login.tsx", import.meta.url),
     "utf8",
@@ -12,22 +12,11 @@ test("post-login transition runs inside the authenticated dashboard route", asyn
     "utf8",
   );
 
-  assert.doesNotMatch(
-    loginPage,
-    /PremiumCyberLoading/,
-    "The public login route should not own the post-login loading screen.",
-  );
-  assert.match(
-    loginPage,
-    /router\.replace\(["']\/dashboard\?loginTransition=1["']\)/,
-  );
-  assert.doesNotMatch(loginPage, /setShowPostLoginTransition/);
+  assert.match(loginPage, /PremiumCyberLoading/);
+  assert.match(loginPage, /duration=\{1280\}/);
+  assert.doesNotMatch(loginPage, /loginTransition/);
+  assert.match(loginPage, /getHomeRoute\(userLogged\.data\)/);
 
-  assert.match(
-    dashboardPage,
-    /PremiumCyberLoading/,
-    "The authenticated dashboard route should own the post-login transition.",
-  );
-  assert.match(dashboardPage, /loginTransition/);
-  assert.match(dashboardPage, /router\.replace\(["']\/dashboard["']/);
+  assert.doesNotMatch(dashboardPage, /PremiumCyberLoading/);
+  assert.doesNotMatch(dashboardPage, /loginTransition/);
 });

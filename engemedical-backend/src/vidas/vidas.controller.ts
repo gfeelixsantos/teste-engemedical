@@ -7,15 +7,32 @@ export class VidasController {
 
   @Get('dashboard')
   async getDashboard(
-    @Query('dataInicio') dataInicio?: string,
-    @Query('dataFim') dataFim?: string,
+    @Query('empresa') empresa?: string,
+    @Query('consistencia') consistencia?: string,
+    @Query('motivo') motivo?: string,
+    @Query('refresh') refresh?: string,
   ) {
-    return this.vidasService.getDashboardData(dataInicio, dataFim);
+    const forceRefresh = refresh === 'true' || refresh === '1';
+    return this.vidasService.getDashboardData(empresa, consistencia, motivo, forceRefresh);
+  }
+
+  @Get('tabela-geral')
+  async getTabelaGeral(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('empresa') empresa?: string,
+    @Query('situacao') situacao?: string,
+    @Query('busca') busca?: string,
+  ) {
+    const pageNum = parseInt(page || '1', 10);
+    const limitNum = parseInt(limit || '50', 10);
+    return this.vidasService.getTabelaGeral(pageNum, limitNum, empresa, situacao, busca);
   }
 
   @Get('refresh')
-  async refresh() {
+  async refreshCache() {
     this.vidasService.clearCache();
-    return { success: true, message: 'Cache limpo com sucesso' };
+    await this.vidasService.getDashboardData(undefined, undefined, undefined, true);
+    return { success: true, timestamp: new Date().toISOString() };
   }
 }

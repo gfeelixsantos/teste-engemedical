@@ -47,6 +47,13 @@ const dashboards = [
     path: '/dashboards/documentos',
     color: 'bg-teal-500',
   },
+  {
+    title: 'Profissionais',
+    description: 'Controle geral de agendamentos por profissionais',
+    icon: Activity,
+    path: '/dashboards/profissionais',
+    color: 'bg-cyan-500',
+  },
 ];
 
 export default function DashboardsPage() {

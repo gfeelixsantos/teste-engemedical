@@ -7,14 +7,18 @@ import {
 } from '@azure/storage-blob';
 
 export class AzureBlobService {
-  private blobServiceClient: BlobServiceClient;
-  private credential: StorageSharedKeyCredential;
+  private blobServiceClient!: BlobServiceClient;
+  private credential!: StorageSharedKeyCredential;
   private legacyBlobServiceClient: BlobServiceClient | null = null;
   private legacyCredential: StorageSharedKeyCredential | null = null;
   public readonly legacyAvailable: boolean;
 
   constructor() {
-    const connStr = process.env.AZURE_STORAGE_CONNECTION_STRING!;
+    const connStr = process.env.AZURE_STORAGE_CONNECTION_STRING;
+    if (!connStr) {
+      this.legacyAvailable = false;
+      return;
+    }
     this.blobServiceClient = BlobServiceClient.fromConnectionString(connStr);
 
     // Credenciais para SAS baseado em key

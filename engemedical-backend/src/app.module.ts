@@ -45,11 +45,14 @@ import { CommitmentsModule } from './commitments/commitments.module';
 import { MuralModule } from './mural/mural.module';
 import { CustomerEmailCampaignModule } from './customer-email-campaign/customer-email-campaign.module';
 import { SftpIntegratorModule } from './sftp-integrator/sftp-integrator.module';
+import { SftpReportsModule } from './sftp-reports/sftp-reports.module';
 import { ConvocacaoModule } from './convocacao/convocacao.module';
 import { AbsenteismoModule } from './absenteismo/absenteismo.module';
 import { EsocialModule } from './esocial/esocial.module';
 import { VidasModule } from './vidas/vidas.module';
 import { DocumentosModule } from './documentos/documentos.module';
+import { ProfissionaisModule } from './profissionais/profissionais.module';
+import { HistoryImportModule } from './history-import/history-import.module';
 
 require('dotenv').config({ override: true });
 
@@ -96,9 +99,12 @@ require('dotenv').config({ override: true });
     MuralModule,
     CustomerEmailCampaignModule,
     SftpIntegratorModule,
+    SftpReportsModule,
     ConvocacaoModule,
     VidasModule,
     DocumentosModule,
+    ProfissionaisModule,
+    HistoryImportModule,
   ],
   controllers: [AppController, TicketController, HealthController],
   providers: [AppService],

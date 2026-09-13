@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { CloudflareQueueService } from './cloudflare-queue.service';
 import { EmailService } from '../nodemailer/nodemailer.service';
+import { TemplateNames } from '../nodemailer/types/emailtype';
 
 type QueuedEmail = {
   to: string[];
@@ -111,18 +112,20 @@ export class SftpEmailWorker implements OnModuleInit, OnModuleDestroy {
       }
 
       // Preparar attachments (decodificar base64)
-      const attachments = email.attachments?.map((att) => ({
+      const attachments = (email.attachments || []).map((att) => ({
         filename: att.filename,
         content: Buffer.from(att.content, 'base64'),
         contentType: att.contentType,
       }));
 
-      // Enviar email
+      // Adaptar o contrato da fila ao contrato real do EmailService.
+      // O SFTP publica html/attachments; o Nodemailer usa template/attachment.
       await this.emailService.sendEmail({
         to: email.to,
         subject: email.subject,
-        html: email.html,
-        attachments,
+        template: email.html,
+        templatename: TemplateNames.CUSTOM_HTML,
+        attachment: attachments,
       });
 
       // Confirmar processamento
@@ -141,7 +144,7 @@ export class SftpEmailWorker implements OnModuleInit, OnModuleDestroy {
         this.logger.warn(
           `[SFTP_EMAIL_WORKER] Retry ${retryCount + 1}/${this.MAX_RETRIES} para mensagem ${messageId}`,
         );
-        await this.nackMessage(messageId);
+        await this.retryMessage(messageId);
       } else {
         this.logger.error(
           `[SFTP_EMAIL_WORKER] Máximo de retries atingido para mensagem ${messageId} - descartando`,
@@ -151,13 +154,11 @@ export class SftpEmailWorker implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async nackMessage(messageId: string) {
+  private async retryMessage(messageId: string) {
     try {
-      await this.queueService.nack(messageId);
+      await this.queueService.retry(messageId);
     } catch (error) {
-      this.logger.error(
-        `[SFTP_EMAIL_WORKER] Falha ao fazer nack: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      this.logger.error(`[SFTP_EMAIL_WORKER] Falha ao fazer retry: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 }

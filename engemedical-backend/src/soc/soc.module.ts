@@ -18,6 +18,7 @@ import { NodemailerModule } from '../nodemailer/nodemailer.module';
 import { UnitsModule } from '../units/units.module';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { RiscosConfigModule } from '../riscos-config/riscos-config.module';
+import { SftpIntegratorModule } from '../sftp-integrator/sftp-integrator.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { RiscosConfigModule } from '../riscos-config/riscos-config.module';
     forwardRef(() => UnitsModule),
     SupabaseModule,
     RiscosConfigModule,
+    forwardRef(() => SftpIntegratorModule),
   ],
   controllers: [SocController],
   providers: [

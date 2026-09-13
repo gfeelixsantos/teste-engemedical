@@ -90,9 +90,9 @@ export class SocCompanyService implements OnModuleInit {
     
     // Se o cache estiver vazio, tenta carregar do DB
     if (companies.length === 0) {
-      this.logger.warn('Cache SOC de empresas vazio, tentando carregar do banco local...');
+      this.logger.warn('Cache SOC de empresas vazio, atualizando diretamente do SOC...');
       try {
-        await this.loadCompaniesFromDb();
+        await this.refreshCompanies();
         companies = Object.values(this.socCompaniesCache);
       } catch (error) {
         this.logger.error(`Falha ao carregar empresas do banco: ${error instanceof Error ? error.message : String(error)}`);

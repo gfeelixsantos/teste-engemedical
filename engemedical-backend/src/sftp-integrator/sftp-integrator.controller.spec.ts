@@ -55,6 +55,22 @@ describe('SftpIntegratorController', () => {
     );
   });
 
+  it('streams the persisted report for an execution', async () => {
+    const service = {
+      getRunReportForDownload: jest.fn().mockResolvedValue({
+        buffer: Buffer.from('xlsx'),
+        fileName: 'Relatorio_SOC_LOG.xlsx',
+      }),
+    };
+    const res = { setHeader: jest.fn(), send: jest.fn() };
+    const controller = new SftpIntegratorController(service as any);
+
+    await controller.downloadReport('grupo-tora', '66f000000000000000000001', 'token-test', res as any);
+
+    expect(res.setHeader).toHaveBeenCalledWith('Content-Type', expect.stringContaining('spreadsheetml'));
+    expect(res.send).toHaveBeenCalledWith(Buffer.from('xlsx'));
+  });
+
   it('delegates spreadsheet parsing for a registered file', async () => {
     const result = {
       status: 'parsed',

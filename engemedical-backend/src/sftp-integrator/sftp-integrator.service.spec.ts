@@ -122,6 +122,58 @@ describe('SftpIntegratorService', () => {
     });
   });
 
+  it('uploads the received file to R2 and removes the temporary local copy', async () => {
+    const collection = createCollection();
+    const adapter: SftpClientAdapter = {
+      list: jest.fn(async () => [
+        {
+          name: 'LOG_INTEGRACAO_2026-09-02.xlsx',
+          path: '/planilhas/LOG_INTEGRACAO_2026-09-02.xlsx',
+          size: 20,
+          mtime: new Date('2026-09-02T21:00:00Z'),
+        },
+      ]),
+      download: jest.fn(async () => undefined),
+    };
+    const fs = {
+      mkdir: jest.fn(async () => undefined),
+      sha256: jest.fn(async () => 'abc123'),
+      stat: jest.fn(async () => ({ size: 20 })),
+      unlink: jest.fn(async () => undefined),
+      createReadStream: jest.fn(),
+    };
+    const reportStorage = {
+      uploadSftpFile: jest.fn(async () => ({
+        key: 'sftp-integrator/grupo-tora/LOG_INTEGRACAO_2026-09-02.xlsx',
+        url: 'https://r2.example/file',
+        size: 20,
+      })),
+    };
+    const service = new SftpIntegratorService(
+      { db: { collection: jest.fn(() => collection) } } as any,
+      adapter,
+      fs as any,
+      {} as any,
+      {} as any,
+      'C:/app',
+      reportStorage as any,
+    );
+
+    const result = await service.pullLatest('grupo-tora');
+
+    expect(reportStorage.uploadSftpFile).toHaveBeenCalledWith(
+      'grupo-tora',
+      'C:\\app\\data\\sftp-integrator\\grupo-tora\\incoming\\LOG_INTEGRACAO_2026-09-02.xlsx',
+    );
+    expect(fs.unlink).toHaveBeenCalledWith(
+      'C:\\app\\data\\sftp-integrator\\grupo-tora\\incoming\\LOG_INTEGRACAO_2026-09-02.xlsx',
+    );
+    expect(result.file).toMatchObject({
+      r2Key: 'sftp-integrator/grupo-tora/LOG_INTEGRACAO_2026-09-02.xlsx',
+      localPath: '',
+    });
+  });
+
   it('does not download again when the same remote file was already registered', async () => {
     const collection = createCollection();
     collection.rows.push({
@@ -355,16 +407,15 @@ describe('SftpIntegratorService', () => {
         },
       })),
     };
-    const emailService = { sendEmail: jest.fn(async () => undefined) };
     const service = new SftpIntegratorService(
       { db } as any,
       {} as any,
       {} as any,
       parser as any,
-      emailService as any,
       {} as any,
       'C:/app',
     );
+    const sendReportDirect = jest.spyOn(service as any, 'sendReportDirect').mockResolvedValue(undefined);
 
     const result = await service.runDryRun('grupo-tora', fileId.toHexString());
 
@@ -398,14 +449,7 @@ describe('SftpIntegratorService', () => {
         status: 'dry_run',
       }),
     );
-    expect(emailService.sendEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: ['operacionalbh@engemedical.com', 'felix.devx@gmail.com'],
-        subject: expect.stringContaining('Dry-run SFTP Grupo Tora'),
-        templatename: 'CUSTOM_REPORT',
-        template: expect.stringContaining('CPF ausente'),
-      }),
-    );
+    expect(sendReportDirect).toHaveBeenCalledWith(expect.objectContaining({ status: 'dry_run' }), 'dry_run');
   });
 
   it('pulls the latest spreadsheet and immediately runs the dry-run', async () => {
@@ -466,16 +510,15 @@ describe('SftpIntegratorService', () => {
         },
       })),
     };
-    const emailService = { sendEmail: jest.fn(async () => undefined) };
     const service = new SftpIntegratorService(
       { db } as any,
       adapter,
       fs as any,
       parser as any,
-      emailService as any,
       {} as any,
       'C:/app',
     );
+    const sendReportDirect = jest.spyOn(service as any, 'sendReportDirect').mockResolvedValue(undefined);
 
     const result = await service.pullLatestAndRunDryRun('grupo-tora');
 
@@ -490,7 +533,7 @@ describe('SftpIntegratorService', () => {
     expect(parser.parseGrupoToraFile).toHaveBeenCalledWith(
       'C:\\app\\data\\sftp-integrator\\grupo-tora\\incoming\\LOG_INTEGRACAO_2026-09-01.xlsx',
     );
-    expect(emailService.sendEmail).toHaveBeenCalledTimes(1);
+    expect(sendReportDirect).toHaveBeenCalledWith(expect.objectContaining({ status: 'dry_run' }), 'dry_run');
   });
 
   it('lists dry-run executions ordered by creation date for a client', async () => {
@@ -613,7 +656,6 @@ describe('SftpIntegratorService', () => {
         },
       })),
     };
-    const emailService = { sendEmail: jest.fn(async () => undefined) };
     const socProcessor = {
       process: jest.fn(async () => ({
         rows: [
@@ -639,10 +681,10 @@ describe('SftpIntegratorService', () => {
       {} as any,
       {} as any,
       parser as any,
-      emailService as any,
       socProcessor as any,
       'C:/app',
     );
+    const sendReportDirect = jest.spyOn(service as any, 'sendReportDirect').mockResolvedValue(undefined);
 
     const result = await service.processSocLimited(
       'grupo-tora',
@@ -664,13 +706,6 @@ describe('SftpIntegratorService', () => {
         }),
       }),
     );
-    expect(emailService.sendEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        subject: expect.stringContaining('Execução SOC SFTP Grupo Tora'),
-        template: expect.stringContaining(
-          'Nenhuma falha retornada pelo SOC nesta execucao.',
-        ),
-      }),
-    );
+    expect(sendReportDirect).toHaveBeenCalledWith(expect.objectContaining({ status: 'soc_limited' }), 'soc_limited');
   });
 });

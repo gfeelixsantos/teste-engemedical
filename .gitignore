@@ -73,3 +73,19 @@ coverage/
 bry-credencial.txt
 *.stackdump
 .pnpm-store/
+
+# ======================== STRAY FILES =========================
+# Arquivo solto duplicado de hooks/useSftpIntegration.ts
+hook
+
+# ======================== DOCS / SCRIPTS =======================
+# Documentação interna e scripts de setup/teste
+docs/
+.superpowers/
+engemedical-backend/docs/
+engemedical-backend/scripts/
+engemedical-backend/supabase/
+engemedical-backend/R2_*.md
+engemedical-backend/test-*.js
+engemedical-backend/test-*.sh
+process-result.json

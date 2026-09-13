@@ -892,8 +892,8 @@ export function hasAcceptedClassification(
 @Injectable()
 export class ExamMatcherService {
   private readonly logger = new Logger(ExamMatcherService.name);
-  private readonly client: AzureOpenAI;
-  private readonly groqClient: OpenAI;
+  private readonly client?: AzureOpenAI;
+  private readonly groqClient?: OpenAI;
 
   constructor() {
     const endpoint = (process.env.AZURE_OPENAI_ENDPOINT || '').replace(
@@ -901,30 +901,45 @@ export class ExamMatcherService {
       '',
     );
 
-    this.client = new AzureOpenAI({
-      endpoint,
-      apiKey: process.env.AZURE_OPENAI_API_KEY,
-      deployment: process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4.1-mini',
-      apiVersion: '2025-01-01-preview',
-    });
+    if (process.env.AZURE_OPENAI_API_KEY) {
+      this.client = new AzureOpenAI({
+        endpoint,
+        apiKey: process.env.AZURE_OPENAI_API_KEY,
+        deployment: process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4.1-mini',
+        apiVersion: '2025-01-01-preview',
+      });
+    }
 
-    this.groqClient = new OpenAI({
-      baseURL: 'https://api.groq.com/openai/v1',
-      apiKey: process.env.GROQ_API_KEY,
-    });
+    if (process.env.GROQ_API_KEY) {
+      this.groqClient = new OpenAI({
+        baseURL: 'https://api.groq.com/openai/v1',
+        apiKey: process.env.GROQ_API_KEY,
+      });
+    }
+
+    if (!this.groqClient && !this.client) {
+      this.logger.warn(
+        '[AI] Nenhuma chave de IA configurada. Matching de exames iniciara em modo degradado.',
+      );
+    }
   }
 
   private async callWithFallback(messages: any[], options: any) {
-    try {
-      this.logger.debug('[GROQ] Tentando Groq...');
-      return await this.groqClient.chat.completions.create({
-        model: process.env.GROQ_MODEL || 'qwen/qwen3.6-27b',
-        ...options,
-      });
-    } catch (groqError) {
-      this.logger.warn(
-        `[GROQ] Falhou, fallback Azure: ${groqError?.message || groqError}`,
-      );
+    if (this.groqClient) {
+      try {
+        this.logger.debug('[GROQ] Tentando Groq...');
+        return await this.groqClient.chat.completions.create({
+          model: process.env.GROQ_MODEL || 'qwen/qwen3.6-27b',
+          ...options,
+        });
+      } catch (groqError) {
+        this.logger.warn(
+          `[GROQ] Falhou, fallback Azure: ${groqError?.message || groqError}`,
+        );
+      }
+    }
+
+    if (this.client) {
       return await this.client.chat.completions.create({
         //@ts-ignore
         model:
@@ -932,6 +947,10 @@ export class ExamMatcherService {
         ...options,
       });
     }
+
+    throw new Error(
+      'Nenhum provedor de IA configurado. Defina GROQ_API_KEY ou AZURE_OPENAI_API_KEY.',
+    );
   }
 
   async extractText(pdfBuffer: Buffer): Promise<string> {

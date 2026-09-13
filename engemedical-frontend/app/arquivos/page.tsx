@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { HeaderApp } from "@/components/shared/HeaderApp";
+import { AppShell } from "@/components/shared/AppShell";
 import { FileExplorer } from "@/components/shared/FileExplorer";
 import { getCurrentUser, logout } from "@/lib/utils";
 
@@ -17,14 +17,10 @@ export default function ArquivosPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-default-50">
-      <HeaderApp onLogout={logout}>
-        <h1 className="text-lg font-semibold">Gestao de Arquivos</h1>
-      </HeaderApp>
-
+    <AppShell showSidebar={false} onLogout={logout}>
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6">
         <FileExplorer />
       </main>
-    </div>
+    </AppShell>
   );
 }

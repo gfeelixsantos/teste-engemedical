@@ -1,6 +1,6 @@
 export interface IUserResponse {
   codigo: string;
-  cpf: string;
+  cpf?: string | null;
   nome: string;
   email?: string;
   telefone?: string;
@@ -36,7 +36,7 @@ export interface IConsentRequest {
 
 export interface IUserCreate {
   codigo: string;
-  cpf: string;
+  cpf?: string | null;
   nome: string;
   email?: string;
   telefone?: string;
@@ -49,7 +49,7 @@ export interface IUserCreate {
 
 export interface IUserSync {
   codigo: string;
-  cpf: string;
+  cpf?: string | null;
   nome: string;
   perfil?: string;
   email?: string;

@@ -714,4 +714,132 @@ export class SocExportService {
   clearCacheResultadoDataFichaExame(): void {
     this.cacheResultadoDataFichaExame = {};
   }
+
+  // ─── Inativação em Massa: Preço / Elegibilidade ─────────────────────────
+
+  /**
+   * Normaliza tipoCobranca removendo acentos e caracteres especiais.
+   */
+  private normalizarTipoCobranca(tipo: string): string {
+    return tipo
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '')
+      .toLowerCase();
+  }
+
+  /**
+   * Verifica se o tipoCobranca protege a empresa de inativação.
+   * "Vida Ativa" e "eSocial" são protegidos — empresa NÃO pode ser inativada.
+   */
+  isTipoCobrancaProtegido(tipoCobranca: string): boolean {
+    const normalizado = this.normalizarTipoCobranca(tipoCobranca);
+    return normalizado === 'vidaativa' || normalizado === 'esocial';
+  }
+
+  /**
+   * Busca preços/produtos da empresa via Exporta Dados 218761.
+   * Retorna os registros brutos do SOC para análise de elegibilidade.
+   */
+  async fetchPrecosEmpresa(
+    codigoEmpresa: string,
+  ): Promise<{ tipoCobranca: string; tiposCobranca: string[]; isElegivel: boolean; motivo: string }> {
+    const credentials = getSocExportCredentials(
+      'SOC_ED_PRECOS',
+      this.configService,
+    );
+
+    const params: Record<string, string> = {
+      ...credentials,
+      tipoSaida: 'json',
+      codigoEmpresa,
+      codigoUnidade: '',
+      codigoProduto: '',
+      codigoGrupoProduto: '',
+    };
+
+    const url = buildSocExportDataUrl(params, this.configService);
+
+    try {
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(30000),
+      });
+
+      if (!response.ok) {
+        this.logger.error(
+          `Erro SOC fetchPrecosEmpresa (${codigoEmpresa}): ${response.status}`,
+        );
+        return {
+          tipoCobranca: '',
+          tiposCobranca: [],
+          isElegivel: false,
+          motivo: `Erro HTTP ${response.status}`,
+        };
+      }
+
+      const buffer = await response.arrayBuffer();
+      const decoded = new TextDecoder('iso-8859-1').decode(buffer);
+      const data = JSON.parse(decoded);
+
+      if (!Array.isArray(data) || data.length === 0) {
+        // Sem registros = empresa sem contrato → elegível para inativação
+        return {
+          tipoCobranca: '',
+          tiposCobranca: [],
+          isElegivel: true,
+          motivo: 'Sem Serviço Mensal (nenhum registro de preço retornado)',
+        };
+      }
+
+      // Analisar tipoCobranca de todos os registros
+      const tiposMap = new Map<string, boolean>();
+      let tipoPrincipal = '';
+      let temProtegido = false;
+
+      for (const row of data) {
+        const tipo =
+          row.tipoCobranca ||
+          row.TIPOCOBRANCA ||
+          row.tipo_cobranca ||
+          row.TipoCobranca ||
+          '';
+
+        if (tipo && !tiposMap.has(tipo)) {
+          tiposMap.set(tipo, true);
+          if (!tipoPrincipal) {
+            tipoPrincipal = tipo;
+          }
+          if (this.isTipoCobrancaProtegido(tipo)) {
+            temProtegido = true;
+            tipoPrincipal = tipo;
+          }
+        }
+      }
+
+      const tiposCobranca = [...tiposMap.keys()].sort();
+      const isElegivel = !temProtegido;
+
+      let motivo: string;
+      if (temProtegido) {
+        motivo = `Inelegível (Serviço Mensal: ${tipoPrincipal})`;
+      } else if (tiposCobranca.length > 0) {
+        motivo = `Elegível (tipos de cobrança: ${tiposCobranca.join(', ')})`;
+      } else {
+        motivo = 'Elegível (Sem Serviço Mensal)';
+      }
+
+      return { tipoCobranca: tipoPrincipal, tiposCobranca, isElegivel, motivo };
+    } catch (error) {
+      this.logger.error(
+        `Erro fetchPrecosEmpresa (${codigoEmpresa}): ${error.message}`,
+      );
+      return {
+        tipoCobranca: '',
+        tiposCobranca: [],
+        isElegivel: false,
+        motivo: `Erro ao consultar preços: ${error.message}`,
+      };
+    }
+  }
 }

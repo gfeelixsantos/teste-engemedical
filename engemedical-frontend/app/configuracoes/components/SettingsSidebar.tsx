@@ -33,7 +33,7 @@ export function SettingsSidebar({
         aria-label="Navegação de configurações"
         className="hidden md:flex"
       >
-        <aside className="flex flex-col w-64 gap-1 py-2">
+        <aside className="flex flex-col w-64 gap-1 bg-brand-navy p-2 shadow-[8px_0_24px_rgba(4,21,31,0.12)]">
           {visibleItems.map(({ id, label, icon: Icon }) => {
             const isActive = id === activeSection;
             return (
@@ -46,8 +46,8 @@ export function SettingsSidebar({
                 className={[
                   "flex items-center gap-3 w-full px-4 py-2.5 rounded-md text-sm font-medium text-left transition-colors cursor-pointer",
                   isActive
-                    ? "bg-brand-500 text-white"
-                    : "text-gray-700 hover:bg-gray-100",
+                    ? "bg-brand-teal text-white shadow-sm shadow-brand-cyan/10"
+                    : "text-white/75 hover:bg-white/10 hover:text-white",
                 ].join(" ")}
               >
                 <Icon size={18} aria-hidden="true" />

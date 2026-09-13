@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef, Optional, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { EmailService } from '../nodemailer/nodemailer.service';
 import { StructuredLogger } from 'src/utils/logger';
 import type { MongoService } from 'src/mongo/mongo.service';
@@ -39,6 +39,8 @@ import { GoogleDriveService } from 'src/google/drive/google-drive.service';
 import { FuncionarioEntity } from '../mongo/model/FuncionarioEntity';
 import { WsResultadoExame } from './webservice/resultadoExame/WsResultadoExame';
 import { WsFuncionarioModelo2 } from './webservice/funcionario/WsFuncionarioModelo2';
+import { CloudflareR2Service } from '../sftp-integrator/sftp-r2-storage.service';
+import { generateInactivationReportExcel } from './inactivation-report-excel.generator';
 import {
   buildSocExportDataUrl,
   getSocExportCredentials,
@@ -72,6 +74,7 @@ export class SocService {
     private readonly googleDriveService: GoogleDriveService,
     private readonly emailService: EmailService,
     private readonly logger: StructuredLogger,
+    @Optional() private readonly r2Service?: CloudflareR2Service,
   ) {
     this.logger.setContext(SocService.name);
   }
@@ -1360,12 +1363,16 @@ export class SocService {
 
   /**
    * Fluxo principal para inativação de funcionários ativos no SOC.
-   * Filtra empresas que não contém "VIDA" no código cliente interno.
-   * Inativa funcionários (status "INATIVO") com rate limit.
+   *
+   * FASE 1: Empresas ativas
+   * FASE 2: Valida preço (Exporta 218761) — identifica elegíveis (sem Serviço Mensal)
+   * FASE 3: Funcionários ativos (Exporta 188451 — FOL, inativo=Não)
+   * FASE 4: Executa SOAP FuncionarioModelo2Ws (inativa)
    */
   async inactivateEmployeesFlow(options?: {
     dryRun?: boolean;
     limitCompanies?: number;
+    trigger?: 'cron' | 'manual';
   }): Promise<{
     success: boolean;
     message: string;
@@ -1374,34 +1381,43 @@ export class SocService {
   }> {
     const dryRun = options?.dryRun ?? false;
     const limitCompanies = options?.limitCompanies;
+    const trigger = options?.trigger ?? 'cron';
     const startTime = new Date();
 
     // Estatísticas para o relatório
     const stats = {
       totalEmpresasAlvo: 0,
       totalEmpresasProcessadas: 0,
+      totalEmpresasElegiveis: 0,
+      totalEmpresasInelegiveis: 0,
       totalFuncionariosEncontrados: 0,
+      totalFuncionariosPrevistos: 0,
       totalFuncionariosInativados: 0,
+      empresas: [] as Array<{
+        codigo: string;
+        razaoSocial: string;
+        isElegivel: boolean;
+        motivo: string;
+        tipoCobranca: string;
+        totalFuncionarios: number;
+        previstos: number;
+        inativados: number;
+        erros: number;
+      }>,
       erros: [] as Array<{ company: string; employee?: string; error: string }>,
     };
 
     try {
       this.logger.log(
-        `🚀 [inactivateEmployeesFlow] Iniciando fluxo de inativação (dryRun=${dryRun}, limit=${limitCompanies ?? 'N/A'})...`,
+        `🚀 [inactivateEmployeesFlow] Iniciando fluxo de inativação (dryRun=${dryRun}, limit=${limitCompanies ?? 'N/A'}, trigger=${trigger})...`,
       );
 
+      // ── FASE 1: Buscar empresas ativas ──
       const empresas = await this.socCompanyService.getCompaniesRegister();
 
-      // Filtra empresas que não contém "VIDA" no CÓD. CLIENTE (INT.)
-      let empresasAlvo = empresas
-        .filter((empresa) => {
-          const codClienteInt = empresa['CÓD. CLIENTE (INT.)'] || '';
-          const isVida = codClienteInt.toUpperCase().includes('VIDA');
-          return !isVida;
-        })
-        .sort((a, b) =>
-          (a.RAZAOSOCIAL || '').localeCompare(b.RAZAOSOCIAL || ''),
-        );
+      let empresasAlvo = empresas.sort((a, b) =>
+        (a.RAZAOSOCIAL || '').localeCompare(b.RAZAOSOCIAL || ''),
+      );
 
       if (limitCompanies && limitCompanies > 0) {
         this.logger.log(
@@ -1412,16 +1428,59 @@ export class SocService {
 
       stats.totalEmpresasAlvo = empresasAlvo.length;
       this.logger.log(
-        `[inactivateEmployeesFlow] Encontradas ${empresasAlvo.length} empresas alvo.`,
+        `[inactivateEmployeesFlow] FASE 1: Encontradas ${empresasAlvo.length} empresas alvo.`,
       );
 
       for (const empresa of empresasAlvo) {
+        const empStats = {
+          codigo: empresa.CODIGO,
+          razaoSocial: empresa.RAZAOSOCIAL || empresa.CODIGO,
+          isElegivel: false,
+          motivo: '',
+          tipoCobranca: '',
+          totalFuncionarios: 0,
+          inativados: 0,
+          erros: 0,
+        };
+
         try {
           this.logger.log(
             `[inactivateEmployeesFlow] Processando empresa: ${empresa.RAZAOSOCIAL} (${empresa.CODIGO})`,
           );
 
-          // Busca funcionários ativos/afastados etc. com RETRY
+          // ── FASE 2: Validação de Preço (Exporta 218761) ──
+          this.logger.log(
+            `[inactivateEmployeesFlow] FASE 2 → Consultando Exporta 218761 (Preço) para empresa ${empresa.CODIGO}...`,
+          );
+
+          const precoResult = await this.withRetry(() =>
+            this.socExportService.fetchPrecosEmpresa(empresa.CODIGO),
+          );
+
+          empStats.isElegivel = precoResult.isElegivel;
+          empStats.motivo = precoResult.motivo;
+          empStats.tipoCobranca = precoResult.tipoCobranca;
+
+          if (precoResult.isElegivel) {
+            this.logger.log(
+              `[inactivateEmployeesFlow] FASE 2 → ELEGÍVEL | ${precoResult.motivo}`,
+            );
+            stats.totalEmpresasElegiveis++;
+          } else {
+            this.logger.log(
+              `[inactivateEmployeesFlow] FASE 2 → INELEGÍVEL | ${precoResult.motivo}`,
+            );
+            stats.totalEmpresasInelegiveis++;
+            stats.totalEmpresasProcessadas++;
+            stats.empresas.push(empStats);
+            continue; // Pula para próxima empresa
+          }
+
+          // ── FASE 3: Busca de Funcionários (Exporta 188451 — FOL) ──
+          this.logger.log(
+            `[inactivateEmployeesFlow] FASE 3 → Consultando Exporta 188451 (FOL — funcionários ativos)...`,
+          );
+
           const funcionarios = await this.withRetry(() =>
             this.socExportService.EdCadastroFuncionariosPorSituacao(
               empresa.CODIGO,
@@ -1429,56 +1488,72 @@ export class SocService {
             ),
           );
 
+          empStats.totalFuncionarios = funcionarios.length;
+          empStats.previstos = funcionarios.length;
+          stats.totalFuncionariosEncontrados += funcionarios.length;
+          stats.totalFuncionariosPrevistos += funcionarios.length;
+
           if (funcionarios.length === 0) {
             this.logger.log(
-              `[inactivateEmployeesFlow] Nenhum funcionário ativo encontrado para empresa ${empresa.CODIGO}`,
+              `[inactivateEmployeesFlow] FASE 3 → Nenhum funcionário ativo encontrado para empresa ${empresa.CODIGO}`,
             );
             stats.totalEmpresasProcessadas++;
+            stats.empresas.push(empStats);
             continue;
           }
 
-          stats.totalFuncionariosEncontrados += funcionarios.length;
           this.logger.log(
-            `[inactivateEmployeesFlow] Encontrados ${funcionarios.length} funcionários para inativação em ${empresa.RAZAOSOCIAL}`,
+            `[inactivateEmployeesFlow] FASE 3 → ${funcionarios.length} colaborador(es) ativo(s) localizado(s).`,
           );
 
-          if (dryRun) {
+          // ── FASE 4: Execução SOAP ──
+          if (!dryRun) {
             this.logger.log(
-              `[inactivateEmployeesFlow][DRY-RUN] Exemplo de funcionário que seria inativado: ${funcionarios[0].NOME}`,
+              `[inactivateEmployeesFlow] FASE 4 → Executando SOAP FuncionarioModelo2Ws (INATIVAR)...`,
             );
-            stats.totalEmpresasProcessadas++;
-            continue;
-          }
 
-          for (const funcionario of funcionarios) {
-            try {
-              this.logger.log(
-                `[inactivateEmployeesFlow] Inativando funcionário: ${funcionario.NOME} (${funcionario.CODIGO})`,
-              );
+            for (const funcionario of funcionarios) {
+              try {
+                this.logger.log(
+                  `[inactivateEmployeesFlow] Inativando: ${funcionario.NOME} (${funcionario.CODIGO})`,
+                );
 
-              // Inativa o funcionário com RETRY
-              await this.withRetry(() =>
-                WsFuncionarioModelo2(funcionario, 'INATIVO'),
-              );
-              stats.totalFuncionariosInativados++;
+                await this.withRetry(() =>
+                  WsFuncionarioModelo2(funcionario, 'INATIVO'),
+                );
 
-              // Rate limit entre 100ms e 800ms
-              const delay = Math.floor(Math.random() * (800 - 100 + 1)) + 100;
-              await this.sleep(delay);
-            } catch (err) {
-              const errMsg = err instanceof Error ? err.message : String(err);
-              this.logger.error(
-                `[inactivateEmployeesFlow] Erro fatal ao inativar funcionário ${funcionario.CODIGO} (${funcionario.NOME}): ${errMsg}`,
-              );
-              stats.erros.push({
-                company: empresa.RAZAOSOCIAL,
-                employee: `${funcionario.NOME} (${funcionario.CODIGO})`,
-                error: errMsg,
-              });
+                empStats.inativados++;
+                stats.totalFuncionariosInativados++;
+
+                // Rate limit entre 100ms e 800ms
+                const delay = Math.floor(Math.random() * (800 - 100 + 1)) + 100;
+                await this.sleep(delay);
+              } catch (err) {
+                const errMsg =
+                  err instanceof Error ? err.message : String(err);
+                this.logger.error(
+                  `[inactivateEmployeesFlow] Erro ao inativar ${funcionario.CODIGO} (${funcionario.NOME}): ${errMsg}`,
+                );
+                empStats.erros++;
+                stats.erros.push({
+                  company: empresa.RAZAOSOCIAL,
+                  employee: `${funcionario.NOME} (${funcionario.CODIGO})`,
+                  error: errMsg,
+                });
+              }
             }
+
+            this.logger.log(
+              `[inactivateEmployeesFlow] FASE 4 → ${empStats.inativados} inativados, ${empStats.erros} erros em ${empresa.RAZAOSOCIAL}.`,
+            );
+          } else {
+            this.logger.log(
+              `[inactivateEmployeesFlow] FASE 4 → [DRY-RUN] ${funcionarios.length} seriam inativados em ${empresa.RAZAOSOCIAL}.`,
+            );
           }
 
           stats.totalEmpresasProcessadas++;
+          stats.empresas.push(empStats);
         } catch (empresaError) {
           const errMsg =
             empresaError instanceof Error
@@ -1487,6 +1562,8 @@ export class SocService {
           this.logger.error(
             `[inactivateEmployeesFlow] Erro crítico processando empresa ${empresa.CODIGO}: ${errMsg}`,
           );
+          empStats.motivo = `Erro: ${errMsg}`;
+          stats.empresas.push(empStats);
           stats.erros.push({
             company: empresa.RAZAOSOCIAL,
             error: errMsg,
@@ -1497,8 +1574,22 @@ export class SocService {
       const endTime = new Date();
       const durationMs = endTime.getTime() - startTime.getTime();
 
+      this.logger.log(
+        `[inactivateEmployeesFlow] ✅ Concluído em ${durationMs}ms: ${stats.totalEmpresasElegiveis} elegíveis, ${stats.totalEmpresasInelegiveis} inelegíveis, ${stats.totalFuncionariosInativados} inativados.`,
+      );
+
       // Envia relatório por e-mail
-      await this.sendInactivationReport(stats, startTime, endTime);
+      let executionId: ObjectId | undefined;
+      if (this.mongoService.db) {
+        const execution = await this.mongoService.db.collection('soc_inactivation_runs').insertOne({
+          status: 'completed', trigger, dryRun, startedAt: startTime, finishedAt: endTime,
+          durationMs, ...stats, totalErros: stats.erros.length, createdAt: endTime, updatedAt: endTime,
+        });
+        executionId = execution.insertedId;
+      } else {
+        this.logger.warn('[inactivateEmployeesFlow] MongoDB indisponível; execução não será persistida.');
+      }
+      await this.sendInactivationReport(stats, startTime, endTime, executionId, dryRun);
 
       return {
         success: true,
@@ -1515,6 +1606,49 @@ export class SocService {
     }
   }
 
+  async listInactivationRuns(options: { limit?: number; skip?: number; status?: string } = {}) {
+    if (!this.mongoService?.db) {
+      throw new ServiceUnavailableException('MongoDB indisponível para consultar o histórico de inativação');
+    }
+
+    const limit = Math.min(Math.max(Number(options.limit) || 10, 1), 100);
+    const skip = Math.max(Number(options.skip) || 0, 0);
+    const filter = options.status ? { status: options.status } : {};
+    const collection = this.mongoService.db.collection('soc_inactivation_runs');
+    const [runs, total] = await Promise.all([
+      collection.find(filter).sort({ finishedAt: -1, createdAt: -1 }).skip(skip).limit(limit).toArray(),
+      collection.countDocuments(filter),
+    ]);
+
+    return {
+      runs: runs.map((run: any) => ({ ...run, id: run._id.toHexString(), _id: undefined })),
+      total,
+      limit,
+      skip,
+    };
+  }
+
+  async getInactivationRun(id: string) {
+    if (!this.mongoService?.db || !ObjectId.isValid(id)) {
+      throw new NotFoundException('Execução de inativação não encontrada');
+    }
+    const run = await this.mongoService.db.collection('soc_inactivation_runs').findOne({ _id: new ObjectId(id) });
+    if (!run) throw new NotFoundException('Execução de inativação não encontrada');
+    return { ...run, id: run._id.toHexString(), _id: undefined };
+  }
+
+  async getInactivationReportForDownload(id: string) {
+    if (!this.mongoService?.db || !ObjectId.isValid(id) || !this.r2Service) {
+      throw new NotFoundException('Relatório de inativação não encontrado');
+    }
+    const run: any = await this.mongoService.db.collection('soc_inactivation_runs').findOne({ _id: new ObjectId(id) });
+    if (!run?.reportKey) throw new NotFoundException('Relatório de inativação não encontrado');
+    return {
+      buffer: await this.r2Service.download(run.reportKey),
+      fileName: run.reportFileName || `Relatorio_Inativacao_SOC_${id}.xlsx`,
+    };
+  }
+
   /**
    * Gera e envia o relatório de inativação por e-mail.
    */
@@ -1522,12 +1656,27 @@ export class SocService {
     stats: any,
     startTime: Date,
     endTime: Date,
+    executionId?: ObjectId,
+    dryRun = false,
   ) {
     const recipients = String(process.env.INATIVACAO_REPORT_EMAIL_TO || 'tecnologia@cmsocupacional.com.br,draandrea@cmsocupacional.com.br,esocial@cmsocupacional.com.br,enfermagem@cmsocupacional.com.br,anagerucia@cmsocupacional.com.br').trim();
     const durationMin = (
       (endTime.getTime() - startTime.getTime()) /
       60000
     ).toFixed(2);
+
+    let excelBuffer: Buffer | undefined;
+    let excelFileName = `Relatorio_Inativacao_SOC_${endTime.toISOString().slice(0, 10)}.xlsx`;
+    try {
+      excelBuffer = await generateInactivationReportExcel({ ...stats, startedAt: startTime, finishedAt: endTime, dryRun });
+      if (this.r2Service && executionId) {
+        const reportKey = `inativacao-soc/${endTime.toISOString().slice(0, 10)}/${executionId.toHexString()}-${excelFileName}`;
+        await this.r2Service.upload(reportKey, excelBuffer, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        await this.mongoService.db.collection('soc_inactivation_runs').updateOne({ _id: executionId }, { $set: { reportKey, reportFileName: excelFileName } });
+      }
+    } catch (error) {
+      this.logger.error(`[inactivateEmployeesFlow] Falha ao gerar/salvar Excel: ${error.message}`);
+    }
 
     const errorRows =
       stats.erros.length > 0
@@ -1544,25 +1693,29 @@ export class SocService {
         : '<tr><td colspan="3" style="padding: 10px; text-align: center; color: #64748b;">Nenhum erro registrado</td></tr>';
 
     const html = `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; color: #334155; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 30px; text-align: center; color: white;">
-          <h1 style="margin: 0; font-size: 22px;">Relatório de Inativação SOC</h1>
-          <p style="margin: 10px 0 0 0; opacity: 0.9;">CMSO 360 - Automático</p>
+      <div style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 900px; margin: 0 auto; color: #183642; background: #f5f9fa; border: 1px solid #d9e7eb; border-radius: 18px; overflow: hidden;">
+        <div style="background: #002e42; padding: 34px 36px; color: white;">
+          <div style="font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: #84d8d2; font-weight: 700;">ENGEMEDICAL CONNECT · CONTROLE OPERACIONAL</div>
+          <h1 style="margin: 14px 0 8px; font-size: 26px; letter-spacing: -0.3px;">Validação de inativação SOC</h1>
+          <p style="margin: 0; color: #c7e4e7; font-size: 14px;">Execução concluída em ${endTime.toLocaleDateString('pt-BR')}</p>
+          <div style="display: inline-block; margin-top: 20px; padding: 7px 12px; border: 1px solid #5cc9c3; border-radius: 999px; color: #b7f0ec; font-size: 11px; font-weight: 700; letter-spacing: 1px;">${dryRun ? 'DRY-RUN · NENHUMA ALTERAÇÃO ENVIADA' : 'EXECUÇÃO CONCLUÍDA'}</div>
         </div>
         
-        <div style="padding: 25px; background-color: #fff;">
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <div><strong>Início:</strong> ${startTime.toLocaleString('pt-BR')}</div>
-            <div><strong>Fim:</strong> ${endTime.toLocaleString('pt-BR')}</div>
-            <div><strong>Duração:</strong> ${durationMin} min</div>
-            <div><strong>Empresas Alvo:</strong> ${stats.totalEmpresasAlvo}</div>
-            <div><strong>Empresas Processadas:</strong> ${stats.totalEmpresasProcessadas}</div>
-            <div><strong>Funcionários Encontrados:</strong> ${stats.totalFuncionariosEncontrados}</div>
-            <div style="color: #15803d; font-weight: 700;"><strong>Sucessos:</strong> ${stats.totalFuncionariosInativados}</div>
-            <div style="color: #b91c1c; font-weight: 700;"><strong>Erros:</strong> ${stats.erros.length}</div>
+        <div style="padding: 30px 36px; background-color: #fff;">
+          <div style="padding: 18px 20px; margin-bottom: 24px; background: #effaf9; border: 1px solid #bfe8e4; border-radius: 12px; color: #185d62; font-size: 13px; line-height: 1.55;">
+            <strong style="display:block; margin-bottom: 4px; color: #0f4d57;">Validação segura finalizada</strong>
+            Este relatório representa uma simulação operacional. O SOC não recebeu comandos de alteração nesta execução. A planilha detalhada está anexada a este e-mail.
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px;">
+            <div style="padding: 14px; background: #f7fafb; border: 1px solid #e3eef0; border-radius: 10px;"><small style="display:block;color:#6b8790;">Empresas avaliadas</small><strong style="font-size:22px;color:#002e42;">${stats.totalEmpresasAlvo}</strong></div>
+            <div style="padding: 14px; background: #f0faf7; border: 1px solid #ccebe1; border-radius: 10px;"><small style="display:block;color:#478276;">Elegíveis</small><strong style="font-size:22px;color:#15803d;">${stats.totalEmpresasElegiveis}</strong></div>
+            <div style="padding: 14px; background: #fffaf0; border: 1px solid #f2e2bd; border-radius: 10px;"><small style="display:block;color:#9b7b3d;">Protegidas</small><strong style="font-size:22px;color:#b7791f;">${stats.totalEmpresasInelegiveis}</strong></div>
+            <div style="padding: 14px; background: #f7fafb; border: 1px solid #e3eef0; border-radius: 10px;"><small style="display:block;color:#6b8790;">Funcionários localizados</small><strong style="font-size:22px;color:#002e42;">${stats.totalFuncionariosEncontrados}</strong></div>
+            <div style="padding: 14px; background: #f0faf7; border: 1px solid #ccebe1; border-radius: 10px;"><small style="display:block;color:#478276;">Inativações previstas</small><strong style="font-size:22px;color:#15803d;">${stats.totalFuncionariosPrevistos}</strong></div>
+            <div style="padding: 14px; background: #fff7f7; border: 1px solid #f3d8d8; border-radius: 10px;"><small style="display:block;color:#a56b6b;">Ocorrências</small><strong style="font-size:22px;color:#b91c1c;">${stats.erros.length}</strong></div>
           </div>
 
-          <h3 style="color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 30px;">Detalhamento de Erros</h3>
+          <h3 style="color: #b91c1c; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 30px;">Ocorrências que exigem atenção</h3>
           <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
               <tr style="background-color: #f1f5f9;">
@@ -1577,7 +1730,8 @@ export class SocService {
           </table>
 
           <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 12px; text-align: center;">
-            Este é um e-mail automático gerado pelo CMSO 360 Backend.<br>
+            Este é um e-mail automático gerado pelo Engemedical Connect.<br>
+            Critério: Empresas sem Serviço Mensal (Vida Ativa / eSocial) são protegidas da inativação.<br>
             Não responda a este e-mail.
           </div>
         </div>
@@ -1585,20 +1739,31 @@ export class SocService {
     `;
 
     try {
-      await this.emailService.sendEmail({
+      const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || process.env.R2_ACCOUNT_ID || '';
+      const queueName = process.env.CLOUDFLARE_QUEUE_NAME || 'email-service';
+      const apiToken = process.env.CLOUDFLARE_API_TOKEN || '';
+      if (!accountId || !apiToken) {
+        throw new Error('Cloudflare Queue não configurada (ACCOUNT_ID/API_TOKEN).');
+      }
+
+      const subject = `${dryRun ? '[DRY-RUN] ' : ''}[Inativação SOC] ${stats.totalEmpresasElegiveis} elegíveis / ${stats.totalEmpresasInelegiveis} protegidos — ${stats.totalFuncionariosInativados} inativados — ${endTime.toLocaleDateString('pt-BR')}`;
+      const queuePayload = {
         to: recipients.split(',').map((r) => r.trim()),
-        subject: `[Relatório] Inativação SOC - ${stats.totalFuncionariosInativados} inativados - ${endTime.toLocaleDateString('pt-BR')}`,
-        template: html,
-        templatename: 'CUSTOM_REPORT', // Nome genérico para não bater em templates existentes no worker
-        attachment: [],
+        subject,
+        html,
+        attachments: excelBuffer
+          ? [{ filename: `${dryRun ? 'DRY_RUN_' : ''}${excelFileName}`, content: excelBuffer.toString('base64'), contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }]
+          : [],
+      };
+      const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/queues/${queueName}/messages`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: queuePayload }),
       });
-      this.logger.log(
-        `[inactivateEmployeesFlow] Relatório de e-mail enviado para: ${recipients}`,
-      );
+      if (!response.ok) throw new Error(`Cloudflare Queue retornou HTTP ${response.status}: ${await response.text()}`);
+      this.logger.log(`[inactivateEmployeesFlow] Relatório enfileirado na Cloudflare Queue "${queueName}".`);
     } catch (error) {
-      this.logger.error(
-        `[inactivateEmployeesFlow] Falha ao enviar e-mail de relatório: ${error.message}`,
-      );
+      this.logger.error(`[inactivateEmployeesFlow] Falha ao enviar relatório pela Cloudflare Queue: ${error.message}`);
     }
   }
 }

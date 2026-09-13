@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { IUserCreate, IUserUpdate, IUserSync, IUserResponse, IConsentStatus, IConsentRequest } from './users.interface';
@@ -7,6 +7,7 @@ import { IUserCreate, IUserUpdate, IUserSync, IUserResponse, IConsentStatus, ICo
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
   private readonly table = 'users';
+  private readonly safeSelect = 'codigo, cpf, nome, email, telefone, perfil, conselho, uf_conselho, registro_conselho, ativo, deleted_at, anonimizado_em, criado_em, atualizado_em, ultimo_login, criado_por, atualizado_por, consentimento_aceito, consentimento_aceito_em, consentimento_versao';
 
   constructor(
     private readonly supabase: SupabaseService,
@@ -26,10 +27,16 @@ export class UsersService {
     return this.normalizeText(value);
   }
 
+  private normalizeCpf(value?: string | null): string | null {
+    const normalized = value?.replace(/\D/g, '') || '';
+
+    return normalized ? normalized : null;
+  }
+
   async findAll(perfil?: string, ativo?: boolean): Promise<IUserResponse[]> {
     let query = this.client
       .from(this.table)
-      .select('*')
+      .select(this.safeSelect)
       .is('anonimizado_em', null)
       .order('nome', { ascending: true });
 
@@ -51,7 +58,7 @@ export class UsersService {
   async findByCodigo(codigo: string): Promise<IUserResponse> {
     const { data, error } = await this.client
       .from(this.table)
-      .select('*')
+      .select(this.safeSelect)
       .eq('codigo', codigo)
       .is('anonimizado_em', null)
       .single();
@@ -63,10 +70,12 @@ export class UsersService {
   }
 
   async findByCpf(cpf: string): Promise<IUserResponse | null> {
-    const normalized = cpf.replace(/\D/g, '');
+    const normalized = this.normalizeCpf(cpf);
+    if (!normalized) return null;
+
     const { data, error } = await this.client
       .from(this.table)
-      .select('*')
+      .select(this.safeSelect)
       .eq('cpf', normalized)
       .is('anonimizado_em', null)
       .maybeSingle();
@@ -76,13 +85,13 @@ export class UsersService {
   }
 
   async upsert(input: IUserCreate): Promise<IUserResponse> {
-    if (!input.codigo?.trim() || !input.cpf?.trim() || !input.nome?.trim()) {
-      throw new BadRequestException('código, CPF e nome são obrigatórios');
+    if (!input.codigo?.trim() || !input.nome?.trim()) {
+      throw new BadRequestException('código e nome são obrigatórios');
     }
 
     const payload = {
       codigo: input.codigo.trim(),
-      cpf: input.cpf.replace(/\D/g, ''),
+      cpf: this.normalizeCpf(input.cpf),
       nome: input.nome.trim(),
       email: this.normalizeOptionalText(input.email),
       telefone: this.normalizeOptionalText(input.telefone),
@@ -96,7 +105,7 @@ export class UsersService {
     const { data, error } = await this.client
       .from(this.table)
       .upsert(payload, { onConflict: 'codigo' })
-      .select()
+      .select(this.safeSelect)
       .single();
 
     if (error) {
@@ -121,7 +130,7 @@ export class UsersService {
       .update(payload)
       .eq('codigo', codigo)
       .is('anonimizado_em', null)
-      .select()
+      .select(this.safeSelect)
       .single();
 
     if (error || !data) {
@@ -147,7 +156,7 @@ export class UsersService {
 
     const { data: existing } = await this.client
       .from(this.table)
-      .select('*')
+      .select(this.safeSelect)
       .eq('codigo', input.codigo)
       .maybeSingle();
 
@@ -157,7 +166,7 @@ export class UsersService {
         .from(this.table)
         .update({ ultimo_login: input.ultimo_login || new Date().toISOString() })
         .eq('codigo', input.codigo)
-        .select()
+        .select(this.safeSelect)
         .single();
 
       if (error) {
@@ -171,7 +180,7 @@ export class UsersService {
     // Primeira vez — cria com dados do SOC
     const payload: Record<string, any> = {
       codigo: input.codigo.trim(),
-      cpf: input.cpf?.replace(/\D/g, '') || '',
+      cpf: this.normalizeCpf(input.cpf),
       nome: input.nome?.trim() || '',
       email: this.normalizeOptionalText(input.email),
       telefone: this.normalizeOptionalText(input.telefone),
@@ -185,7 +194,7 @@ export class UsersService {
     const { data, error } = await this.client
       .from(this.table)
       .upsert(payload, { onConflict: 'codigo' })
-      .select()
+      .select(this.safeSelect)
       .single();
 
     if (error) {
@@ -198,7 +207,7 @@ export class UsersService {
       acao: 'USUARIO_SINCRONIZADO',
       recursoTipo: 'users',
       recursoId: input.codigo,
-      detalhes: { nome: input.nome, cpf: input.cpf?.replace(/\d(?=\d{2})/g, '*') },
+      detalhes: { nome: input.nome, cpf: this.normalizeCpf(input.cpf)?.replace(/\d(?=\d{2})/g, '*') || null },
     });
 
     return data;

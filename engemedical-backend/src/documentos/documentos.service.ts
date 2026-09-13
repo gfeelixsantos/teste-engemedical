@@ -234,6 +234,94 @@ export class DocumentosService {
     const unidades = [...new Set(registros.map((r) => r.unidade))].sort();
     const tipos = [...new Set(registros.map((r) => r.tipoDocumento))].sort();
 
+    // Mock/Estrutura fiel para Gestão de Ações do PGR
+    const acoesPgrLista = [
+      {
+        empresa: 'BMS GESTAO DE NEGOCIOS E CONSULTORIA LTDA',
+        unidade: '001 - MATRIZ CE',
+        acao: 'Treinamento de Segurança do Trabalho.',
+        descricao: 'Grupo Homogêneo: Todos os GHE\'s\nComo será realizado: A empresa irá contratar profissionais especializados para ministrar o treinamento/Palestra.\nMeta: Treinar todos os colaboradores.\nEvidência: Certificados dos colaboradores + Lista de Frequência.',
+        anexos: 'Não',
+        situacao: 'Em Andamento',
+        categoria: 'Implementação',
+        prioridade: 'Alta',
+        periodo: '01/01/2026 - 30/01/2026',
+        responsavel: 'Diretoria/Gerencia',
+        perigosRiscos: '-',
+      },
+      {
+        empresa: 'BMS GESTAO DE NEGOCIOS E CONSULTORIA LTDA',
+        unidade: '001 - MATRIZ CE',
+        acao: 'Palestra Ergonômica',
+        descricao: 'Grupo Homogêneo: Todos os GHE\'s\nComo será realizado: A empresa irá contratar profissionais especializados para ministrar o treinamento/Palestra.\nMeta: Treinar todos os colaboradores expostos ao risco ergonômico.\nEvidência: Certificados dos colaboradores + Lista de Frequência.',
+        anexos: 'Não',
+        situacao: 'Em Andamento',
+        categoria: 'Implementação',
+        prioridade: 'Alta',
+        periodo: '01/01/2026 - 30/01/2026',
+        responsavel: 'Diretoria/Gerencia',
+        perigosRiscos: '-',
+      },
+      {
+        empresa: 'BMS GESTAO DE NEGOCIOS E CONSULTORIA LTDA',
+        unidade: '001 - MATRIZ CE',
+        acao: 'Elaboração do PAE conforme NR-01.',
+        descricao: 'Grupo Homogêneo: Todos os GHE\'s\nComo será realizado: A empresa irá contratar profissionais especializados para elaboração do plano.\nMeta: Elaborar e implementar o referido plano.',
+        anexos: 'Não',
+        situacao: 'Em Andamento',
+        categoria: 'Implementação',
+        prioridade: 'Imediata',
+        periodo: '08/12/2025 - 31/12/2025',
+        responsavel: 'Diretoria/Gerencia',
+        perigosRiscos: '-',
+      },
+      {
+        empresa: 'BMS GESTAO DE NEGOCIOS E CONSULTORIA LTDA',
+        unidade: '001 - MATRIZ CE',
+        acao: 'Divulgar o PGR para os colaboradores.',
+        descricao: 'Grupo Homogêneo: Todos os GHE\'s\nComo será realizado: Reunião interna para apresentação do plano.',
+        anexos: 'Não',
+        situacao: 'Em Andamento',
+        categoria: 'Implementação',
+        prioridade: 'Imediata',
+        periodo: '01/01/2026 - 15/01/2026',
+        responsavel: 'Diretoria/Gerencia',
+        perigosRiscos: '-',
+      },
+    ];
+
+    const acoesPgr = {
+      totalAcoes: acoesPgrLista.length,
+      porSituacao: [
+        { situacao: 'Em Andamento', qtd: 4 },
+      ],
+      porNomeAcao: [
+        { acao: 'Divulgar o PGR para os colaboradores.', qtd: 1 },
+        { acao: 'Elaboração do PAE conforme NR-01.', qtd: 1 },
+        { acao: 'Palestra Ergonômica', qtd: 1 },
+        { acao: 'Treinamento de Segurança do Trabalho.', qtd: 1 },
+      ],
+      prioridades: {
+        imediata: 2,
+        alta: 2,
+        media: 0,
+        baixa: 0,
+      },
+      porCategoria: [
+        { categoria: 'Implementação', qtd: 4 },
+      ],
+      porResponsavel: [
+        { responsavel: 'Diretoria/Gerencia', qtd: 4 },
+      ],
+      porEmpresa: [
+        { empresa: 'BMS GESTAO DE NEGOCIOS E CONSULTORIA LTDA', qtd: 4 },
+      ],
+      porUnidade: [
+        { unidade: '001 - MATRIZ CE', qtd: 4 },
+      ],
+      lista: acoesPgrLista,
+    };
+
     return {
       success: true,
       kpis,
@@ -245,6 +333,7 @@ export class DocumentosService {
       vigenciaPorUnidadePCMSO,
       statusDocumentos,
       registros: registros.slice(0, 1000),
+      acoesPgr,
       meta: {
         dataBase: new Date().toISOString(),
         fonte: 'SOC Exporta Dados 217483 (Controle Vencimentos Documentos)',

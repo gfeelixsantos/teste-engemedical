@@ -27,11 +27,47 @@ test("mantém a identidade Engemedical nas variantes de página e seção", () =
   assert.match(source, /section: "min-h-\[220px\]/);
 });
 
-test("aplica tratamento premium sem impor movimento", () => {
+test("mantém o carregamento interno premium e discreto", () => {
   const source = fs.readFileSync(loadingPath, "utf8");
 
-  assert.match(source, /logo\.png/);
-  assert.match(source, /backdrop-blur/);
-  assert.match(source, /animate-shimmer/);
-  assert.match(source, /motion-reduce/);
+  assert.match(source, /loading-circular-progress/);
+  assert.match(source, /loading-circular-track/);
+});
+
+test("loading não carrega as cores institucionais antigas", () => {
+  const source = fs.readFileSync(loadingPath, "utf8");
+
+  assert.doesNotMatch(source, /#03121f|#052439|#071c1a|#0698C2/);
+  assert.match(source, /bg-white/);
+  assert.match(source, /brand-cyan|brand-green/);
+});
+
+test("loading interno usa composição leve sem tela cyber", () => {
+  const source = fs.readFileSync(loadingPath, "utf8");
+
+  assert.doesNotMatch(
+    source,
+    /loading-page-glow|loading-page-grid|backdrop-blur|loading-wave/,
+  );
+  assert.doesNotMatch(source, /src="\/images\/logo\.png"/);
+  assert.match(source, /loading-circular-progress/);
+  assert.match(source, /title = "Carregando"/);
+});
+
+test("loading interno usa anel circular maior, sem borda externa e com paleta do tema", () => {
+  const source = fs.readFileSync(loadingPath, "utf8");
+
+  assert.match(source, /loading-circular-progress/);
+  assert.match(source, /h-16 w-16/);
+  assert.match(source, /loading-circular-track/);
+  assert.match(source, /loading-circular-progress/);
+  assert.doesNotMatch(source, /rounded-2xl.*border|border.*rounded-2xl/);
+});
+
+test("loading de página usa o mesmo anel circular contextual", () => {
+  const source = fs.readFileSync(loadingPath, "utf8");
+
+  assert.match(source, /loading-circular-progress/);
+  assert.match(source, /min-h-\[320px\]/);
+  assert.doesNotMatch(source, /loading-progress/);
 });

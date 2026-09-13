@@ -189,7 +189,7 @@ export function VolumeByMonthChart({ data }: { data: MonthlyData[] }) {
                 return null;
               }}
             />
-            <Bar dataKey="compromissos" fill="#0698C2" radius={[4, 4, 0, 0]} barSize={36}>
+            <Bar dataKey="compromissos" fill="#28B1CF" radius={[4, 4, 0, 0]} barSize={36}>
               <LabelList dataKey="compromissos" position="top" style={{ fontSize: 11, fill: "#374151", fontWeight: 600 }} formatter={(v: number) => v > 0 ? v : ""} />
             </Bar>
           </BarChart>
@@ -303,7 +303,7 @@ export function PeakHoursChart({ data }: { data: PeakHourData[] }) {
             <Bar dataKey="compromissos" radius={[4, 4, 0, 0]} barSize={28}>
               {data.map((entry, index) => {
                 const intensity = max > 0 ? entry.compromissos / max : 0;
-                const fill = intensity >= 0.8 ? "#dc2626" : intensity >= 0.5 ? "#ea580c" : intensity >= 0.25 ? "#ca8a04" : "#0698C2";
+                const fill = intensity >= 0.8 ? "#dc2626" : intensity >= 0.5 ? "#ea580c" : intensity >= 0.25 ? "#ca8a04" : "#28B1CF";
                 return <Cell key={`cell-${index}`} fill={fill} />;
               })}
             </Bar>
@@ -313,7 +313,7 @@ export function PeakHoursChart({ data }: { data: PeakHourData[] }) {
 
       <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100">
         <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Intensidade:</span>
-        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-[#0698C2]" /><span className="text-xs text-gray-600">Baixa</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-[#28B1CF]" /><span className="text-xs text-gray-600">Baixa</span></div>
         <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-[#ca8a04]" /><span className="text-xs text-gray-600">Moderada</span></div>
         <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-[#ea580c]" /><span className="text-xs text-gray-600">Alta</span></div>
         <div className="flex items-center gap-1"><div className="w-3 h-3 rounded-sm bg-[#dc2626]" /><span className="text-xs text-gray-600">Pico</span></div>

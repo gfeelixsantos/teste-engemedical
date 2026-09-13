@@ -1,14 +1,18 @@
 // Raw type from SOC "Eventos eSocial" (codigo 186601)
 export interface SocEventoEsocial {
   STATUSEVENTO: string;
+  STATUS: string;
   CODIGOEMPRESA: string;
   EMPRESA: string;
+  NOMEEMPRESA: string;
   CNPJ: string;
   SUBGRUPO: string;
   NOMEUNIDADE: string;
+  UNIDADE: string;
   'ClassificacaoEmpresa': string;
   FUNCIONARIO: string;
   NOMEFUNCIONARIO: string;
+  CODFUNCIONARIO: string;
   DATAGERACAO: string;
   'COD EVENTO': string;
   EVENTO: string;
@@ -118,6 +122,63 @@ export interface EmpresaStatusItem {
   assinado: number;
 }
 
+export interface EmpresaComparativoItem {
+  empresa: string;
+  totalRegistros: number;
+  concluidos: number;
+  pctConcluido: number;
+}
+
+export interface MatrixEmpresaNode {
+  nome: string;
+  concluido: number;
+  inconsistencias: number;
+  pendente: number;
+  assinado: number;
+  excluido: number;
+}
+
+export interface MatrixEventoNode {
+  evento: string;
+  concluido: number;
+  inconsistencias: number;
+  pendente: number;
+  assinado: number;
+  excluido: number;
+  empresas: MatrixEmpresaNode[];
+}
+
+export interface MatrixMesNode {
+  mes: string;
+  concluido: number;
+  inconsistencias: number;
+  pendente: number;
+  assinado: number;
+  excluido: number;
+  eventos: MatrixEventoNode[];
+}
+
+export interface MatrixAnoNode {
+  ano: string;
+  concluido: number;
+  inconsistencias: number;
+  pendente: number;
+  assinado: number;
+  excluido: number;
+  meses: MatrixMesNode[];
+}
+
+export interface MatrixStructure {
+  totais: {
+    concluido: number;
+    inconsistencias: number;
+    pendente: number;
+    assinado: number;
+    excluido: number;
+  };
+  anos: MatrixAnoNode[];
+}
+
 // Dashboard completo
 export interface EsocialDashboardData {
   success: boolean;
@@ -129,10 +190,11 @@ export interface EsocialDashboardData {
     por_mes: EvolucaoMensalItem[];
     por_mes_status: StatusMesItem[];
     por_empresa: StatusItem[];
+    por_empresa_comparativo: EmpresaComparativoItem[];
     por_empresa_status: EmpresaStatusItem[];
     por_erro: StatusItem[];
   };
-  matrix: any;
+  matrix: MatrixStructure;
   rows: RegistroEsocial[];
   meta: {
     periodo: { dataInicio: string; dataFim: string };
@@ -145,3 +207,4 @@ export interface EsocialDashboardData {
     status: string[];
   };
 }
+

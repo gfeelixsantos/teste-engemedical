@@ -14,7 +14,9 @@ import {
   Req,
   ForbiddenException,
   Delete,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { StructuredLogger } from 'src/utils/logger';
 import { calcularRangePipeline } from 'src/utils/util';
@@ -33,6 +35,36 @@ export class SocController {
     private readonly logger: StructuredLogger,
   ) {
     this.logger.setContext(SocController.name);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('inactivation/runs')
+  async getInactivationRuns(
+    @Query('limit') limit?: string,
+    @Query('skip') skip?: string,
+    @Query('status') status?: string,
+  ) {
+    return this.socService.listInactivationRuns({
+      limit: limit ? Number(limit) : undefined,
+      skip: skip ? Number(skip) : undefined,
+      status,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('inactivation/runs/:id')
+  async getInactivationRun(@Param('id') id: string) {
+    return this.socService.getInactivationRun(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('inactivation/runs/:id/report')
+  async downloadInactivationReport(@Param('id') id: string, @Res() res: Response) {
+    const report = await this.socService.getInactivationReportForDownload(id);
+    const fileName = report.fileName.replace(/["\r\n]/g, '_');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    return res.send(report.buffer);
   }
 
   // retorna do banco de dados local MongoDB se local=true, senão retorna do cache do SOC
@@ -417,10 +449,7 @@ export class SocController {
       const companies = await this.socService.getCompaniesRegister();
       const targetCompanies = body.companyCode
         ? companies.filter((c) => c.CODIGO === body.companyCode)
-        : companies.filter((c) => {
-            const nome = String(c.NOMEABREVIADO || c.RAZAOSOCIAL || '');
-            return !nome.toUpperCase().includes('VIDA');
-          });
+        : companies;
 
       // 2. FASE 2: Verificar elegibilidade via Preço 218761
       const exportService = (this.socService as any).socExportService;

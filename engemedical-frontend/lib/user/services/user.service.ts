@@ -1,4 +1,5 @@
-import { IUserLogin, IUserInfo, IUserRegister } from "../interfaces/IUser";
+import { IUserInfo, IUserLogin, IUserReauth, IUserRegister } from "../interfaces/IUser";
+import { resolveRegistrationCode, RegistrationUserType } from "../registration-code";
 
 import { Bcrypt } from "@/lib/bcrypt/bcrypt";
 import { SOC } from "@/lib/soc/services/soc";
@@ -9,6 +10,25 @@ import { HttpCodes } from "@/shared/responses/HttpCodes";
 import { JWT } from "@/lib/jwt/jwt";
 import { mapCadastroPessoasToUserInfo } from "@/lib/utils";
 import { NEST_URL } from "@/config/constants";
+
+type AuthUserRecord = IUserRegister & {
+  nome?: string;
+  perfil?: string;
+  conselho?: string;
+  uf_conselho?: string;
+  tipo_usuario?: RegistrationUserType;
+  registration_code?: string;
+};
+
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
+
+const getClientRegistrationCode = (client: AuthUserRecord) =>
+  client.registrationCode || client.registration_code || client.codigo;
+
+const getClientUserType = (client: AuthUserRecord): RegistrationUserType =>
+  client.tipoUsuario ||
+  client.tipo_usuario ||
+  resolveRegistrationCode(getClientRegistrationCode(client)).tipoUsuario;
 
 /**
  * Service responsável por lidar com regras de negócio relacionadas a Usuários.
@@ -22,7 +42,7 @@ import { NEST_URL } from "@/config/constants";
  */
 export class UserService {
   /**
-   * Autentica um usuário com base no CPF e senha.
+   * Autentica um usuário com base no e-mail e senha.
    *
    * Fluxo:
    *  1. Busca o usuário no Supabase.
@@ -31,15 +51,15 @@ export class UserService {
    *  4. Consulta o cadastro de pessoas no SOC.
    *  5. Gera JWT e retorna objeto com dados do usuário + token.
    *
-   * @param user Dados de login (cpf, senha).
+   * @param user Dados de login (e-mail, senha).
    * @returns ApiResponse<IUserLoginSuccess> em caso de sucesso,
    *          ou ApiResponse<null> com erro apropriado.
    */
   static async login(
     user: IUserLogin,
   ): Promise<ApiResponse<{ token: string; userInfo: IUserInfo }>> {
-    // Busca usuário por CPF no Supabase
-    const userRegister = await SupabaseService.getUserByCpf(user.cpf);
+    const normalizedEmail = normalizeEmail(user.email);
+    const userRegister = await SupabaseService.getUserByEmail(user.email);
 
     if (!userRegister) {
       return new ApiResponse(
@@ -47,6 +67,12 @@ export class UserService {
         ApiMessages.USER_INPUT_INVALID,
       );
     }
+
+    const clientRecord = userRegister as AuthUserRecord;
+    const registrationCode = getClientRegistrationCode(clientRecord);
+    const resolvedCode = resolveRegistrationCode(registrationCode);
+    const tipoUsuario = getClientUserType(clientRecord);
+    const userCodigo = String(clientRecord.codigo || resolvedCode.userCodigo);
 
     // Valida senha utilizando bcrypt
     const passwordIsValid = await Bcrypt.comparePasswords(
@@ -64,7 +90,7 @@ export class UserService {
     // Busca informações complementares da nossa tabela local via backend
     let userData: any = null;
     try {
-      const response = await fetch(`${NEST_URL}users/${userRegister.codigo}`);
+      const response = await fetch(`${NEST_URL}users/${userCodigo}`);
       if (response.ok) {
         userData = await response.json();
       }
@@ -72,13 +98,13 @@ export class UserService {
       console.error("Erro ao buscar dados do usuário no banco local:", err);
     }
 
-    // Fallback: usuário existe em clients mas ainda não foi sincronizado com users
-    // (órfão legado). Sincroniza agora via SOC para criar o registro.
-    if (!userData) {
+    // Complementa dados internos a partir do SOC quando a tabela users ainda estiver incompleta.
+
+    if (!userData && tipoUsuario === "interno") {
       try {
         const cadastroPessoas = await SOC.ExportaDadosCadastroPessoas();
         const socUser = cadastroPessoas?.find(
-          (p) => p.CODIGO == userRegister.codigo,
+          (p) => p.CODIGO == userCodigo,
         );
 
         if (socUser) {
@@ -89,6 +115,7 @@ export class UserService {
               codigo: String(socUser.CODIGO),
               cpf: String(socUser.CPF || '').replace(/\D/g, ''),
               nome: socUser.NOME || '',
+              email: normalizedEmail,
               perfil: socUser.REGISTRO_FUNCIONAL || 'CONVIDADO',
               conselho: socUser.CONSELHO_CLASSE || null,
               uf_conselho: socUser.UF_CONSELHO || null,
@@ -100,15 +127,38 @@ export class UserService {
           }
         }
       } catch (err) {
-        console.error('Erro ao sincronizar órfão com users (fallback):', err);
+        console.error('Erro ao complementar usuário interno com dados do SOC:', err);
       }
     }
 
-    // Se ainda não encontrou, usa os dados mínimos do próprio registro em users
-    // que criamos via migração (nome = 'Profissional X')
     if (!userData) {
       try {
-        const response = await fetch(`${NEST_URL}users/${userRegister.codigo}`);
+        const syncRes = await fetch(`${NEST_URL}users/sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            codigo: userCodigo,
+            cpf: clientRecord.cpf || null,
+            nome: clientRecord.nome || normalizedEmail,
+            email: normalizedEmail,
+            perfil: clientRecord.perfil || (tipoUsuario === "cliente" ? "CLIENTE" : "CONVIDADO"),
+            conselho: clientRecord.conselho || null,
+            uf_conselho: clientRecord.uf_conselho || null,
+            ultimo_login: new Date().toISOString(),
+          }),
+        });
+        if (syncRes.ok) {
+          userData = await syncRes.json();
+        }
+      } catch (err) {
+        console.error('Erro ao sincronizar usuário com users:', err);
+      }
+    }
+
+    // Se ainda não encontrou, tenta uma última leitura local.
+    if (!userData) {
+      try {
+        const response = await fetch(`${NEST_URL}users/${userCodigo}`);
         if (response.ok) userData = await response.json();
       } catch {}
     }
@@ -132,10 +182,13 @@ export class UserService {
     const userInfo: IUserInfo = {
       codigo: userData.codigo,
       nome: userData.nome,
-      cpf: userData.cpf,
+      cpf: userData.cpf || clientRecord.cpf || "",
+      email: userData.email || normalizedEmail,
       conselho: userData.conselho || "",
       ufconselho: userData.uf_conselho || "",
       perfil: userData.perfil || "CONVIDADO",
+      tipoUsuario,
+      registrationCode,
     };
     const token = await JWT.generateJwt(userInfo);
 
@@ -148,6 +201,7 @@ export class UserService {
           codigo: userInfo.codigo,
           cpf: userInfo.cpf,
           nome: userInfo.nome,
+          email: userInfo.email,
           perfil: userInfo.perfil,
           conselho: userInfo.conselho || null,
           uf_conselho: userInfo.ufconselho || null,
@@ -166,25 +220,36 @@ export class UserService {
   }
 
   static async reauthenticate(
-    user: IUserLogin,
+    user: IUserReauth,
   ): Promise<ApiResponse<{ valid: boolean }>> {
-    const loginResponse = await UserService.login(user);
+    if (user.email) {
+      const loginResponse = await UserService.login({
+        email: user.email,
+        password: user.password,
+      });
 
-    if (loginResponse.status !== HttpCodes.OK || !loginResponse.data) {
-      return new ApiResponse(loginResponse.status, loginResponse.message, {
-        valid: false,
+      if (loginResponse.status !== HttpCodes.OK || !loginResponse.data) {
+        return new ApiResponse(loginResponse.status, loginResponse.message, {
+          valid: false,
+        });
+      }
+
+      return new ApiResponse(HttpCodes.OK, "Reautenticacao validada", {
+        valid: true,
       });
     }
 
-    return new ApiResponse(HttpCodes.OK, "Reautenticacao validada", {
-      valid: true,
-    });
+    return UserService.reauthenticateOnly(user);
   }
 
   static async reauthenticateOnly(
-    user: IUserLogin,
+    user: IUserReauth,
   ): Promise<ApiResponse<{ valid: boolean }>> {
-    const userRegister = await SupabaseService.getUserByCpf(user.cpf);
+    const userRegister = user.email
+      ? await SupabaseService.getUserByEmail(user.email)
+      : user.cpf
+        ? await SupabaseService.getUserByCpf(user.cpf)
+        : null;
 
     if (!userRegister) {
       return new ApiResponse(
@@ -230,21 +295,11 @@ export class UserService {
    */
   static async register(user: IUserRegister) {
     try {
-      // Executa duas chamadas em paralelo para otimizar tempo de resposta
-      const [cadastroPessoas, supabaseData] = await Promise.all([
-        SOC.ExportaDadosCadastroPessoas(),
-        SupabaseService.getUserByCpf(user.cpf),
-      ]);
+      const registration = resolveRegistrationCode(user.codigo);
+      const normalizedEmail = normalizeEmail(user.email);
+      const supabaseData = await SupabaseService.getUserByEmail(user.email);
 
-      if (!cadastroPessoas) {
-        return new ApiResponse(
-          HttpCodes.INTERNAL_SERVER_ERROR,
-          ApiMessages.SOC_ED_CADASTRO_PESSOAS_NULL,
-          null,
-        );
-      }
-
-      if (supabaseData?.cpf) {
+      if (supabaseData?.email) {
         return new ApiResponse(
           HttpCodes.CONFLICT,
           ApiMessages.USER_ALREADY_EXISTS,
@@ -252,24 +307,68 @@ export class UserService {
         );
       }
 
-      // Confere se usuário realmente existe no SOC
-      const socRegisterUser = cadastroPessoas.find(
-        (item) => item.CODIGO === user.codigo && item.CPF === user.cpf,
-      );
+      let userInfoMapped: IUserInfo;
+      let supabaseCpf = "";
 
-      if (!socRegisterUser) {
-        return new ApiResponse(
-          HttpCodes.NOT_FOUND,
-          ApiMessages.SOC_CADASTRO_PESSOA_NOT_FOUND,
-          null,
+      if (registration.tipoUsuario === "interno") {
+        const cadastroPessoas = await SOC.ExportaDadosCadastroPessoas();
+
+        if (!cadastroPessoas) {
+          return new ApiResponse(
+            HttpCodes.INTERNAL_SERVER_ERROR,
+            ApiMessages.SOC_ED_CADASTRO_PESSOAS_NULL,
+            null,
+          );
+        }
+
+        const socRegisterUser = cadastroPessoas.find(
+          (item) => String(item.CODIGO) === registration.socCodigo,
         );
+
+        if (!socRegisterUser) {
+          return new ApiResponse(
+            HttpCodes.NOT_FOUND,
+            ApiMessages.SOC_CADASTRO_PESSOA_NOT_FOUND,
+            null,
+          );
+        }
+
+        userInfoMapped = {
+          ...mapCadastroPessoasToUserInfo(socRegisterUser),
+          email: normalizedEmail,
+          tipoUsuario: registration.tipoUsuario,
+          registrationCode: registration.normalizedCode,
+        };
+        supabaseCpf = userInfoMapped.cpf || "";
+      } else {
+        userInfoMapped = {
+          codigo: registration.userCodigo,
+          nome: normalizedEmail,
+          cpf: "",
+          email: normalizedEmail,
+          perfil: "CLIENTE",
+          tipoUsuario: registration.tipoUsuario,
+          registrationCode: registration.normalizedCode,
+        };
       }
 
       // Criptografa senha antes de persistir
-      user.password = await Bcrypt.createHash(user.password);
+      const hashedPassword = await Bcrypt.createHash(user.password);
 
       // Cria usuário no Supabase
-      const statusCode = await SupabaseService.createClient(user);
+      const statusCode = await SupabaseService.createUserAuthRecord({
+        ...user,
+        codigo: userInfoMapped.codigo,
+        nome: userInfoMapped.nome,
+        cpf: supabaseCpf,
+        email: normalizedEmail,
+        password: hashedPassword,
+        perfil: userInfoMapped.perfil,
+        conselho: userInfoMapped.conselho || undefined,
+        uf_conselho: userInfoMapped.ufconselho || undefined,
+        tipoUsuario: registration.tipoUsuario,
+        registrationCode: registration.normalizedCode,
+      });
 
       if (statusCode != HttpCodes.CREATED) {
         return new ApiResponse(
@@ -279,17 +378,15 @@ export class UserService {
         );
       }
 
-      // Mapeia para DTO de resposta
-      const userInfoMapped = mapCadastroPessoasToUserInfo(socRegisterUser);
-
       try {
         await fetch(`${NEST_URL}users/sync`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             codigo: userInfoMapped.codigo,
-            cpf: userInfoMapped.cpf,
+            cpf: userInfoMapped.cpf || null,
             nome: userInfoMapped.nome,
+            email: userInfoMapped.email,
             perfil: userInfoMapped.perfil,
             conselho: userInfoMapped.conselho || null,
             uf_conselho: userInfoMapped.ufconselho || null,
@@ -330,8 +427,16 @@ export class UserService {
       );
     }
 
-    const normalizeCpf = (value: string) => value.replace(/\D/g, "");
+    const normalizeCpf = (value?: string | null) => String(value ?? "").replace(/\D/g, "");
     const cpfBancoNormalizado = normalizeCpf(userRegister.cpf);
+    if (!cpfBancoNormalizado) {
+      return new ApiResponse(
+        HttpCodes.BAD_REQUEST,
+        "CPF ou código de recuperação inválidos",
+        { valid: false },
+      );
+    }
+
     const ultimos2Cpf = cpfBancoNormalizado.slice(-2);
 
     const codigoBase = String(userRegister.codigo).split("").reverse().join("");
@@ -364,7 +469,7 @@ export class UserService {
 
     const hashedPassword = await Bcrypt.createHash(novaSenha);
     // Usa o CPF já normalizado (sem máscara) para garantir que o UPDATE
-    // funcione mesmo que clients.cpf esteja armazenado com pontuação
+    // encontre o usuário mesmo quando houver máscara no CPF
     const cpfNormalizado = cpf.replace(/\D/g, '');
     const updated = await SupabaseService.updatePassword(cpfNormalizado, hashedPassword);
 

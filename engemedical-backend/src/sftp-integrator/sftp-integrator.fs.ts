@@ -1,5 +1,5 @@
 import { createReadStream } from 'fs';
-import { mkdir, stat } from 'fs/promises';
+import { mkdir, stat, unlink } from 'fs/promises';
 import { createHash } from 'crypto';
 import { Injectable } from '@nestjs/common';
 
@@ -21,6 +21,10 @@ export class SftpIntegratorFs {
   async stat(path: string): Promise<{ size: number }> {
     const result = await stat(path);
     return { size: result.size };
+  }
+
+  unlink(path: string): Promise<void> {
+    return unlink(path);
   }
 
   createReadStream(path: string) {

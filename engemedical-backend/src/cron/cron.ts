@@ -236,12 +236,12 @@ export class CronJobs implements OnModuleInit {
   }
 
   /**
-   * Executa todo dia 24 às 18:30 para inativação em massa no SOC.
+   * Executa todo dia 23 às 22:00 para inativação em massa no SOC.
    */
-  @Cron('30 18 24 * *', { timeZone: 'America/Sao_Paulo' })
+  @Cron('0 22 23 * *', { timeZone: 'America/Sao_Paulo' })
   async socInactivationJob() {
     this.logger.log(
-      'Iniciando rotina de inativação em massa (todo dia 24 às 18:30)...',
+      'Iniciando rotina de inativação em massa (todo dia 23 às 22:00)...',
     );
     try {
       const result = await this.socService.inactivateEmployeesFlow();

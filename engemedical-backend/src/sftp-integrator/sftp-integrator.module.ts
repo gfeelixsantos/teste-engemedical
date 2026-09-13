@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongoModule } from 'src/mongo/mongo.module';
 import { NodemailerModule } from 'src/nodemailer/nodemailer.module';
 import { Ssh2SftpClientAdapter } from './sftp-client.adapter';
@@ -10,10 +10,12 @@ import { SftpSocEmployeeLookupService } from './sftp-soc-employee-lookup.service
 import { SftpSocProcessor } from './sftp-soc-processor';
 import { SftpSpreadsheetParser } from './sftp-spreadsheet-parser';
 import { CloudflareR2Service } from './sftp-r2-storage.service';
+import { CloudflareR2SftpService } from './sftp-r2-sftp-storage.service';
+import { R2SftpReportService } from './sftp-r2-report.service';
 import { CloudflareQueueService } from './sftp-queue.service';
 
 @Module({
-  imports: [MongoModule, NodemailerModule],
+  imports: [forwardRef(() => MongoModule), NodemailerModule],
   controllers: [SftpIntegratorController],
   providers: [
     SftpIntegratorFs,
@@ -23,6 +25,8 @@ import { CloudflareQueueService } from './sftp-queue.service';
     SftpIntegratorService,
     SftpIntegratorScheduler,
     CloudflareR2Service,
+    CloudflareR2SftpService,
+    R2SftpReportService,
     CloudflareQueueService,
     {
       provide: 'SFTP_CLIENT_ADAPTER',
@@ -33,6 +37,12 @@ import { CloudflareQueueService } from './sftp-queue.service';
       useValue: process.cwd(),
     },
   ],
-  exports: [SftpIntegratorService, CloudflareR2Service, CloudflareQueueService],
+  exports: [
+    SftpIntegratorService, 
+    CloudflareR2Service, 
+    CloudflareR2SftpService,
+    R2SftpReportService,
+    CloudflareQueueService
+  ],
 })
 export class SftpIntegratorModule {}

@@ -1,114 +1,181 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { NEST_URL } from '@/config/constants';
-import { useState } from 'react';
-import KpiCards from './components/KpiCards';
-import CustoPorVida from './components/CustoPorVida';
-import VidasPorProduto from './components/VidasPorProduto';
-import VidasPorEmpresa from './components/VidasPorEmpresa';
-import RegistrosTable from './components/RegistrosTable';
-import VidasFilters from './components/VidasFilters';
-import type { VidasDashboardData } from './types';
+import React, { useState, useEffect } from 'react';
+import { RefreshCw, Calendar } from 'lucide-react';
+import { getDynamicNestUrl } from '@/config/constants';
+import { VidasDashboardResponse } from './types';
+import { KpiCardsVidas } from './components/KpiCardsVidas';
+import { ConsistenciaCadastralSection } from './components/ConsistenciaCadastralSection';
+import { ConsistenciaPlanoAtivacaoSection } from './components/ConsistenciaPlanoAtivacaoSection';
+import { PainelCustoPorVidaSection } from './components/PainelCustoPorVidaSection';
+import { TabelasProdutosEmpresas } from './components/TabelasProdutosEmpresas';
+import { ConsistenciaEstruturaSection } from './components/ConsistenciaEstruturaSection';
+import { PerfilDemograficoSection } from './components/PerfilDemograficoSection';
+import { TabelaGeralVidas } from './components/TabelaGeralVidas';
 
-export default function VidasPage() {
-  const [empresaSel, setEmpresaSel] = useState('');
-  const [produtoSel, setProdutoSel] = useState('');
+export default function VidasDashboardPage() {
+  const [data, setData] = useState<VidasDashboardResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const { data, isLoading, error } = useQuery<VidasDashboardData>({
-    queryKey: ['vidas-dashboard'],
-    queryFn: async () => {
-      const res = await fetch(`${NEST_URL}/vidas/dashboard`);
-      if (!res.ok) throw new Error('Erro ao carregar dados');
-      return res.json();
-    },
-    staleTime: 15 * 60 * 1000,
-  });
+  const [empresaFiltro, setEmpresaFiltro] = useState('Todos');
+  const [consistenciaFiltro, setConsistenciaFiltro] = useState('Todos');
+  const [motivoFiltro, setMotivoFiltro] = useState('Todos');
 
-  // Filtrar registros
-  const filteredRegistros = data?.registros?.filter((r) => {
-    if (empresaSel && r.empresa !== empresaSel) return false;
-    if (produtoSel && r.produto !== produtoSel) return false;
-    return true;
-  });
+  const fetchDashboard = async (force = false) => {
+    if (force) setRefreshing(true);
+    else setLoading(true);
+
+    try {
+      const query = new URLSearchParams({
+        empresa: empresaFiltro,
+        consistencia: consistenciaFiltro,
+        motivo: motivoFiltro,
+        ...(force ? { refresh: 'true' } : {}),
+      });
+
+      const res = await fetch(`${getDynamicNestUrl()}vidas/dashboard?${query.toString()}`);
+      if (res.ok) {
+        const json = await res.json();
+        setData(json);
+      }
+    } catch (err) {
+      console.error('Failed to fetch vidas dashboard:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+  }, [empresaFiltro, consistenciaFiltro, motivoFiltro]);
+
+  const handleRefresh = () => {
+    fetchDashboard(true);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-[1400px] mx-auto px-4 py-6 space-y-6">
-        {/* Title */}
+    <div className="p-6 space-y-8 bg-background min-h-screen">
+      {/* Header Superior */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-800">Gestão de Vidas</h1>
-          <p className="text-sm text-gray-500 mt-1">Monitoramento de vidas ativas, custos e consistência cadastral</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-black tracking-tight text-foreground">Gestão de Vidas</h1>
+            <span className="bg-emerald-500/10 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+              Auditoria SOC & Power BI
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Monitoramento de consistência cadastral, custos por vida e perfil demográfico
+          </p>
         </div>
 
-        {/* Error */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
-            Erro ao carregar dados. Verifique o backend e tente novamente.
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {data?.kpis?.ultimaAtualizacao && (
+            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5" />
+              Atualizado: {new Date(data.kpis.ultimaAtualizacao).toLocaleTimeString('pt-BR')}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={refreshing || loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-gray-200 text-gray-700 rounded-lg shadow-xs hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Atualizando...' : 'Atualizar Dados'}
+          </button>
+        </div>
+      </div>
 
-        {/* KPIs: 4 + 3 layout */}
-        <KpiCards kpis={data?.kpis} />
+      {/* Cartões de KPI */}
+      <KpiCardsVidas
+        kpis={
+          data?.kpis || {
+            totalRegistros: 0,
+            inativos: 0,
+            ativos: 0,
+            pendentes: 0,
+            ferias: 0,
+            afastados: 0,
+            percentInconsistenciaBase: 0,
+            totalConsistencias: 0,
+            totalInconsistencias: 0,
+            ultimaAtualizacao: '',
+          }
+        }
+        loading={loading}
+      />
 
-        {/* Filters */}
-        <VidasFilters
-          empresas={data?.filtros?.empresas || []}
-          produtos={data?.filtros?.produtos || []}
-          empresaSel={empresaSel}
-          produtoSel={produtoSel}
-          onChange={(e, p) => { setEmpresaSel(e); setProdutoSel(p); }}
-        />
+      {/* Monitoramento da Consistência Cadastral Ativa */}
+      <ConsistenciaCadastralSection
+        registrosCadastrais={data?.registrosCadastrais || []}
+        indiceRegularizacao={data?.indiceRegularizacao || []}
+        kpis={
+          data?.kpis || {
+            totalRegistros: 0,
+            inativos: 0,
+            ativos: 0,
+            pendentes: 0,
+            ferias: 0,
+            afastados: 0,
+            percentInconsistenciaBase: 0,
+            totalConsistencias: 0,
+            totalInconsistencias: 0,
+            ultimaAtualizacao: '',
+          }
+        }
+      />
 
-        {/* Loading skeleton for charts */}
-        {isLoading && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-                <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mb-4" />
-                <div className="h-[350px] bg-gray-100 rounded animate-pulse" />
-              </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-                <div className="h-4 w-40 bg-gray-200 rounded animate-pulse mb-4" />
-                <div className="h-[350px] bg-gray-100 rounded animate-pulse" />
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-              <div className="h-4 w-44 bg-gray-200 rounded animate-pulse mb-4" />
-              <div className="h-[350px] bg-gray-100 rounded animate-pulse" />
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-              <div className="h-4 w-56 bg-gray-200 rounded animate-pulse mb-4" />
-              <div className="h-48 bg-gray-100 rounded animate-pulse" />
-            </div>
-          </div>
-        )}
+      {/* Monitoramento Plano x Ativação */}
+      <ConsistenciaPlanoAtivacaoSection
+        empresasPorPlano={data?.empresasPorPlano || []}
+        registrosPorEmpresa={data?.registrosPorEmpresa || []}
+        conformidadeAtivacao={data?.conformidadeAtivacao || []}
+      />
 
-        {/* Charts row 1: Custo por Vida + Vidas por Produto */}
-        {!isLoading && (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <CustoPorVida data={data?.custoPorVida} />
-              <VidasPorProduto data={data?.vidasPorProduto} />
-            </div>
+      {/* Painel Custo por Vida Cadastrada */}
+      <PainelCustoPorVidaSection
+        planoProdutos={data?.planoProdutos || []}
+        valorVidasEmpresas={data?.valorVidasEmpresas || []}
+        vidasAtivasEmpresas={data?.vidasAtivasEmpresas || []}
+      />
 
-            {/* Charts row 2: Vidas por Empresa (full width) */}
-            <div className="grid grid-cols-1 gap-6">
-              <VidasPorEmpresa data={data?.vidasPorEmpresa} />
-            </div>
-          </>
-        )}
+      {/* Tabelas Produtos & Empresas */}
+      <TabelasProdutosEmpresas
+        produtosTabela={data?.produtosTabela || []}
+        empresasAtivacaoTabela={data?.empresasAtivacaoTabela || []}
+      />
 
-        {/* Table */}
-        <RegistrosTable data={filteredRegistros} />
+      {/* Consistência Cadastral por Estrutura Organizacional */}
+      <ConsistenciaEstruturaSection
+        analiseEmpresas={data?.analiseEmpresas || []}
+        analiseUnidades={data?.analiseUnidades || []}
+        analiseSetores={data?.analiseSetores || []}
+        empresaFiltro={empresaFiltro}
+        consistenciaFiltro={consistenciaFiltro}
+        motivoFiltro={motivoFiltro}
+        onEmpresaChange={setEmpresaFiltro}
+        onConsistenciaChange={setConsistenciaFiltro}
+        onMotivoChange={setMotivoFiltro}
+      />
 
-        {/* Footer */}
-        {data?.meta && (
-          <div className="text-xs text-gray-400 text-right">
-            Fonte: {data.meta.fonte} | Base: {new Date(data.meta.dataBase).toLocaleString('pt-BR')}
-          </div>
-        )}
-      </main>
+      {/* Perfil Demográfico */}
+      <PerfilDemograficoSection
+        perfil={
+          data?.perfilDemografico || {
+            masculino: 0,
+            feminino: 0,
+            faixaEtaria: [],
+            localidade: [],
+          }
+        }
+      />
+
+      {/* Tabela Geral */}
+      <TabelaGeralVidas />
     </div>
   );
 }

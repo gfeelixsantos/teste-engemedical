@@ -56,7 +56,7 @@ import {
   NEST_RELATORIO_PARAMETROS,
   NEST_URL,
 } from "@/config/constants";
-import { HeaderApp } from "@/components/shared/HeaderApp";
+import { AppShell } from "@/components/shared/AppShell";
 import { formatCPF, getCurrentUser, getStatusColor, logout } from "@/lib/utils";
 import { useModalOptimizer } from "@/hooks/useModalOptimizer";
 import { useOptimizedDebounce } from "@/hooks/useDebounceOptimizer";
@@ -660,17 +660,18 @@ export default function RelatoriosPage() {
   }, [filters]);
 
   return (
-    <div className="min-h-screen bg-gray-100 mb-8">
-      <HeaderApp
-        children={<h2>Relatórios de Atendimento</h2>}
-        onLogout={() => {
-          logout();
-          router.push("/");
-        }}
-      />
+    <AppShell
+      showSidebar={false}
+      onLogout={() => {
+        logout();
+        router.push("/");
+      }}
+    >
+      <div className="p-6 mb-8">
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">Relatórios de Atendimento</h2>
 
       {/* Filtros */}
-      <Card className="m-6 p-4 border border-gray-200 shadow-sm">
+      <Card className="p-4 border border-brand-line shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between p-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div>
@@ -944,7 +945,7 @@ export default function RelatoriosPage() {
       {/* Tabela de Resultados */}
       {showResults && (
         <div ref={tableRef}>
-          <Card className="m-6 p-4 border border-gray-200 shadow-sm">
+          <Card className="p-4 border border-gray-200 shadow-sm">
             <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">
@@ -1103,7 +1104,7 @@ export default function RelatoriosPage() {
 
       {/* Estado inicial - instruções */}
       {!showResults && !loading && (
-        <Card className="mx-6 border border-gray-200 shadow-sm">
+        <Card className="border border-gray-200 shadow-sm">
           <CardBody className="text-center py-16">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <FilterIcon className="text-gray-400" size={24} />
@@ -1121,7 +1122,7 @@ export default function RelatoriosPage() {
 
       {/* Loading inicial */}
       {loading && (
-        <Card className="mx-6">
+        <Card className="mx-auto">
           <CardBody className="text-center py-16">
             <Spinner
               color="success"
@@ -1195,6 +1196,7 @@ export default function RelatoriosPage() {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </div>
+      </div>
+    </AppShell>
   );
 }

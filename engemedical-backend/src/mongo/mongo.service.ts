@@ -223,6 +223,7 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
   public examFormSnapshotsCollection: Collection<ExamFormSnapshotDocument> | null =
     null;
   public empresasCollection: Collection<EmpresaDocument> | null = null;
+  public historyImportCollection: Collection<any> | null = null;
   public empresaDocumentosCollection: Collection<EmpresaDocumento> | null = null;
 
   /** Promise que resolve assim que a conexão MongoDB estiver pronta. */
@@ -317,6 +318,7 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
         readPreference: 'primary',
         readConcern: { level: 'majority' },
         writeConcern: { w: 'majority', j: true },
+        autoSelectFamily: false,
       });
 
       await this.client.connect();
@@ -326,6 +328,7 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
       this.examFormSnapshotsCollection =
         this.db.collection<ExamFormSnapshotDocument>('exam_form_snapshots');
       this.empresasCollection = this.db.collection<EmpresaDocument>('empresas');
+      this.historyImportCollection = this.db.collection('history_imports');
       this.empresaDocumentosCollection = this.db.collection<EmpresaDocumento>('empresa_documentos');
 
       this.empresasCollection.dropIndex('idx_empresas_codigo_unique')
@@ -536,7 +539,9 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
       this._readyResolve();
     } catch (error) {
       this.logger.error('❌ Erro ao conectar no MongoDB:', error);
-      this._readyReject(error);
+      // A indisponibilidade do Mongo não deve derrubar o bootstrap inteiro.
+      // Os métodos que dependem da conexão validam o estado via ensureInitialized.
+      this._readyResolve();
     }
   }
 

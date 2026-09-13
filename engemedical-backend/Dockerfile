@@ -32,7 +32,7 @@ RUN pnpm run build
 FROM node:20-alpine AS prod
 
 # Chromium for Puppeteer (Cedill scraper)
-RUN apk add --no-cache chromium chromium-chromedriver
+RUN apk add --no-cache chromium chromium-chromedriver p7zip
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ENV CHROME_BIN=/usr/bin/chromium-browser

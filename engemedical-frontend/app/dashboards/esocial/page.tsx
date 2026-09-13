@@ -1,264 +1,154 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { NEST_URL } from '@/config/constants';
-import { KpiCards } from './components/KpiCards';
-import { StatusXmlChart } from './components/StatusXmlChart';
-import { EventosDonut } from './components/EventosDonut';
-import { EvolucaoMensal } from './components/EvolucaoMensal';
-import { ComparativoEmpresas } from './components/ComparativoEmpresas';
-import { NaoConcluidosEmpresa } from './components/NaoConcluidosEmpresa';
-import { StatusPorMes } from './components/StatusPorMes';
-import { EsocialFilters } from './components/EsocialFilters';
-import type { EsocialDashboardData, RegistroEsocial } from './types';
-import { useState, useMemo } from 'react';
+import { getDynamicNestUrl } from '@/config/constants';
+import { HeaderKpisEsocial } from './components/HeaderKpisEsocial';
+import { XmlPillsFilter } from './components/XmlPillsFilter';
+import { StatusXmlCards } from './components/StatusXmlCards';
+import { PainelRegistrosSection } from './components/PainelRegistrosSection';
+import { AnaliseEmpresasSection } from './components/AnaliseEmpresasSection';
+import { TabelaHierarquicaSection } from './components/TabelaHierarquicaSection';
+import { TabelaEventosDetalhados } from './components/TabelaEventosDetalhados';
+import type { EsocialDashboardData } from './types';
+import { X, SlidersHorizontal, RefreshCw } from 'lucide-react';
 
-/* ─── Skeleton Dashboard (shown while loading) ─── */
-function SkeletonDashboard() {
-  const BarSkeleton = () => (
-    <div className="bg-white rounded-lg shadow p-6 animate-pulse">
-      <div className="h-5 bg-gray-200 rounded w-48 mx-auto mb-4" />
-      <div className="space-y-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <div className="h-4 bg-gray-200 rounded w-20" />
-            <div className="h-5 bg-gray-200 rounded flex-1" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        <div className="space-y-2 animate-pulse">
-          <div className="h-7 bg-gray-200 rounded w-64" />
-          <div className="h-4 bg-gray-200 rounded w-80" />
-        </div>
-        {/* KPI skeletons */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-lg shadow p-4 animate-pulse">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-gray-200 w-9 h-9" />
-                <div className="flex-1">
-                  <div className="h-3 bg-gray-200 rounded w-20 mb-2" />
-                  <div className="h-5 bg-gray-200 rounded w-14" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Chart skeletons */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <BarSkeleton />
-          <BarSkeleton />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <BarSkeleton />
-          <BarSkeleton />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <BarSkeleton />
-          <BarSkeleton />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Event Detail Table ─── */
-function DetalhamentoTable({ rows }: { rows: RegistroEsocial[] }) {
-  const [page, setPage] = useState(0);
-  const PAGE_SIZE = 20;
-  const totalPages = Math.ceil(rows.length / PAGE_SIZE);
-  const visible = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-
-  const statusColor = (s: string) => {
-    if (s === 'Concluido') return 'text-green-700 bg-green-50';
-    if (s === 'Inconsistencias') return 'text-red-700 bg-red-50';
-    if (s === 'Pendente') return 'text-yellow-700 bg-yellow-50';
-    if (s === 'Assinado') return 'text-teal-700 bg-teal-50';
-    return 'text-gray-700 bg-gray-50';
-  };
-
-  if (!rows || rows.length === 0) return null;
-
-  return (
-    <div className="bg-white rounded-lg shadow p-6 mt-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Detalhamento dos Eventos
-      </h3>
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <th className="px-3 py-2">Empresa</th>
-              <th className="px-3 py-2">Funcionário</th>
-              <th className="px-3 py-2">Layout</th>
-              <th className="px-3 py-2">Data Geração</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Erro</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {visible.map((r, i) => (
-              <tr key={i} className="hover:bg-gray-50">
-                <td className="px-3 py-2 max-w-[180px] truncate">{r.empresa}</td>
-                <td className="px-3 py-2 max-w-[160px] truncate">{r.funcionario}</td>
-                <td className="px-3 py-2">
-                  <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
-                    {r.layout}
-                  </span>
-                </td>
-                <td className="px-3 py-2">
-                  {formatDatePtBr(r.dataGeracao)}
-                </td>
-                <td className="px-3 py-2">
-                  <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${statusColor(r.statusEvento)}`}>
-                    {r.statusEvento}
-                  </span>
-                </td>
-                <td className="px-3 py-2 max-w-[200px] truncate text-red-600">
-                  {r.erro || '—'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-xs text-gray-500">
-            Mostrando {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, rows.length)} de {rows.length}
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
-              className="px-3 py-1 text-xs rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
-            >
-              Anterior
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={page >= totalPages - 1}
-              className="px-3 py-1 text-xs rounded border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
-            >
-              Próximo
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-const MONTHS_PT: Record<string, string> = {
-  '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr',
-  '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Ago',
-  '09': 'Set', '10': 'Out', '11': 'Nov', '12': 'Dez',
-};
-
-function formatDatePtBr(dateStr: string): string {
-  if (!dateStr) return '—';
-  // Try YYYY-MM-DD
-  const parts = dateStr.split('-');
-  if (parts.length === 3) {
-    const [ano, mes, dia] = parts;
-    const monthName = MONTHS_PT[mes] || mes;
-    return `${dia}/${monthName}/${ano}`;
-  }
-  // Try DD/MM/YYYY (already in pt-BR format)
-  if (dateStr.includes('/')) return dateStr;
-  return dateStr;
-}
-
-/* ─── Main Page ─── */
 export default function EsocialPage() {
+  const [selectedXml, setSelectedXml] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
 
-  const { data, isLoading, error } = useQuery<EsocialDashboardData>({
-    queryKey: ['esocial', dataInicio, dataFim],
+  const { data, isLoading, isFetching, refetch } = useQuery<EsocialDashboardData>({
+    queryKey: ['esocial', selectedXml, dataInicio, dataFim],
     queryFn: async () => {
       const params = new URLSearchParams();
+      if (selectedXml) params.set('layout', selectedXml);
       if (dataInicio) params.set('dataInicio', dataInicio);
       if (dataFim) params.set('dataFim', dataFim);
-      const res = await fetch(`${NEST_URL}/esocial/dashboard?${params}`);
+      const res = await fetch(`${getDynamicNestUrl()}esocial/dashboard?${params}`);
       if (!res.ok) throw new Error('Erro ao carregar dados');
       return res.json();
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  if (isLoading) {
-    return <SkeletonDashboard />;
-  }
+  const isFiltering = !!selectedXml || !!dataInicio || !!dataFim;
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow p-6 max-w-md text-center">
-          <div className="text-red-500 text-4xl mb-3">⚠️</div>
-          <h2 className="text-lg font-semibold text-red-600 mb-2">Erro ao carregar dados</h2>
-          <p className="text-gray-600 text-sm">Não foi possível carregar os dados do eSocial. Tente novamente.</p>
-        </div>
-      </div>
-    );
-  }
+  const clearAllFilters = () => {
+    setSelectedXml('');
+    setDataInicio('');
+    setDataFim('');
+  };
+
+  const handleForceRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Limpa o cache do backend e busca dados frescos do SOC
+      await fetch(`${getDynamicNestUrl()}esocial/refresh`);
+      // Invalida o cache do React Query para forçar re-fetch de todos os filtros
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Painel de Registros eSocial
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Fonte: SOC Exporta Dados 186601 — Eventos eSocial
-          </p>
-        </div>
+    <div className="min-h-screen bg-slate-50/50 py-6 px-4 md:px-8">
+      <div className="max-w-7xl mx-auto space-y-4">
 
-        {/* ROW 1: 6 KPI Cards — 3x2 grid */}
-        <KpiCards kpis={data?.kpis} />
-
-        <div className="mt-6">
-          <EsocialFilters
-            empresas={data?.filtros?.empresas || []}
-            layouts={data?.filtros?.layouts || []}
-            status={data?.filtros?.status || []}
-            dataInicio={dataInicio}
-            dataFim={dataFim}
-            onFilterChange={(ini, fim) => {
-              setDataInicio(ini);
-              setDataFim(fim);
-            }}
+        {/* Header Branding + Top 3 KPIs + Botão Refresh */}
+        <div className="relative">
+          <HeaderKpisEsocial
+            totalEmpresas={data?.kpis?.totalEmpresas}
+            pctInconsistentes={data?.kpis?.taxaConclusao ? Math.round(100 - data.kpis.taxaConclusao) : 33}
+            totalRegistrosXml={data?.kpis?.totalRegistros}
           />
+          <div className="absolute top-3 right-3">
+            <button
+              onClick={handleForceRefresh}
+              disabled={isRefreshing || isFetching}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold bg-white/90 border border-gray-200 text-gray-600 rounded-lg shadow-sm hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              title="Limpar cache e buscar dados atualizados do SOC (inclui 2026)"
+            >
+              <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Atualizando...' : 'Atualizar Dados'}
+            </button>
+          </div>
         </div>
 
-        {/* ROW 2: Status XML (horizontal bar) + Eventos por Tipo (donut) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <StatusXmlChart data={data?.charts?.por_status} />
-          <EventosDonut data={data?.charts?.por_layout} />
-        </div>
+        {/* Registro XML - Pill Selector */}
+        <XmlPillsFilter
+          selectedXml={selectedXml}
+          onSelectXml={(xml) => setSelectedXml(xml)}
+        />
 
-        {/* ROW 3: Evolução Mensal (line) + Status por Mês (stacked bar) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <EvolucaoMensal data={data?.charts?.por_mes} />
-          <StatusPorMes data={data?.charts?.por_mes_status} />
-        </div>
+        {/* Chip de Filtro Ativo + Indicador de Loading */}
+        {(isFiltering || isFetching) && (
+          <div className="flex items-center gap-3 flex-wrap">
+            {isFetching && (
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-sky-600 bg-sky-50 border border-sky-200 rounded-full px-3 py-1 animate-pulse">
+                <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                Aplicando filtro...
+              </div>
+            )}
+            {selectedXml && (
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-sky-700 bg-sky-100 border border-sky-300 rounded-full px-3 py-1">
+                <SlidersHorizontal className="w-3 h-3" />
+                Filtro: <span className="font-bold">{selectedXml}</span>
+                <button
+                  onClick={() => setSelectedXml('')}
+                  className="ml-1 hover:text-red-500 transition-colors"
+                  title="Remover filtro"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+            {isFiltering && (
+              <button
+                onClick={clearAllFilters}
+                className="text-[11px] text-gray-500 hover:text-red-500 font-semibold underline transition-colors"
+              >
+                Limpar todos os filtros
+              </button>
+            )}
+          </div>
+        )}
 
-        {/* ROW 4: Comparativo Empresas + Não Concluídos por Empresa */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <ComparativoEmpresas data={data?.charts?.por_empresa} />
-          <NaoConcluidosEmpresa data={data?.charts?.por_empresa_status} />
-        </div>
+        {/* Overlay de loading suave sobre os dados */}
+        <div className={`transition-opacity duration-200 ${isFetching && !isLoading ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
 
-        {/* ROW 5: Detalhamento dos Eventos table */}
-        <DetalhamentoTable rows={data?.rows || []} />
-      </main>
+          {/* Status dos Arquivos XML (Cards Retangulares Coloridos) */}
+          <StatusXmlCards
+            kpis={data?.kpis}
+            totalRegistros={data?.kpis?.totalRegistros}
+          />
+
+          {/* Painel de Registros eSocial (Donut + Evolução Mensal + Status por Mês) */}
+          <PainelRegistrosSection
+            porLayout={data?.charts?.por_layout}
+            porMes={data?.charts?.por_mes}
+            porMesStatus={data?.charts?.por_mes_status}
+          />
+
+          {/* Análise de Registros por Empresa (Comparativo + Não Concluídos) */}
+          <AnaliseEmpresasSection
+            porEmpresaComparativo={data?.charts?.por_empresa_comparativo}
+            porEmpresaStatus={data?.charts?.por_empresa_status}
+          />
+
+          {/* Tabela Hierárquica: Ano > Mês > Evento > Empresa */}
+          <TabelaHierarquicaSection matrix={data?.matrix} />
+
+          {/* Eventos eSocial (Tabela Lista Detalhada / Drilldown) */}
+          <TabelaEventosDetalhados rows={data?.rows} />
+        </div>
+      </div>
     </div>
   );
 }
+

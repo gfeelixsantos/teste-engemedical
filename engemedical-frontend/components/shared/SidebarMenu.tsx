@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/utils";
 import {
   Activity, ChartNoAxesCombined, ChevronRight, FileCheck, FileText, Globe,
   HeartPulse, Home, LayoutGrid, Settings, Stethoscope, TrendingUp, UserX, Users,
-  CalendarDays, FolderOpen, ListChecks, Mail, ScanLine, Workflow,
+  CalendarDays, FolderOpen, ListChecks, Mail, ScanLine, Workflow, Server, UserMinus, FileArchive,
 } from "lucide-react";
 
 type MenuItem = { title: string; icon: typeof Home; path: string; color?: string };
@@ -18,17 +18,21 @@ export const SIDEBAR_GROUPS: readonly MenuGroup[] = [
     { title: "Atendimento", icon: Stethoscope, path: "/atendimento" },
     { title: "Prontuários", icon: FileText, path: "/prontuarios" },
     { title: "Recepção", icon: Users, path: "/recepcao" },
+    { title: "Relatórios", icon: ChartNoAxesCombined, path: "/relatorio" },
   ]},
-  { title: "Automação", icon: Workflow, items: [
+  { title: "Automações", icon: Workflow, items: [
     { title: "Coleta de Resultados", icon: ScanLine, path: "/automacao/coleta-resultados" },
+    { title: "Integração SFTP", icon: Server, path: "/sftp-integracao" },
+    { title: "Inativação em Massa", icon: UserMinus, path: "/automacao/inativacao-massa" },
+    { title: "Importação de Histórico", icon: FileArchive, path: "/automacao/importacao-historico" },
   ]},
-  { title: "Informativos", icon: ChartNoAxesCombined, items: [
+  { title: "Dashboards", icon: ChartNoAxesCombined, items: [
     { title: "Absenteísmo", icon: UserX, path: "/dashboards/absenteismo", color: "text-orange-500" },
     { title: "Convocação de exames", icon: Activity, path: "/dashboards/convocacao" },
     { title: "Documentos SST", icon: FileCheck, path: "/dashboards/documentos", color: "text-teal-500" },
     { title: "eSocial", icon: Globe, path: "/dashboards/esocial", color: "text-purple-500" },
     { title: "Gestão de vidas", icon: HeartPulse, path: "/dashboards/vidas", color: "text-green-500" },
-    { title: "Relatórios", icon: ChartNoAxesCombined, path: "/relatorio" },
+    { title: "Profissionais", icon: Users, path: "/dashboards/profissionais", color: "text-cyan-500" },
     { title: "Volumetria", icon: TrendingUp, path: "/dashboards/volumetria", color: "text-indigo-500" },
   ]},
   { title: "Serviços", icon: LayoutGrid, items: [
@@ -79,8 +83,12 @@ export function SidebarMenu({
 
   const openGroupAt = (title: string, element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
+    const group = SIDEBAR_GROUPS.find((g) => g.title === title);
+    const itemCount = group?.items.length ?? 4;
+    const estimatedHeight = Math.min(itemCount * 44 + 64, window.innerHeight - 24);
+    const top = Math.max(12, Math.min(rect.top, window.innerHeight - estimatedHeight - 12));
     setSubmenuPosition({
-      top: Math.max(12, Math.min(rect.top, window.innerHeight - 420)),
+      top,
       left: rect.right + 10,
     });
     updateOpenGroup(title);

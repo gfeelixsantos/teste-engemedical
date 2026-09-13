@@ -183,11 +183,11 @@ export const PREFERENCIAL_OPTIONS = [
 
 // Paleta de cores baseada no logo Engemedical
 export const COLOR_PALETTE = {
-  primary: "#0698C2", // ENGE Blue (do logo)
+  primary: "#28B1CF", // ENGE Blue (do logo)
   secondary: "#006B94", // CONNECT Teal (do logo)
-  accent: "#30D158", // MEDICAL Green (do logo)
-  light: "#E6F5FA", // Primary 100
-  dark: "#005C7A", // Deep teal escuro
+  accent: "#00C853", // MEDICAL Green (do logo)
+  light: "#EFFBFD", // Primary 100
+  dark: "#006782", // Deep teal escuro
   background: "#F2F9FC", // Primary 50
   text: "#0D1117", // Texto principal escuro
   gray: "#919AA0", // Cinza do logo (texto BRASIL)

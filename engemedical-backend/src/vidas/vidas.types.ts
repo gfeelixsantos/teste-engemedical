@@ -1,101 +1,117 @@
-// Raw type from SOC "Faturamento" (codigo 186376)
-export interface SocFaturamento {
-  CODIGO_EMPRESA: string;
-  EMPRESA: string;
-  CODIGO_UNIDADE: string;
-  UNIDADE: string;
-  CODIGO_PRODUTO: string;
-  PRODUTO: string;
-  MES_COBRANCA: string;
-  QUANTIDADE_VIDAS: string;
-  VALOR_VIDA: string;
-  VALOR_TOTAL: string;
-  QUANTIDADE_EVENTOS_ESOCIAL: string;
-  VALOR_EVENTO: string;
-}
-
-// Raw type from SOC "Preco" (codigo 218761)
-export interface SocPreco {
-  codigoEmpresa: string;
-  situacaoEmpresa: string;
-  nomeEmpresa: string;
-  estadoEmpresa: string;
-  cidadeEmpresa: string;
-  codigoUnidade: string;
-  nomeUnidade: string;
-  estadoUnidade: string;
-  cidadeUnidade: string;
-  codigoProduto: string;
-  nomeProduto: string;
-  codigoGrupoProduto: string;
-  nomeGrupoProduto: string;
-  exames: string;
-  valorProdutoPontual: string;
-  valorVidaMes: string;
-  valorMensal: string;
-  valorAnual: string;
-  valorTotalParcela: string;
-  valorMinimo: string;
-  minimoVidas: string;
-}
-
-// Registro mapeado de vidas
-export interface RegistroVida {
-  codigoEmpresa: string;
-  empresa: string;
-  codigoUnidade: string;
-  unidade: string;
-  codigoProduto: string;
-  produto: string;
-  mesCobranca: string;
-  qtdVidas: number;
-  valorVida: number;
-  valorTotal: number;
-  cidade: string;
-  estado: string;
-  subgrupo: string;
-}
-
-// KPIs do dashboard
 export interface VidasKPIs {
   totalRegistros: number;
-  totalEmpresas: number;
-  totalVidas: number;
-  valorTotalFaturado: number;
-  mediaVidasPorEmpresa: number;
-  empresasComPlano: number;
-  empresasSemPlano: number;
+  inativos: number;
+  ativos: number;
+  pendentes: number;
+  ferias: number;
+  afastados: number;
+  percentInconsistenciaBase: number;
+  totalConsistencias: number;
+  totalInconsistencias: number;
+  ultimaAtualizacao: string;
 }
 
-// Custo por vida
-export interface CustoPorVidaItem {
+export interface RegistroCadastralItem {
+  situacao: string;
+  quantidade: number;
+}
+
+export interface IndiceRegularizacaoItem {
+  categoria: string;
+  percentual: number;
+  tipo: 'Consistente' | 'Inconsistente';
+}
+
+export interface EmpresasPorPlanoItem {
+  categoria: string;
+  quantidade: number;
+}
+
+export interface RegistrosPorEmpresaItem {
   empresa: string;
-  qtdVidas: number;
-  valorVida: number;
-  valorTotal: number;
+  quantidade: number;
 }
 
-// Vidas por produto
-export interface VidasPorProdutoItem {
+export interface ConformidadeAtivacaoItem {
+  status: string;
+  percentual: number;
+  tipo: 'Consistente' | 'Inconsistente';
+}
+
+export interface PlanoProdutoItem {
   produto: string;
-  qtdVidas: number;
-  empresas: number;
+  quantidade: number;
 }
 
-// Dashboard completo
-export interface VidasDashboardData {
-  success: boolean;
+export interface ValorVidasEmpresaItem {
+  empresa: string;
+  valorTotal: number;
+  valorFormatado: string;
+}
+
+export interface VidasAtivasEmpresaItem {
+  empresa: string;
+  quantidade: number;
+}
+
+export interface ProdutoTabelaItem {
+  codigo: string;
+  empresa: string;
+  planoAtivacao: string;
+  produto: string;
+  subgrupo: string;
+  valorVidaMes: string;
+  vidasAtivas: number;
+}
+
+export interface EmpresaAtivacaoTabelaItem {
+  codigo: string;
+  empresa: string;
+  planoAtivacao: 'SIM' | 'NÃO';
+}
+
+export interface AnaliseEstruturalItem {
+  nome: string;
+  consistente: number;
+  inconsistente: number;
+}
+
+export interface PerfilDemografico {
+  masculino: number;
+  feminino: number;
+  faixaEtaria: { faixa: string; quantidade: number }[];
+  localidade: { cidadeUf: string; quantidade: number }[];
+}
+
+export interface VidasTabelaGeralItem {
+  produtoEmpresa: string;
+  consistenciaProdutoAtivacao: string;
+  situacao: string;
+  admissao: string;
+  demissao: string;
+  consistenciaAtivacaoColaborador: string;
+  subgrupo: string;
+  codigoEmpresa: string;
+  empresa: string;
+  nomeFuncionario?: string;
+  unidade?: string;
+  setor?: string;
+}
+
+export interface VidasDashboardResponse {
   kpis: VidasKPIs;
-  custoPorVida: CustoPorVidaItem[];
-  vidasPorProduto: VidasPorProdutoItem[];
-  vidasPorEmpresa: CustoPorVidaItem[];
-  registros: RegistroVida[];
-  meta: {
-    dataBase: string;
-    fonte: string;
-  };
-  filtros: {
-    empresas: string[];
-    produtos: string[];
-  };
+  registrosCadastrais: RegistroCadastralItem[];
+  indiceRegularizacao: IndiceRegularizacaoItem[];
+  empresasPorPlano: EmpresasPorPlanoItem[];
+  registrosPorEmpresa: RegistrosPorEmpresaItem[];
+  conformidadeAtivacao: ConformidadeAtivacaoItem[];
+  planoProdutos: PlanoProdutoItem[];
+  valorVidasEmpresas: ValorVidasEmpresaItem[];
+  vidasAtivasEmpresas: VidasAtivasEmpresaItem[];
+  produtosTabela: ProdutoTabelaItem[];
+  empresasAtivacaoTabela: EmpresaAtivacaoTabelaItem[];
+  analiseEmpresas: AnaliseEstruturalItem[];
+  analiseUnidades: AnaliseEstruturalItem[];
+  analiseSetores: AnaliseEstruturalItem[];
+  perfilDemografico: PerfilDemografico;
 }

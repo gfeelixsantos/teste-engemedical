@@ -1,57 +1,38 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { NEST_URL } from '@/config/constants';
+import { getDynamicNestUrl } from '@/config/constants';
 import { useState } from 'react';
-import KpiCards from './components/KpiCards';
-import VigenciaGeralDonut from './components/VigenciaGeralDonut';
-import DocumentosPorTipo from './components/DocumentosPorTipo';
-import VigenciaPorUnidade from './components/VigenciaPorUnidade';
-import StatusDonut from './components/StatusDonut';
-import DetalhamentoTable from './components/DetalhamentoTable';
-import DocumentosFilters from './components/DocumentosFilters';
+import { HeaderKpisDocumentos } from './components/HeaderKpisDocumentos';
+import { VigenciaUnidadeCardsSection } from './components/VigenciaUnidadeCardsSection';
+import { DocumentosGraficosGerais } from './components/DocumentosGraficosGerais';
+import DetalhamentoDocumentosTable from './components/DetalhamentoDocumentosTable';
 import type { DocumentosDashboardData } from './types';
 
 function DashboardSkeleton() {
   return (
     <div className="space-y-6">
       {/* KPI skeleton */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <div className="w-10 h-10 bg-gray-200 rounded-lg animate-pulse mb-2" />
-            <div className="h-7 w-16 bg-gray-200 rounded animate-pulse" />
-            <div className="h-3 w-20 bg-gray-100 rounded animate-pulse mt-2" />
+      <div className="h-20 bg-white rounded-xl border border-gray-200 animate-pulse shadow-sm" />
+      {/* Charts skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mb-3" />
+          <div className="h-[280px] bg-gray-100 rounded animate-pulse" />
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mb-3" />
+          <div className="h-[280px] bg-gray-100 rounded animate-pulse" />
+        </div>
+      </div>
+      {/* Donut row skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+            <div className="h-4 w-36 bg-gray-200 rounded animate-pulse mb-3 mx-auto" />
+            <div className="h-52 bg-gray-100 rounded animate-pulse" />
           </div>
         ))}
-      </div>
-      {/* Filters skeleton */}
-      <div className="flex gap-3">
-        <div className="h-8 w-40 bg-gray-200 rounded animate-pulse" />
-        <div className="h-8 w-40 bg-gray-200 rounded animate-pulse" />
-        <div className="h-8 w-40 bg-gray-200 rounded animate-pulse" />
-      </div>
-      {/* Charts row 1 skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mb-3" />
-          <div className="h-[300px] bg-gray-100 rounded animate-pulse" />
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mb-3" />
-          <div className="h-[300px] bg-gray-100 rounded animate-pulse" />
-        </div>
-      </div>
-      {/* Charts row 2 skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mb-3" />
-          <div className="h-[300px] bg-gray-100 rounded animate-pulse" />
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mb-3" />
-          <div className="h-[300px] bg-gray-100 rounded animate-pulse" />
-        </div>
       </div>
       {/* Table skeleton */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
@@ -67,36 +48,24 @@ function DashboardSkeleton() {
 }
 
 export default function DocumentosPage() {
-  const [empresaSel, setEmpresaSel] = useState('');
-  const [unidadeSel, setUnidadeSel] = useState('');
-  const [tipoSel, setTipoSel] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const { data, isLoading, error } = useQuery<DocumentosDashboardData>({
     queryKey: ['documentos-dashboard'],
     queryFn: async () => {
-      const res = await fetch(`${NEST_URL}/documentos/dashboard`);
+      const res = await fetch(`${getDynamicNestUrl()}documentos/dashboard`);
       if (!res.ok) throw new Error('Erro ao carregar dados');
       return res.json();
     },
     staleTime: 15 * 60 * 1000,
   });
 
-  // Filtrar registros
-  const filteredRegistros = data?.registros?.filter((r) => {
-    if (empresaSel && r.empresa !== empresaSel) return false;
-    if (unidadeSel && r.unidade !== unidadeSel) return false;
-    if (tipoSel && r.tipoDocumento !== tipoSel) return false;
-    return true;
-  });
-
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-[1400px] mx-auto px-4 py-6 space-y-6">
-        {/* Title */}
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">Documentos SST</h1>
-          <p className="text-sm text-gray-500 mt-1">Controle de vencimento de documentos PGR e PCMSO</p>
-        </div>
+
+        {/* Loading skeleton */}
+        {isLoading && <DashboardSkeleton />}
 
         {/* Error */}
         {error && (
@@ -105,51 +74,48 @@ export default function DocumentosPage() {
           </div>
         )}
 
-        {/* Loading skeleton */}
-        {isLoading && <DashboardSkeleton />}
-
-        {!isLoading && data && (
+        {/* Dashboard — falls back gracefully even when data is undefined */}
+        {!isLoading && (
           <>
-            {/* KPIs - Row 1: 6 cards in 3x2 grid */}
-            <KpiCards kpis={data.kpis} />
+            {/* Row 1: Header KPIs */}
+            <HeaderKpisDocumentos kpis={data?.kpis} />
 
-            {/* Filters */}
-            <DocumentosFilters
-              empresas={data.filtros?.empresas || []}
-              unidades={data.filtros?.unidades || []}
-              tipos={data.filtros?.tipos || []}
-              empresaSel={empresaSel}
-              unidadeSel={unidadeSel}
-              tipoSel={tipoSel}
-              onChange={(e, u, t) => { setEmpresaSel(e); setUnidadeSel(u); setTipoSel(t); }}
+            {/* Row 2: Vigência PCMSO + PGR por Unidade (barras + mini-cards) */}
+            <VigenciaUnidadeCardsSection
+              pcmso={data?.vigenciaPorUnidadePCMSO}
+              pgr={data?.vigenciaPorUnidadePGR}
+              pcmsoKpis={
+                data
+                  ? {
+                      vigentes: data.vigenciaPorUnidadePCMSO?.reduce((s, i) => s + i.vigentes, 0) ?? 0,
+                      aVencer: data.vigenciaPorUnidadePCMSO?.reduce((s, i) => s + i.aVencer, 0) ?? 0,
+                      vencidos: data.vigenciaPorUnidadePCMSO?.reduce((s, i) => s + i.vencidos, 0) ?? 0,
+                    }
+                  : undefined
+              }
+              pgrKpis={
+                data
+                  ? {
+                      vigentes: data.vigenciaPorUnidadePGR?.reduce((s, i) => s + i.vigentes, 0) ?? 0,
+                      aVencer: data.vigenciaPorUnidadePGR?.reduce((s, i) => s + i.aVencer, 0) ?? 0,
+                      vencidos: data.vigenciaPorUnidadePGR?.reduce((s, i) => s + i.vencidos, 0) ?? 0,
+                    }
+                  : undefined
+              }
             />
 
-            {/* Row 2: PCMSO por Unidade + PGR por Unidade (separate horizontal bar charts) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <VigenciaPorUnidade
-                data={data.vigenciaPorUnidadePCMSO}
-                title="Vigência do PCMSO por Unidade"
-              />
-              <VigenciaPorUnidade
-                data={data.vigenciaPorUnidadePGR}
-                title="Vigência do PGR por Unidade"
-              />
-            </div>
+            {/* Row 3: Donut Vigência + Bar Nº Docs + Donut Status */}
+            <DocumentosGraficosGerais
+              vigenciaGeral={data?.vigenciaGeral}
+              vigenciaPorTipo={data?.vigenciaPorTipo}
+              statusDocumentos={data?.statusDocumentos}
+            />
 
-            {/* Row 3: Vigência dos Contratos donut + Documentos por Tipo bar */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <VigenciaGeralDonut data={data.vigenciaGeral} />
-              <DocumentosPorTipo data={data.vigenciaPorTipo} />
-            </div>
-
-            {/* Row 4: Status dos Documentos donut */}
-            <StatusDonut data={data.statusDocumentos} />
-
-            {/* Table */}
-            <DetalhamentoTable data={filteredRegistros} />
+            {/* Row 4: Detalhamento dos documentos - tabela completa */}
+            <DetalhamentoDocumentosTable data={data?.registros} />
 
             {/* Footer */}
-            {data.meta && (
+            {data?.meta && (
               <div className="text-xs text-gray-400 text-right">
                 Fonte: {data.meta.fonte} | Base: {new Date(data.meta.dataBase).toLocaleString('pt-BR')}
               </div>

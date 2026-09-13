@@ -43,6 +43,27 @@ describe('ExamMatcherService', () => {
     return service;
   }
 
+  it('starts without AI credentials configured', () => {
+    const previousAzureKey = process.env.AZURE_OPENAI_API_KEY;
+    const previousGroqKey = process.env.GROQ_API_KEY;
+
+    delete process.env.AZURE_OPENAI_API_KEY;
+    delete process.env.GROQ_API_KEY;
+
+    expect(() => new ExamMatcherService()).not.toThrow();
+
+    if (previousAzureKey === undefined) {
+      delete process.env.AZURE_OPENAI_API_KEY;
+    } else {
+      process.env.AZURE_OPENAI_API_KEY = previousAzureKey;
+    }
+    if (previousGroqKey === undefined) {
+      delete process.env.GROQ_API_KEY;
+    } else {
+      process.env.GROQ_API_KEY = previousGroqKey;
+    }
+  });
+
   it('accepts lab report with variable nomenclature', async () => {
     const service = createServiceWithAiResponse([
       {

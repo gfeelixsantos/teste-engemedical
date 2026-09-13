@@ -28,6 +28,7 @@ export type SftpIntegratorFileRecord = {
   remotePath: string;
   remoteName: string;
   localPath: string;
+  r2Key?: string;
   size: number;
   sha256: string;
   remoteMtime: Date | null;

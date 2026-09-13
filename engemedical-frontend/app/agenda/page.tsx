@@ -8,7 +8,7 @@ import { ptBR } from "date-fns/locale/pt-BR";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Card, CardBody, Select, SelectItem, Button, useDisclosure, Tooltip, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
 import { Truck, Users } from "lucide-react";
-import { HeaderApp } from "@/components/shared/HeaderApp";
+import { AppShell } from "@/components/shared/AppShell";
 import { CommitmentModal } from "@/components/shared/CommitmentModal";
 import { createCommitment, getCommitments, updateCommitment, deleteCommitment } from "@/lib/commitments/commitments-api";
 import { MetricsDashboard } from "@/components/analytics/dashboard";
@@ -321,9 +321,7 @@ export default function AgendaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <HeaderApp onLogout={() => router.push("/")} />
-      
+    <AppShell showSidebar={false} onLogout={() => router.push("/")}>
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -980,6 +978,6 @@ export default function AgendaPage() {
           </ModalContent>
         </Modal>
       </main>
-    </div>
+    </AppShell>
   );
 }

@@ -646,7 +646,7 @@ export default function UnifiedProntuarioPage() {
   const showLoadMoreIndicator = records.length >= 40 && hasMoreRecords;
 
   return (
-    <div className="min-h-screen flex flex-col bg-default-50 antialiased">
+    <div className="flex flex-col h-screen overflow-hidden bg-brand-surface antialiased">
       <HeaderApp
         children={<h1 className="text-lg">Gestão de Prontuários</h1>}
         onLogout={logout}

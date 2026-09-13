@@ -53,7 +53,7 @@ import SenhasEstatisticas, {
 } from "@/app/recepcao/components/SenhasEstatisticas";
 import TicketGroupFloatingBar from "@/app/recepcao/components/TicketGroupFloatingBar";
 import { useStatistics, StatisticsResponseDto } from "@/hooks/useStatictics";
-import EngemedicalLoading from "@/components/shared/EngemedicalLoading";
+import AppLoading from "@/components/shared/AppLoading";
 import EngemedicalCircularLoading from "@/components/shared/EngemedicalCircularLoading";
 
 // Componente principal
@@ -493,11 +493,11 @@ const RecepcaoPage: React.FC = () => {
   }, [tickets, empreparacao, calcularEstatisticas]);
 
   if (!user) {
-    return <EngemedicalLoading />;
+    return <AppLoading title="Carregando recepção" description="Preparando dados..." />;
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col h-screen overflow-hidden bg-brand-surface">
       <HeaderApp
         onLogout={() => {
           logout();
@@ -516,7 +516,7 @@ const RecepcaoPage: React.FC = () => {
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <motion.aside
           animate={{ x: 0, opacity: 1 }}
-          className="w-60 bg-red shadow-sm"
+          className="w-64 shrink-0 bg-brand-navy shadow-sm"
           initial={{ x: -80, opacity: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
         >
@@ -541,7 +541,7 @@ const RecepcaoPage: React.FC = () => {
 
         <main
           aria-label="Conteúdo principal da recepção"
-          className="flex-1 overflow-y-auto p-6 sm:p-8 lg:p-10 bg-gray-50"
+          className="flex-1 overflow-y-auto bg-brand-surface p-6 sm:p-8 lg:p-10"
         >
           {conectado && socket ? (
             isLoading ? (

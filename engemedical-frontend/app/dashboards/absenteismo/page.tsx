@@ -1,16 +1,16 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { NEST_URL } from '@/config/constants';
-import { KpiCards } from './components/KpiCards';
-import { EvolucaoMensal } from './components/EvolucaoMensal';
-import { CustosEmpresa } from './components/CustosEmpresa';
-import { CidsChart } from './components/CidsChart';
-import { PorTipoAtestado } from './components/PorTipoAtestado';
-import { DetalhesTable } from './components/DetalhesTable';
-import { AbsenteismoFilters } from './components/AbsenteismoFilters';
-import type { AbsenteismoDashboardData } from './types';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getDynamicNestUrl } from '@/config/constants';
+import { HeaderKpisAbsenteismo } from './components/HeaderKpisAbsenteismo';
+import { IndiceImpactoFinanceiroSection } from './components/IndiceImpactoFinanceiroSection';
+import { AbsenteismoGeralSection } from './components/AbsenteismoGeralSection';
+import { DiasSemanaDemograficoSection } from './components/DiasSemanaDemograficoSection';
+import { UnidadeSetorCargoSection } from './components/UnidadeSetorCargoSection';
+import { GrupoPatologicoCidSection } from './components/GrupoPatologicoCidSection';
+import { TabelaGeralAbsenteismo } from './components/TabelaGeralAbsenteismo';
+import type { AbsenteismoDashboardData } from './types';
 
 export default function AbsenteismoPage() {
   const [dataInicio, setDataInicio] = useState('');
@@ -22,70 +22,72 @@ export default function AbsenteismoPage() {
       const params = new URLSearchParams();
       if (dataInicio) params.set('dataInicio', dataInicio);
       if (dataFim) params.set('dataFim', dataFim);
-      const res = await fetch(`${NEST_URL}/absenteismo/dashboard?${params}`);
+      const res = await fetch(`${getDynamicNestUrl()}absenteismo/dashboard?${params}`);
       if (!res.ok) throw new Error('Erro ao carregar dados');
       return res.json();
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow p-6 max-w-md">
-          <h2 className="text-lg font-semibold text-red-600 mb-2">Erro</h2>
-          <p className="text-gray-600">Erro ao carregar dados de absenteismo</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Análise de Índice de Absenteísmo e Impacto Financeiro
-          </h1>
-        </div>
+    <div className="min-h-screen bg-slate-50/50 py-6 px-4 md:px-8">
+      <div className="max-w-7xl mx-auto space-y-4">
+        {/* Error notification */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+            Erro ao carregar dados de absenteísmo. Verifique a conexão com o servidor.
+          </div>
+        )}
 
-        {/* ROW 1: 6 KPI cards — 3×2 grid */}
-        <KpiCards kpis={data?.kpis} isLoading={isLoading} />
+        {/* 1: Header Branding + 6 KPIs do Topo */}
+        <HeaderKpisAbsenteismo kpis={data?.kpis} isLoading={isLoading} />
 
-        {/* ROW 2: Evolução Mensal (left) + Custo por Empresa (right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <EvolucaoMensal data={data?.porMes} isLoading={isLoading} />
-          <CustosEmpresa data={data?.porEmpresa} isLoading={isLoading} />
-        </div>
+        {/* 2: Análise de Índice de Absenteísmo e Impacto Financeiro */}
+        <IndiceImpactoFinanceiroSection
+          kpis={data?.kpis}
+          porEmpresa={data?.porEmpresa}
+          isLoading={isLoading}
+        />
 
-        {/* ROW 3: Distribuição CID donut (left) + Por Tipo Atestado (right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <CidsChart data={data?.porCid} isLoading={isLoading} />
-          <PorTipoAtestado data={data?.porTipo} isLoading={isLoading} />
-        </div>
+        {/* 3: Análise de Absenteísmo Geral (Período + Gênero F/M) */}
+        <AbsenteismoGeralSection
+          porMes={data?.porMes}
+          atestadosFeminino={data?.kpis?.atestadosFeminino}
+          atestadosMasculino={data?.kpis?.atestadosMasculino}
+          isLoading={isLoading}
+        />
 
-        {/* Filters row */}
-        <div className="mt-6">
-          <AbsenteismoFilters
-            empresas={data?.empresas || []}
-            dataInicio={dataInicio}
-            dataFim={dataFim}
-            onDateChange={(ini, fim) => {
-              setDataInicio(ini);
-              setDataFim(fim);
-            }}
-          />
-        </div>
+        {/* 4: Dias Perdidos por Dia da Semana e Distribuição Demográfica */}
+        <DiasSemanaDemograficoSection
+          diasSemana={data?.diasPorDiaSemana}
+          porFuncionario={data?.porFuncionario}
+          porFaixaEtariaSexo={data?.porFaixaEtariaSexo}
+          porFaixaDiasPerdidos={data?.porFaixaDiasPerdidos}
+          isLoading={isLoading}
+        />
 
-        {/* Table with pagination */}
-        <div className="mt-6">
-          <DetalhesTable
-            data={data?.detalhes}
-            total={data?.totalRegistros}
-            isLoading={isLoading}
-          />
-        </div>
-      </main>
+        {/* 5: Detalhamento por Unidade, Setor e Cargo */}
+        <UnidadeSetorCargoSection
+          porUnidade={data?.porUnidade}
+          porSetor={data?.porSetor}
+          porCargo={data?.porCargo}
+          isLoading={isLoading}
+        />
+
+        {/* 6: Análise de Absenteísmo por Grupo Patológico (CID e Treemap) */}
+        <GrupoPatologicoCidSection
+          porCid={data?.porCid}
+          porCidGrupo={data?.porCidGrupo}
+          isLoading={isLoading}
+        />
+
+        {/* 7: Tabela Geral Detalhada (12 Colunas) */}
+        <TabelaGeralAbsenteismo
+          data={data?.detalhes}
+          total={data?.totalRegistros}
+          isLoading={isLoading}
+        />
+      </div>
     </div>
   );
 }

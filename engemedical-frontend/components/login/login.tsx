@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -111,11 +111,11 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({ isLoading, disabled }) => (
     {isLoading ? (
       <>
         <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-        Entrando...
+        Conectando...
       </>
     ) : (
       <>
-        Entrar
+        Conectar
         <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
       </>
     )}
@@ -156,13 +156,38 @@ const LoginTitle = ({ title }: { title: string }) => {
 };
 
 const TypewriterTitle = ({ text }: { text: string }) => {
+  const [visibleText, setVisibleText] = useState("");
+
+  useEffect(() => {
+    setVisibleText("");
+    let index = 0;
+    const timer = window.setInterval(() => {
+      index += 1;
+      setVisibleText(text.slice(0, index));
+
+      if (index >= text.length) {
+        window.clearInterval(timer);
+      }
+    }, 55);
+
+    return () => window.clearInterval(timer);
+  }, [text]);
+
   return (
     <div className="text-center">
       <span
         aria-label={text}
-        className="typewriter-text min-h-[4.1rem] text-lg font-light tracking-wide leading-tight text-white/65 drop-shadow-[0_6px_20px_rgba(255,255,255,0.08)] sm:min-h-[4.9rem] sm:text-xl"
+        className="typewriter-text inline-block min-h-[4.1rem] text-lg font-light tracking-wide leading-tight text-white/65 drop-shadow-[0_6px_20px_rgba(255,255,255,0.08)] sm:min-h-[4.9rem] sm:text-xl"
       >
-        {text}
+        {visibleText}
+        <motion.span
+          aria-hidden="true"
+          animate={{ opacity: [1, 0.2, 1] }}
+          className="ml-1 inline-block text-brand-lime"
+          transition={{ duration: 0.8, repeat: Infinity }}
+        >
+          |
+        </motion.span>
       </span>
     </div>
   );
@@ -505,7 +530,7 @@ export default function LoginPage() {
   const { title, subtitle } = renderTitle();
 
   return (
-    <main className="min-h-screen bg-brand-surface text-slate-900">
+    <main className="min-h-screen bg-white text-slate-900">
       <div className="grid min-h-screen lg:grid-cols-[minmax(0,1.05fr)_minmax(460px,0.95fr)]">
         <BrandPanel />
 
