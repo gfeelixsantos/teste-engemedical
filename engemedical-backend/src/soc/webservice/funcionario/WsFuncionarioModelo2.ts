@@ -167,6 +167,9 @@ export async function WsFuncionarioModelo2(
   const auditObservation =
     resolvedOptions.auditObservation ||
     `Inativado via automação Engemedical Connect em ${new Date().toLocaleString('pt-BR')}`;
+  const codigoCategoriaESocial = String(
+    employee.CODCATEGORIAESOCIAL || employee.codigoCategoriaESocial || '101',
+  ).trim() || '101';
   const hierarchyUpdate = resolvedOptions.hierarchyUpdate;
   const hierarchyBeforeFuncionario = hierarchyUpdate
     ? `
@@ -233,7 +236,7 @@ export async function WsFuncionarioModelo2(
               <tipoBuscaEmpresa>CODIGO_SOC</tipoBuscaEmpresa>
               <tipoContratacao>CLT</tipoContratacao>
               <observacaoFuncionario>${escapeXml(auditObservation)}</observacaoFuncionario>
-              <codigoCategoriaESocial></codigoCategoriaESocial>
+              <codigoCategoriaESocial>${escapeXml(codigoCategoriaESocial)}</codigoCategoriaESocial>
               <tipoVinculo>EMPREGATICIO</tipoVinculo>
               <tipoAdmissao>ADMISSAO</tipoAdmissao>
             </funcionarioWsVo>

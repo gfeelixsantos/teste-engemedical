@@ -166,6 +166,13 @@ export class SocExportService {
         const responseDecode = new TextDecoder('iso-8859-1').decode(
           responseBuff,
         );
+        const trimmed = responseDecode.trim();
+        if (!trimmed.startsWith('[') && !trimmed.startsWith('{')) {
+          this.logger.warn(
+            `SOC ficha todas empresas retornou texto em vez de JSON (${trimmed.slice(0, 120)})`,
+          );
+          continue;
+        }
         let responseJson: ResultadoDataFichaExame[] =
           JSON.parse(responseDecode);
 

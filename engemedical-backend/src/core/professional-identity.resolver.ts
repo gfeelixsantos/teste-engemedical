@@ -32,6 +32,7 @@ export function normalizeUserInfo(
   return {
     codigo,
     nome,
+    email: normalizeString((user as any).email).toLowerCase(),
     cpf: normalizeString(user.cpf),
     conselho: normalizeString(user.conselho),
     ufconselho: normalizeString(user.ufconselho),

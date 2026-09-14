@@ -11,8 +11,8 @@ async function context() {
 
 export async function GET() {
   try {
-    const { bearerToken } = await context();
-    if (!bearerToken) return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
+    const { bearerToken, authUser } = await context();
+    if (!bearerToken || !authUser) return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
     const headers = { Authorization: `Bearer ${bearerToken}` };
     const [companies, runs] = await Promise.all([
       fetch(`${NEST_URL}soc/empresas`, { headers }),
@@ -27,9 +27,29 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { bearerToken } = await context();
+    const { bearerToken, authUser } = await context();
     if (!bearerToken) return NextResponse.json({ message: "Não autenticado" }, { status: 401 });
     const body = await req.json();
+    if (body.action === "verify") {
+      const codes = Array.isArray(body.companyCodes) ? body.companyCodes : [];
+      if (!codes.length) return NextResponse.json({ message: "Selecione ao menos uma empresa" }, { status: 400 });
+      const results = [];
+      for (const companyCode of codes.slice(0, 10)) {
+        const response = await fetch(`${NEST_URL}soc/inactivation/preview`, { method: "POST", headers: { Authorization: `Bearer ${bearerToken}`, "x-auth-user": JSON.stringify(authUser), "Content-Type": "application/json" }, body: JSON.stringify({ companyCodes: [String(companyCode)] }) });
+        results.push({ companyCode: String(companyCode), ...(await response.json()) });
+      }
+      return NextResponse.json({ results });
+    }
+    if (body.action === "execute") {
+      const codes = Array.isArray(body.companyCodes) ? body.companyCodes : [];
+      if (!codes.length) return NextResponse.json({ message: "Selecione ao menos uma empresa" }, { status: 400 });
+      const response = await fetch(`${NEST_URL}soc/inactivation/manual`, { method: "POST", headers: { Authorization: `Bearer ${bearerToken}`, "x-auth-user": JSON.stringify(authUser), "Content-Type": "application/json" }, body: JSON.stringify({ companyCodes: codes, dryRun: body.dryRun !== false }) });
+      return NextResponse.json(await response.json(), { status: response.status });
+    }
+    if (body.action === "cancel" && body.executionId) {
+      const response = await fetch(`${NEST_URL}soc/inactivation/${encodeURIComponent(body.executionId)}/cancel`, { method: "POST", headers: { Authorization: `Bearer ${bearerToken}` } });
+      return NextResponse.json(await response.json(), { status: response.status });
+    }
     if (body.action !== "download-report" || !body.runId) return NextResponse.json({ message: "Ação inválida" }, { status: 400 });
     const response = await fetch(`${NEST_URL}soc/inactivation/runs/${encodeURIComponent(body.runId)}/report`, { headers: { Authorization: `Bearer ${bearerToken}` } });
     if (!response.ok) return NextResponse.json({ message: "Relatório ainda não disponível" }, { status: response.status });

@@ -11,6 +11,7 @@ import {
 import { AppShell } from "@/components/shared/AppShell";
 import AppLoading from "@/components/shared/AppLoading";
 import { AutomationPageHeader } from "@/components/shared/AutomationPageHeader";
+import { PremiumFeedbackModal, type PremiumFeedbackVariant } from "@/components/shared/PremiumFeedbackModal";
 type Company = {
   CODIGO?: string | number;
   RAZAOSOCIAL?: string;
@@ -45,6 +46,8 @@ export default function InativacaoMassaPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<any[]>([]);
+  const [executionId, setExecutionId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ open: boolean; variant: PremiumFeedbackVariant; title: string; message: string; detail?: string; primaryLabel?: string; secondaryLabel?: string; onPrimaryAction?: () => void }>({ open: false, variant: "info", title: "", message: "" });
   useEffect(() => {
     fetch("/api/automacao/inativacao-massa")
       .then(async (r) => {
@@ -92,6 +95,18 @@ export default function InativacaoMassaPage() {
       setBusy(false);
     }
   };
+  const execute = async () => {
+    if (!selected.length) return;
+    setFeedback({ open: true, variant: "warning", title: "Executar inativação no SOC?", message: "A execução real enviará chamadas SOAP ao SOC para as empresas selecionadas.", detail: "Essa ação altera os registros no SOC. Confirme somente após revisar a verificação.", primaryLabel: "Executar agora", secondaryLabel: "Voltar", onPrimaryAction: () => { setFeedback((f) => ({ ...f, open: false })); void executeConfirmed(); } });
+  };
+  const executeConfirmed = async () => {
+    setBusy(true); setError(null);
+    try {
+      const r = await fetch("/api/automacao/inativacao-massa", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "execute", companyCodes: selected, dryRun: false }) });
+      const p = await r.json(); if (!r.ok) throw new Error(p.message); setExecutionId(p.executionId ?? null); setFeedback({ open: true, variant: "success", title: "Processamento iniciado", message: "A inativação foi encaminhada para processamento.", detail: "Você pode acompanhar a execução nesta página e cancelá-la enquanto houver registros pendentes." });
+    } catch (e) { setError(e instanceof Error ? e.message : "Falha na execução"); } finally { setBusy(false); }
+  };
+  const cancel = async () => { if (!executionId) return; await fetch("/api/automacao/inativacao-massa", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "cancel", executionId }) }); setExecutionId(null); setBusy(false); };
   const download = async (id: string) => {
     const r = await fetch("/api/automacao/inativacao-massa", {
       method: "POST",
@@ -105,7 +120,8 @@ export default function InativacaoMassaPage() {
     a.click();
   };
   return (
-    <AppShell
+    <>
+      <AppShell
       onLogout={() => {
         localStorage.removeItem("user");
         router.push("/");
@@ -222,6 +238,14 @@ export default function InativacaoMassaPage() {
                         "Verificar"
                       )}
                     </button>
+                    <button
+                      disabled={!selected.length || busy}
+                      onClick={execute}
+                      className="ml-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold text-red-700 disabled:opacity-40"
+                    >
+                      Executar inativação
+                    </button>
+                    {executionId && <button onClick={cancel} className="ml-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-bold text-amber-700">Cancelar processamento</button>}
                   </div>
                   {selected.length ? (
                     selected.map((code) => {
@@ -238,7 +262,7 @@ export default function InativacaoMassaPage() {
                             </b>
                             <span className="text-xs text-brand-muted">
                               {r
-                                ? `Verificado · ${r.funcionarios?.total ?? 0} colaborador(es)`
+                                ? `Verificado · ${r.details?.totalFuncionariosEncontrados ?? 0} colaborador(es)`
                                 : "Aguardando verificação"}
                             </span>
                           </div>
@@ -303,6 +327,18 @@ export default function InativacaoMassaPage() {
           )}
         </div>
       </div>
-    </AppShell>
+      </AppShell>
+      <PremiumFeedbackModal
+        isOpen={feedback.open}
+        variant={feedback.variant}
+        title={feedback.title}
+        message={feedback.message}
+        detail={feedback.detail}
+        primaryLabel={feedback.primaryLabel}
+        secondaryLabel={feedback.secondaryLabel}
+        onPrimaryAction={feedback.onPrimaryAction}
+        onClose={() => setFeedback((f) => ({ ...f, open: false }))}
+      />
+    </>
   );
 }

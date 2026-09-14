@@ -11,6 +11,7 @@ export type IUserWebsocket = {
 
 export interface IUserInfo {
   nome: string;
+  email?: string;
   cpf: string;
   perfil: string;
   codigo: string;

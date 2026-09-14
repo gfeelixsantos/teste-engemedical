@@ -39,8 +39,9 @@ import { GoogleDriveService } from 'src/google/drive/google-drive.service';
 import { FuncionarioEntity } from '../mongo/model/FuncionarioEntity';
 import { WsResultadoExame } from './webservice/resultadoExame/WsResultadoExame';
 import { WsFuncionarioModelo2 } from './webservice/funcionario/WsFuncionarioModelo2';
-import { CloudflareR2Service } from '../sftp-integrator/sftp-r2-storage.service';
+import { R2SftpReportService } from '../sftp-integrator/sftp-r2-report.service';
 import { generateInactivationReportExcel } from './inactivation-report-excel.generator';
+import { SocInactivationCancellationRegistry } from './soc-inactivation-cancellation';
 import {
   buildSocExportDataUrl,
   getSocExportCredentials,
@@ -74,7 +75,8 @@ export class SocService {
     private readonly googleDriveService: GoogleDriveService,
     private readonly emailService: EmailService,
     private readonly logger: StructuredLogger,
-    @Optional() private readonly r2Service?: CloudflareR2Service,
+    @Optional() private readonly r2Service?: R2SftpReportService,
+    @Optional() private readonly cancellation?: SocInactivationCancellationRegistry,
   ) {
     this.logger.setContext(SocService.name);
   }
@@ -1372,7 +1374,14 @@ export class SocService {
   async inactivateEmployeesFlow(options?: {
     dryRun?: boolean;
     limitCompanies?: number;
+    companyCodes?: string[];
+    executionId?: string;
     trigger?: 'cron' | 'manual';
+    reportRecipients?: string[];
+    initiatedBy?: string;
+    persist?: boolean;
+    sendReport?: boolean;
+    returnDetails?: boolean;
   }): Promise<{
     success: boolean;
     message: string;
@@ -1381,6 +1390,7 @@ export class SocService {
   }> {
     const dryRun = options?.dryRun ?? false;
     const limitCompanies = options?.limitCompanies;
+    const companyCodes = options?.companyCodes;
     const trigger = options?.trigger ?? 'cron';
     const startTime = new Date();
 
@@ -1419,6 +1429,11 @@ export class SocService {
         (a.RAZAOSOCIAL || '').localeCompare(b.RAZAOSOCIAL || ''),
       );
 
+      if (companyCodes?.length) {
+        const allowed = new Set(companyCodes.map(String));
+        empresasAlvo = empresasAlvo.filter((empresa) => allowed.has(String(empresa.CODIGO)));
+      }
+
       if (limitCompanies && limitCompanies > 0) {
         this.logger.log(
           `[inactivateEmployeesFlow] Limitando processamento para as primeiras ${limitCompanies} empresas.`,
@@ -1432,6 +1447,10 @@ export class SocService {
       );
 
       for (const empresa of empresasAlvo) {
+        if (options?.executionId && this.cancellation?.isCancelled(options.executionId)) {
+          this.logger.warn(`[inactivateEmployeesFlow] Cancelamento solicitado para ${options.executionId}`);
+          break;
+        }
         const empStats = {
           codigo: empresa.CODIGO,
           razaoSocial: empresa.RAZAOSOCIAL || empresa.CODIGO,
@@ -1513,14 +1532,29 @@ export class SocService {
             );
 
             for (const funcionario of funcionarios) {
+              if (options?.executionId && this.cancellation?.isCancelled(options.executionId)) {
+                this.logger.warn(`[inactivateEmployeesFlow] Cancelamento antes do funcionário ${funcionario.CODIGO}`);
+                break;
+              }
               try {
                 this.logger.log(
                   `[inactivateEmployeesFlow] Inativando: ${funcionario.NOME} (${funcionario.CODIGO})`,
                 );
 
-                await this.withRetry(() =>
-                  WsFuncionarioModelo2(funcionario, 'INATIVO'),
+                const soapResult = await this.withRetry(() =>
+                  WsFuncionarioModelo2(funcionario, {
+                    overwriteSituacao: 'INATIVO',
+                    auditObservation: `Inativação realizada via Engemedical Connect por ${options?.initiatedBy || 'rotina automática'}, em ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.`,
+                  }),
                 );
+
+                if (!soapResult.data.success) {
+                  throw new Error(
+                    soapResult.data.error ||
+                      soapResult.data.descricaoErro ||
+                      'SOC recusou a atualização do funcionário',
+                  );
+                }
 
                 empStats.inativados++;
                 stats.totalFuncionariosInativados++;
@@ -1580,22 +1614,25 @@ export class SocService {
 
       // Envia relatório por e-mail
       let executionId: ObjectId | undefined;
-      if (this.mongoService.db) {
+      if (options?.persist !== false && this.mongoService.db) {
         const execution = await this.mongoService.db.collection('soc_inactivation_runs').insertOne({
           status: 'completed', trigger, dryRun, startedAt: startTime, finishedAt: endTime,
           durationMs, ...stats, totalErros: stats.erros.length, createdAt: endTime, updatedAt: endTime,
         });
         executionId = execution.insertedId;
-      } else {
+      } else if (options?.persist !== false) {
         this.logger.warn('[inactivateEmployeesFlow] MongoDB indisponível; execução não será persistida.');
       }
-      await this.sendInactivationReport(stats, startTime, endTime, executionId, dryRun);
+      if (options?.sendReport !== false) {
+        await this.sendInactivationReport(stats, startTime, endTime, executionId, dryRun, options?.reportRecipients);
+      }
 
       return {
         success: true,
         message: `${dryRun ? 'Dry run' : 'Fluxo'} concluído com sucesso em ${durationMs}ms`,
         totalEmpresas: stats.totalEmpresasProcessadas,
         totalInativados: stats.totalFuncionariosInativados,
+        ...(options?.returnDetails ? { details: stats } : {}),
       };
     } catch (error) {
       this.logger.error(
@@ -1658,8 +1695,9 @@ export class SocService {
     endTime: Date,
     executionId?: ObjectId,
     dryRun = false,
+    reportRecipients?: string[],
   ) {
-    const recipients = String(process.env.INATIVACAO_REPORT_EMAIL_TO || 'tecnologia@cmsocupacional.com.br,draandrea@cmsocupacional.com.br,esocial@cmsocupacional.com.br,enfermagem@cmsocupacional.com.br,anagerucia@cmsocupacional.com.br').trim();
+    const recipients = (reportRecipients?.length ? reportRecipients.join(',') : process.env.INATIVACAO_REPORT_EMAIL_TO || process.env.SFTP_INTEGRATOR_GRUPO_TORA_REPORT_EMAIL_TO || '').trim();
     const durationMin = (
       (endTime.getTime() - startTime.getTime()) /
       60000

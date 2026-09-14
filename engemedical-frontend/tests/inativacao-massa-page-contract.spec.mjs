@@ -6,7 +6,15 @@ const sidebar = fs.readFileSync(path.join(root, "components/shared/SidebarMenu.t
 const page = fs.readFileSync(path.join(root, "app/automacao/inativacao-massa/page.tsx"), "utf8");
 assert.match(sidebar, /Inativação em Massa/);
 assert.match(sidebar, /\/automacao\/inativacao-massa/);
-assert.match(page, /Empresas sob acompanhamento/);
+assert.match(page, /Empresas cadastradas/);
+assert.match(page, /Empresas selecionadas/);
 assert.match(page, /download-report/);
-assert.match(page, /Cron ativo/);
+assert.match(page, /Rotina automática ativa/);
+assert.match(page, /Executar inativação/);
+assert.match(page, /action: "execute"/);
+assert.match(page, /Cancelar processamento/);
+assert.match(page, /action: "cancel"/);
+assert(!page.includes("window.alert("), "native alert should not be used");
+assert(!page.includes("window.confirm("), "native confirm should not be used");
+assert.match(page, /PremiumFeedbackModal/);
 console.log("inativacao massa contract ok");

@@ -59,4 +59,6 @@ export interface CadastroFuncionarioPorSituacao {
   NomeLegal?: string;
   DescricaoJornadaSemanal?: string;
   NaturezaAtividade?: string;
+  CODCATEGORIAESOCIAL?: string;
+  codigoCategoriaESocial?: string;
 }

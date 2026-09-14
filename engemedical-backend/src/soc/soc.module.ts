@@ -19,6 +19,7 @@ import { UnitsModule } from '../units/units.module';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { RiscosConfigModule } from '../riscos-config/riscos-config.module';
 import { SftpIntegratorModule } from '../sftp-integrator/sftp-integrator.module';
+import { SocInactivationCancellationRegistry } from './soc-inactivation-cancellation';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { SftpIntegratorModule } from '../sftp-integrator/sftp-integrator.module'
     SocCredentialedService,
     SocUploadService,
     AsoWorkerOrchestratorService,
+    SocInactivationCancellationRegistry,
   ],
   exports: [
     SocService,

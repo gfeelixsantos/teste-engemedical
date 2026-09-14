@@ -12,6 +12,7 @@ import {
   UseGuards,
   Param,
   Req,
+  Optional,
   ForbiddenException,
   Delete,
   Res,
@@ -26,6 +27,8 @@ import { SchedulingDocument } from 'src/mongo/types/scheduling';
 import { ICadastroPessoas } from './types/CadastroPessoas';
 import { parseAuthUserHeader } from 'src/core/professional-identity.resolver';
 import { Request } from 'express';
+import { randomUUID } from 'crypto';
+import { SocInactivationCancellationRegistry } from './soc-inactivation-cancellation';
 
 @Controller('soc')
 export class SocController {
@@ -33,6 +36,7 @@ export class SocController {
     private readonly socService: SocService,
     private readonly mongoService: MongoService,
     private readonly logger: StructuredLogger,
+    @Optional() private readonly cancellation?: SocInactivationCancellationRegistry,
   ) {
     this.logger.setContext(SocController.name);
   }
@@ -55,6 +59,55 @@ export class SocController {
   @Get('inactivation/runs/:id')
   async getInactivationRun(@Param('id') id: string) {
     return this.socService.getInactivationRun(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('inactivation/preview')
+  async previewInactivation(@Body() body: { companyCodes?: string[] }, @Req() request: Request) {
+    const companyCodes = Array.isArray(body.companyCodes)
+      ? [...new Set(body.companyCodes.map(String).filter(Boolean))].slice(0, 100)
+      : [];
+    if (!companyCodes.length) throw new BadRequestException('Selecione ao menos uma empresa');
+    const authUser = parseAuthUserHeader(request.headers['x-auth-user']);
+    return this.socService.inactivateEmployeesFlow({
+      companyCodes,
+      dryRun: true,
+      trigger: 'manual',
+      persist: false,
+      sendReport: false,
+      returnDetails: true,
+      initiatedBy: (authUser as any)?.nome || (authUser as any)?.codigo || 'usuário autenticado',
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('inactivation/manual')
+  async manualInactivation(@Body() body: { companyCodes?: string[]; dryRun?: boolean }, @Req() request: Request) {
+    const companyCodes = Array.isArray(body.companyCodes)
+      ? [...new Set(body.companyCodes.map(String).filter(Boolean))].slice(0, 100)
+      : [];
+    if (!companyCodes.length) throw new BadRequestException('Selecione ao menos uma empresa');
+    const authUser = parseAuthUserHeader(request.headers['x-auth-user']);
+    const manualRecipient = (authUser as any)?.email?.trim();
+    if (!manualRecipient) throw new BadRequestException('E-mail do usuário autenticado não identificado');
+    const executionId = randomUUID();
+    this.cancellation?.start(executionId);
+    void this.socService.inactivateEmployeesFlow({
+      companyCodes,
+      dryRun: body.dryRun !== false,
+      trigger: 'manual',
+      executionId,
+      reportRecipients: [manualRecipient],
+      initiatedBy: (authUser as any)?.nome || (authUser as any)?.codigo || manualRecipient,
+    }).finally(() => this.cancellation?.finish(executionId));
+    return { executionId, status: 'started', dryRun: body.dryRun !== false, companyCodes };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('inactivation/:executionId/cancel')
+  cancelManualInactivation(@Param('executionId') executionId: string) {
+    this.cancellation?.cancel(executionId);
+    return { executionId, status: 'cancellation_requested' };
   }
 
   @UseGuards(JwtAuthGuard)

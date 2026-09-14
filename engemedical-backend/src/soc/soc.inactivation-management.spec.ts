@@ -27,4 +27,20 @@ describe('SocController inactivation management', () => {
     expect(service.getInactivationReportForDownload).toHaveBeenCalledWith('run-1');
     expect(response.send).toHaveBeenCalledWith(Buffer.from('xlsx'));
   });
+
+  it('starts a scoped manual dry-run with selected companies', async () => {
+    const service = { inactivateEmployeesFlow: jest.fn().mockResolvedValue({ success: true }) };
+    const controller = new SocController(service as any, {} as any, { setContext: jest.fn() } as any);
+
+    await (controller as any).manualInactivation({ companyCodes: ['101', '202'], dryRun: true }, { headers: { 'x-auth-user': JSON.stringify({ nome: 'ABC', email: 'abc@example.com' }) } });
+
+    expect(service.inactivateEmployeesFlow).toHaveBeenCalledWith({
+      companyCodes: ['101', '202'],
+      dryRun: true,
+      trigger: 'manual',
+      executionId: expect.any(String),
+      reportRecipients: ['abc@example.com'],
+      initiatedBy: 'ABC',
+    });
+  });
 });

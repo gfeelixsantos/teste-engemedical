@@ -132,6 +132,14 @@ describe('WsFuncionarioModelo2', () => {
     expect(result.xml).toContain('<dataDemissao>24/04/2026</dataDemissao>');
   });
 
+  it('uses the employee eSocial category and falls back to 101', async () => {
+    const withCategory = await WsFuncionarioModelo2({ ...baseEmployee(), CODCATEGORIAESOCIAL: '103' } as any, { overwriteSituacao: 'INATIVO' });
+    const withoutCategory = await WsFuncionarioModelo2(baseEmployee(), { overwriteSituacao: 'INATIVO' });
+
+    expect(withCategory.xml).toContain('<codigoCategoriaESocial>103</codigoCategoriaESocial>');
+    expect(withoutCategory.xml).toContain('<codigoCategoriaESocial>101</codigoCategoriaESocial>');
+  });
+
   it('builds hierarchy update tags using CODIGO_RH mapping', async () => {
     const result = await WsFuncionarioModelo2(baseEmployee(), {
       lookupKey: 'CPF',
