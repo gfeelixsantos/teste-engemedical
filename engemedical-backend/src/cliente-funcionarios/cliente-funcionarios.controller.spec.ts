@@ -8,7 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { MODULE_METADATA } from '@nestjs/common/constants';
 import { ForbiddenException } from '@nestjs/common';
-import request from 'supertest';
+import request = require('supertest');
 import { createHmac } from 'crypto';
 import { ClienteCompanyAccessService } from './cliente-company-access.service';
 import { ClienteFuncionariosController } from './cliente-funcionarios.controller';
