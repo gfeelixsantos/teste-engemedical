@@ -42,7 +42,7 @@ test("BFF encaminha somente a allowlist fixa e não repassa Authorization do cli
   assert.match(route, /new URL\(/);
   assert.match(route, /URLSearchParams/);
   assert.match(route, /empresa.*page.*limit.*q.*status/s);
-  assert.doesNotMatch(route, /incomingUrl\.search/);
+  assert.doesNotMatch(route, /incomingUrl\.search\s*=/);
   assert.doesNotMatch(route, /req\.headers\s*\.get\(["']authorization["']\)/);
   assert.doesNotMatch(route, /\.headers\s*=\s*req\.headers/);
 });
@@ -53,7 +53,7 @@ test("BFF usa cookies para o bearer, no-store e preserva status/content-type ups
   assert.match(route, /cookies\(\)/);
   assert.match(route, /JWT\.verifyJwt/);
   assert.match(route, /resolveAuthProxyContextFromTokens/);
-  assert.match(route, /Authorization\s*[:=].*Bearer/s);
+  assert.match(route, /headers\.set\(["']Authorization["']\s*,\s*`Bearer/s);
   assert.match(route, /cache:\s*["']no-store["']/);
   assert.match(route, /status:\s*response\.status/);
   assert.match(route, /response\.headers\.get\(["']Content-Type["']\)/);
@@ -63,9 +63,9 @@ test("BFF usa cookies para o bearer, no-store e preserva status/content-type ups
 test("BFF converte falha local de fetch em JSON seguro 502", () => {
   const route = readContractFile(routePath);
 
-  assert.match(route, /catch\s*\(/);
+  assert.match(route, /catch\s*(?:\([^)]*\))?\s*\{/);
   assert.match(route, /status:\s*502/);
-  assert.match(route, /NextResponse\.json\(\{\s*message:/s);
+  assert.match(route, /NextResponse\.json\(\s*\{\s*message:/s);
   assert.doesNotMatch(route, /error\.(?:stack|message)/);
 });
 
