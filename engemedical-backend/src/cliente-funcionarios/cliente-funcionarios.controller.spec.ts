@@ -4,6 +4,7 @@ import {
   HttpException,
   INestApplication,
 } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { MODULE_METADATA } from '@nestjs/common/constants';
 import { ForbiddenException } from '@nestjs/common';
@@ -19,6 +20,7 @@ import { MongoModule } from '../mongo/mongo.module';
 import { SocModule } from '../soc/soc.module';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { JwtAuthGuard } from '../soc/guards/jwt-auth.guard';
+import { LoggerModule } from '../utils/logger.module';
 
 describe('ClienteFuncionariosController', () => {
   const jwtSecret = 'task-3-test-secret';
@@ -256,7 +258,11 @@ describe('ClienteFuncionariosModule', () => {
 
   it('compiles the concrete module graph and resolves the controller and guard', async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [ClienteFuncionariosModule],
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        LoggerModule,
+        ClienteFuncionariosModule,
+      ],
     }).compile();
 
     expect(moduleRef.get(ClienteFuncionariosController)).toBeInstanceOf(
