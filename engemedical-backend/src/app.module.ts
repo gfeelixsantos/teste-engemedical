@@ -56,6 +56,7 @@ import { HistoryImportModule } from './history-import/history-import.module';
 import { ClienteDashboardModule } from './cliente-dashboard/cliente-dashboard.module';
 import { FinanceiroModule } from './financeiro/financeiro.module';
 import { PrestadoresDashboardModule } from './prestadores-dashboard/prestadores-dashboard.module';
+import { ClienteFuncionariosModule } from './cliente-funcionarios/cliente-funcionarios.module';
 
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: true });
@@ -112,6 +113,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: t
     ClienteDashboardModule,
     FinanceiroModule,
     PrestadoresDashboardModule,
+    ClienteFuncionariosModule,
   ],
   controllers: [AppController, TicketController, HealthController],
   providers: [AppService],
