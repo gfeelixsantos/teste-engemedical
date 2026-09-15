@@ -6,15 +6,39 @@ type MembershipRow = {
   company_name: string | null;
 };
 
+type MembershipRecord = MembershipRow & {
+  user_id: string;
+  active: boolean;
+};
+
 function makeService(result: {
-  data: MembershipRow | null;
+  data: MembershipRecord | null;
   error: { message: string } | null;
 }) {
+  const filters: Record<string, unknown> = {};
   const query = {
-    select: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    maybeSingle: jest.fn().mockResolvedValue(result),
+    select: jest.fn(),
+    eq: jest.fn(),
+    maybeSingle: jest.fn(),
   };
+  query.select.mockReturnValue(query);
+  query.eq.mockImplementation((column: string, value: unknown) => {
+    filters[column] = value;
+    return query;
+  });
+  query.maybeSingle.mockImplementation(async () => ({
+    data:
+      result.data &&
+      result.data.user_id === filters.user_id &&
+      result.data.company_code === filters.company_code &&
+      result.data.active === filters.active
+        ? {
+            company_code: result.data.company_code,
+            company_name: result.data.company_name,
+          }
+        : null,
+    error: result.error,
+  }));
   const client = {
     from: jest.fn().mockReturnValue(query),
   };
@@ -28,7 +52,12 @@ function makeService(result: {
 describe('ClienteCompanyAccessService', () => {
   it('allows an active membership for the same user', async () => {
     const { service, query } = makeService({
-      data: { company_code: '123', company_name: 'Empresa 123' },
+      data: {
+        user_id: 'user-1',
+        company_code: '123',
+        company_name: 'Empresa 123',
+        active: true,
+      },
       error: null,
     });
 
@@ -43,7 +72,15 @@ describe('ClienteCompanyAccessService', () => {
   });
 
   it("rejects a membership that belongs to another user", async () => {
-    const { service, query } = makeService({ data: null, error: null });
+    const { service, query } = makeService({
+      data: {
+        user_id: 'user-2',
+        company_code: '123',
+        company_name: 'Empresa 123',
+        active: true,
+      },
+      error: null,
+    });
 
     await expect(service.assertCanAccess('user-1', '123')).rejects.toBeInstanceOf(
       ForbiddenException,
@@ -52,7 +89,15 @@ describe('ClienteCompanyAccessService', () => {
   });
 
   it('rejects an inactive membership because the query requires active=true', async () => {
-    const { service, query } = makeService({ data: null, error: null });
+    const { service, query } = makeService({
+      data: {
+        user_id: 'user-1',
+        company_code: '123',
+        company_name: 'Empresa 123',
+        active: false,
+      },
+      error: null,
+    });
 
     await expect(service.assertCanAccess('user-1', '123')).rejects.toBeInstanceOf(
       ForbiddenException,
@@ -62,7 +107,12 @@ describe('ClienteCompanyAccessService', () => {
 
   it('trims and stringifies a numeric company code without trying alternate values', async () => {
     const { service, client, query } = makeService({
-      data: { company_code: '123', company_name: 'Empresa 123' },
+      data: {
+        user_id: 'user-1',
+        company_code: '123',
+        company_name: 'Empresa 123',
+        active: true,
+      },
       error: null,
     });
 

@@ -47,6 +47,7 @@ describe('JwtAuthGuard', () => {
           codigo: '123',
           email: 'user@example.com',
           perfil: 'CLIENTE',
+          exp: Math.floor(Date.now() / 1000) + 60,
           registration_code: 'must-not-leak',
           admin: true,
         })}`,
@@ -88,4 +89,19 @@ describe('JwtAuthGuard', () => {
       UnauthorizedException,
     );
   });
+
+  it.each([0, 'not-a-number', 'Infinity'])(
+    'rejects a token with invalid exp=%p',
+    (exp) => {
+      const request = {
+        headers: {
+          authorization: `Bearer ${makeToken({ sub: 'auth-user-1', exp })}`,
+        },
+      };
+
+      expect(() => new JwtAuthGuard().canActivate(makeContext(request))).toThrow(
+        UnauthorizedException,
+      );
+    },
+  );
 });

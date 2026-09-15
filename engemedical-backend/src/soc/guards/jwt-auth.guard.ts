@@ -71,9 +71,14 @@ export class JwtAuthGuard implements CanActivate {
         return null;
       }
 
-      if (payload.exp) {
+      if (Object.prototype.hasOwnProperty.call(payload, 'exp')) {
+        const expiration = payload.exp;
+        if (typeof expiration !== 'number' || !Number.isFinite(expiration)) {
+          return null;
+        }
+
         const now = Math.floor(Date.now() / 1000);
-        if (now >= payload.exp) return null;
+        if (expiration <= now) return null;
       }
 
       return payload;
