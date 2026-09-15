@@ -5,6 +5,7 @@ import {
   GatewayTimeoutException,
   Get,
   HttpException,
+  HttpStatus,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -50,7 +51,7 @@ export class ClienteFuncionariosController {
     try {
       return await this.service.list(normalizedQuery, userId);
     } catch (error) {
-      if (error instanceof HttpException) {
+      if (this.isBoundaryException(error)) {
         throw error;
       }
 
@@ -64,6 +65,16 @@ export class ClienteFuncionariosController {
         'Não foi possível estabelecer comunicação com a fonte de funcionários.',
       );
     }
+  }
+
+  private isBoundaryException(error: unknown): error is HttpException {
+    if (!(error instanceof HttpException)) return false;
+
+    return [
+      HttpStatus.BAD_REQUEST,
+      HttpStatus.UNAUTHORIZED,
+      HttpStatus.FORBIDDEN,
+    ].includes(error.getStatus());
   }
 
   private normalizeQuery(query: Record<string, unknown>): ClienteFuncionariosQuery {
@@ -162,6 +173,15 @@ export class ClienteFuncionariosController {
   }
 
   private isTimeoutError(error: unknown): boolean {
+    if (
+      error instanceof HttpException &&
+      [HttpStatus.REQUEST_TIMEOUT, HttpStatus.GATEWAY_TIMEOUT].includes(
+        error.getStatus(),
+      )
+    ) {
+      return true;
+    }
+
     const value = error as { code?: unknown; name?: unknown; message?: unknown };
     const code = String(value?.code ?? '').toUpperCase();
     const name = String(value?.name ?? '').toLowerCase();

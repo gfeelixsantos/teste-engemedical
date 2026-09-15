@@ -1,4 +1,9 @@
-import { INestApplication } from '@nestjs/common';
+import {
+  BadRequestException,
+  GatewayTimeoutException,
+  HttpException,
+  INestApplication,
+} from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { MODULE_METADATA } from '@nestjs/common/constants';
 import { ForbiddenException } from '@nestjs/common';
@@ -13,6 +18,7 @@ import { MongoClienteFuncionariosSchedulingReader } from './cliente-funcionarios
 import { MongoModule } from '../mongo/mongo.module';
 import { SocModule } from '../soc/soc.module';
 import { SupabaseModule } from '../supabase/supabase.module';
+import { JwtAuthGuard } from '../soc/guards/jwt-auth.guard';
 
 describe('ClienteFuncionariosController', () => {
   const jwtSecret = 'task-3-test-secret';
@@ -38,6 +44,7 @@ describe('ClienteFuncionariosController', () => {
       controllers: [ClienteFuncionariosController],
       providers: [
         { provide: ClienteFuncionariosService, useValue: service },
+        JwtAuthGuard,
       ],
     }).compile();
 
@@ -72,6 +79,15 @@ describe('ClienteFuncionariosController', () => {
     expect(service.list).not.toHaveBeenCalled();
   });
 
+  it('returns 400 when empresa is omitted', async () => {
+    await request(app.getHttpServer())
+      .get('/cliente/funcionarios')
+      .set('Authorization', `Bearer ${tokenFor({ sub: 'user-1' })}`)
+      .expect(400);
+
+    expect(service.list).not.toHaveBeenCalled();
+  });
+
   it.each([
     'page=0',
     'page=1.5',
@@ -86,6 +102,24 @@ describe('ClienteFuncionariosController', () => {
       .expect(400);
 
     expect(service.list).not.toHaveBeenCalled();
+  });
+
+  it('uses the declared defaults and clamps a valid lower limit', async () => {
+    await request(app.getHttpServer())
+      .get('/cliente/funcionarios?empresa=123&limit=1')
+      .set('Authorization', `Bearer ${tokenFor({ sub: 'user-1' })}`)
+      .expect(200);
+
+    expect(service.list).toHaveBeenCalledWith(
+      {
+        companyCode: '123',
+        page: 1,
+        limit: 10,
+        q: undefined,
+        status: undefined,
+      },
+      'user-1',
+    );
   });
 
   it('returns 401 when the verified request has no usable user claim', async () => {
@@ -125,6 +159,21 @@ describe('ClienteFuncionariosController', () => {
     );
   });
 
+  it('uses sub before userId and codigo when multiple verified claims exist', async () => {
+    await request(app.getHttpServer())
+      .get('/cliente/funcionarios?empresa=123')
+      .set(
+        'Authorization',
+        `Bearer ${tokenFor({ sub: 'sub-user', userId: 'user-id', codigo: 'codigo-user' })}`,
+      )
+      .expect(200);
+
+    expect(service.list).toHaveBeenCalledWith(
+      expect.objectContaining({ companyCode: '123' }),
+      'sub-user',
+    );
+  });
+
   it('keeps access denial as 403', async () => {
     service.list.mockRejectedValue(new ForbiddenException('sem acesso'));
 
@@ -157,6 +206,35 @@ describe('ClienteFuncionariosController', () => {
     expect(fetchResponse.text).not.toContain('soc.example');
     expect(fetchResponse.text).not.toContain('fetch failed');
   });
+
+  it.each([
+    [new HttpException('upstream internal detail', 500), 502, 'comunicação'],
+    [new GatewayTimeoutException('upstream timeout detail'), 504, 'tempo'],
+  ])('sanitizes upstream HttpException details', async (error, status, message) => {
+    service.list.mockRejectedValue(error);
+
+    const response = await request(app.getHttpServer())
+      .get('/cliente/funcionarios?empresa=123')
+      .set('Authorization', `Bearer ${tokenFor({ sub: 'user-5' })}`)
+      .expect(status);
+
+    expect(response.body.message).toContain(message);
+    expect(response.text).not.toContain('upstream internal detail');
+    expect(response.text).not.toContain('upstream timeout detail');
+  });
+
+  it('preserves an intentional bad-request boundary exception from the service', async () => {
+    service.list.mockRejectedValue(new BadRequestException('erro de regra de acesso'));
+
+    await request(app.getHttpServer())
+      .get('/cliente/funcionarios?empresa=123')
+      .set('Authorization', `Bearer ${tokenFor({ sub: 'user-6' })}`)
+      .expect(400, {
+        statusCode: 400,
+        message: 'erro de regra de acesso',
+        error: 'Bad Request',
+      });
+  });
 });
 
 describe('ClienteFuncionariosModule', () => {
@@ -167,11 +245,25 @@ describe('ClienteFuncionariosModule', () => {
 
     expect(imports).toEqual(expect.arrayContaining([MongoModule, SocModule, SupabaseModule]));
     expect(providers).toEqual(expect.arrayContaining([
+      JwtAuthGuard,
       ClienteCompanyAccessService,
       ClienteFuncionariosStatusService,
       MongoClienteFuncionariosSchedulingReader,
       ClienteFuncionariosService,
     ]));
     expect(controllers).toEqual(expect.arrayContaining([ClienteFuncionariosController]));
+  });
+
+  it('compiles the concrete module graph and resolves the controller and guard', async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [ClienteFuncionariosModule],
+    }).compile();
+
+    expect(moduleRef.get(ClienteFuncionariosController)).toBeInstanceOf(
+      ClienteFuncionariosController,
+    );
+    expect(moduleRef.get(JwtAuthGuard)).toBeInstanceOf(JwtAuthGuard);
+
+    await moduleRef.close();
   });
 });
