@@ -1,4 +1,5 @@
 import {
+  BadGatewayException,
   BadRequestException,
   ForbiddenException,
   Injectable,
@@ -33,7 +34,13 @@ export class ClienteCompanyAccessService {
       .eq('active', true)
       .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
+      throw new BadGatewayException(
+        'Não foi possível consultar os vínculos de empresa do usuário.',
+      );
+    }
+
+    if (!data) {
       throw new ForbiddenException('Usuário não possui acesso à empresa');
     }
 

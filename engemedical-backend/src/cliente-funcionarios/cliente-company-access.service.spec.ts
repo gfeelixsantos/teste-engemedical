@@ -1,4 +1,8 @@
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ClienteCompanyAccessService } from './cliente-company-access.service';
 
 type MembershipRow = {
@@ -103,6 +107,17 @@ describe('ClienteCompanyAccessService', () => {
       ForbiddenException,
     );
     expect(query.eq).toHaveBeenCalledWith('active', true);
+  });
+
+  it('does not misclassify Supabase schema or connectivity failures as forbidden', async () => {
+    const { service } = makeService({
+      data: null,
+      error: { message: "Could not find the table 'public.user_company_memberships'" },
+    });
+
+    await expect(service.assertCanAccess('user-1', '123')).rejects.toBeInstanceOf(
+      BadGatewayException,
+    );
   });
 
   it('trims and stringifies a numeric company code without trying alternate values', async () => {
