@@ -55,8 +55,9 @@ test("BFF usa cookies para o bearer, no-store e preserva status/content-type ups
   assert.match(route, /resolveAuthProxyContextFromTokens/);
   assert.match(route, /Authorization\s*[:=].*Bearer/s);
   assert.match(route, /cache:\s*["']no-store["']/);
-  assert.match(route, /status:\s*res\.status/);
-  assert.match(route, /res\.headers\.get\(["']Content-Type["']\)/);
+  assert.match(route, /status:\s*response\.status/);
+  assert.match(route, /response\.headers\.get\(["']Content-Type["']\)/);
+  assert.match(route, /headers\.set\(["']Authorization["']/);
 });
 
 test("BFF converte falha local de fetch em JSON seguro 502", () => {
@@ -66,6 +67,14 @@ test("BFF converte falha local de fetch em JSON seguro 502", () => {
   assert.match(route, /status:\s*502/);
   assert.match(route, /NextResponse\.json\(\{\s*message:/s);
   assert.doesNotMatch(route, /error\.(?:stack|message)/);
+});
+
+test("BFF bloqueia sessão ausente ou inválida antes de chamar o Nest", () => {
+  const route = readContractFile(routePath);
+
+  assert.match(route, /if \(!bearerToken\)/);
+  assert.match(route, /Sessão ausente ou inválida/);
+  assert.match(route, /status:\s*401/);
 });
 
 test("tipos reproduzem o contrato público de funcionários", () => {

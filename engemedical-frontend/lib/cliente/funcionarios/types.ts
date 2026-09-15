@@ -11,16 +11,16 @@ export type FuncionarioStatus =
 export interface ClienteFuncionarioItem {
   codigo: string;
   nome: string;
-  matricula: string | null;
+  matricula: string;
   cpfMasked: string | null;
-  cargo: string | null;
-  unidade: string | null;
-  situacao: string | null;
+  cargo: string;
+  unidade: string;
+  situacao: string;
   dataAdmissao: string | null;
   dataDemissao: string | null;
   status: FuncionarioStatus;
   statusLabel: string;
-  statusReason: string | null;
+  statusReason: string;
   schedulingId: string | null;
   schedulingDate: string | null;
 }

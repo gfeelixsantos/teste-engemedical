@@ -27,13 +27,31 @@ export async function GET(request: Request): Promise<NextResponse> {
     );
   }
 
+  let bearerToken: string | undefined;
+
   try {
     const cookieStore = await cookies();
-    const { bearerToken } = await resolveAuthProxyContextFromTokens({
+    const authContext = await resolveAuthProxyContextFromTokens({
       authToken: cookieStore.get("auth_token")?.value,
       refreshToken: cookieStore.get("refresh_token")?.value,
       verifyJwt: JWT.verifyJwt,
     });
+    bearerToken = authContext.bearerToken;
+  } catch {
+    return NextResponse.json(
+      { message: "Sessão ausente ou inválida." },
+      { status: 401 },
+    );
+  }
+
+  if (!bearerToken) {
+    return NextResponse.json(
+      { message: "Sessão ausente ou inválida." },
+      { status: 401 },
+    );
+  }
+
+  try {
 
     const targetUrl = new URL(`${NEST_URL}cliente/funcionarios`);
     const targetSearchParams = new URLSearchParams();
@@ -45,7 +63,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     targetUrl.search = targetSearchParams.toString();
 
     const headers = new Headers();
-    if (bearerToken) headers.set("Authorization", `Bearer ${bearerToken}`);
+    headers.set("Authorization", `Bearer ${bearerToken}`);
 
     const response = await fetch(targetUrl, {
       headers,
