@@ -20,6 +20,12 @@ test("a página de funcionários expõe o workspace Premium Light read-only", ()
   assert.match(workspace, /useEmpresas/);
   assert.match(workspace, /selectedEmpresa/);
   assert.match(workspace, /useClienteFuncionarios/);
+  assert.match(workspace, /const visibleData = data\?\.empresa\.codigo === empresa\.codigo \? data : null/);
+  assert.match(workspace, /visibleData\?\.total/);
+  assert.match(workspace, /isLoading && !visibleData/);
+  assert.match(workspace, /visibleData\?\.items\.length/);
+  assert.match(workspace, /<FuncionariosTable items=\{visibleData\.items\}/);
+  assert.match(workspace, /visibleData\?\.hasNextPage/);
   assert.match(workspace, /new URLSearchParams/);
   assert.match(workspace, /searchParams\.set\(["']empresa["']/);
   assert.match(workspace, /setPage\(1\)/);

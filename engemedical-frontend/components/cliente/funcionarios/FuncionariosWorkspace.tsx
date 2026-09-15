@@ -70,9 +70,10 @@ function SelectedEmpresaWorkspace({
     if (error) setIsErrorDismissed(false);
   }, [error]);
 
-  const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / limit));
+  const visibleData = data?.empresa.codigo === empresa.codigo ? data : null;
+  const totalPages = Math.max(1, Math.ceil((visibleData?.total ?? 0) / limit));
   const errorCopy = error ? getErrorCopy(error.kind) : null;
-  const companyName = empresa.nome || data?.empresa.nome || "empresa selecionada";
+  const companyName = empresa.nome || visibleData?.empresa.nome || "empresa selecionada";
 
   const retry = () => {
     setIsErrorDismissed(false);
@@ -96,7 +97,7 @@ function SelectedEmpresaWorkspace({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#E3F0E7] pt-4 text-sm text-[#5E7F6C]">
-            <span className="font-semibold text-[#173D2B]">{data?.total ?? 0} funcionários</span>
+            <span className="font-semibold text-[#173D2B]">{visibleData?.total ?? 0} funcionários</span>
             <span>Dados somente para consulta</span>
           </div>
         </header>
@@ -120,14 +121,14 @@ function SelectedEmpresaWorkspace({
         />
 
         <section aria-live="polite" className="mt-6">
-          {isLoading && !data ? (
+          {isLoading && !visibleData ? (
             <LoadingState
               description="Estamos consultando os funcionários da empresa selecionada."
               title="Carregando funcionários"
               variant="section"
             />
-          ) : data?.items.length ? (
-            <FuncionariosTable items={data.items} />
+          ) : visibleData?.items.length ? (
+            <FuncionariosTable items={visibleData.items} />
           ) : (
             <div className="rounded-2xl border border-dashed border-[#B9DCC7] bg-white px-6 py-12 text-center">
               <Users aria-hidden="true" className="mx-auto h-10 w-10 text-[#8AB99A]" />
@@ -152,7 +153,7 @@ function SelectedEmpresaWorkspace({
             <button
               type="button"
               className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[#C5E2D0] px-3 text-sm font-semibold text-[#2F7D56] transition hover:bg-[#E5F3EA] focus:outline-none focus:ring-2 focus:ring-[#16804D]/30 disabled:cursor-not-allowed disabled:opacity-40"
-              disabled={!data?.hasNextPage || isLoading}
+              disabled={!visibleData?.hasNextPage || isLoading}
               onClick={() => setPage((current) => current + 1)}
             >
               Próxima
