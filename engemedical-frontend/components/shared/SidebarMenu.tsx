@@ -7,10 +7,10 @@ import { getCurrentUser } from "@/lib/utils";
 import {
   Activity, ChartNoAxesCombined, ChevronRight, FileCheck, FileText, Globe,
   HeartPulse, Home, LayoutGrid, Settings, Stethoscope, TrendingUp, UserX, Users,
-  CalendarDays, FolderOpen, ListChecks, Mail, ScanLine, Workflow, Server, UserMinus, FileArchive,
+  CalendarDays, FolderOpen, ListChecks, Mail, ScanLine, Workflow, Server, UserMinus, FileArchive, WalletCards, Network,
 } from "lucide-react";
 
-type MenuItem = { title: string; icon: typeof Home; path: string; color?: string };
+type MenuItem = { title: string; icon: typeof Home; path: string };
 type MenuGroup = { title: string; icon: typeof Home; items: readonly MenuItem[] };
 
 export const SIDEBAR_GROUPS: readonly MenuGroup[] = [
@@ -27,13 +27,15 @@ export const SIDEBAR_GROUPS: readonly MenuGroup[] = [
     { title: "Importação de Histórico", icon: FileArchive, path: "/automacao/importacao-historico" },
   ]},
   { title: "Dashboards", icon: ChartNoAxesCombined, items: [
-    { title: "Absenteísmo", icon: UserX, path: "/dashboards/absenteismo", color: "text-orange-500" },
+    { title: "Absenteísmo", icon: UserX, path: "/dashboards/absenteismo" },
     { title: "Convocação de exames", icon: Activity, path: "/dashboards/convocacao" },
-    { title: "Documentos SST", icon: FileCheck, path: "/dashboards/documentos", color: "text-teal-500" },
-    { title: "eSocial", icon: Globe, path: "/dashboards/esocial", color: "text-purple-500" },
-    { title: "Gestão de vidas", icon: HeartPulse, path: "/dashboards/vidas", color: "text-green-500" },
-    { title: "Profissionais", icon: Users, path: "/dashboards/profissionais", color: "text-cyan-500" },
-    { title: "Volumetria", icon: TrendingUp, path: "/dashboards/volumetria", color: "text-indigo-500" },
+    { title: "Documentos SST", icon: FileCheck, path: "/dashboards/documentos" },
+    { title: "eSocial", icon: Globe, path: "/dashboards/esocial" },
+    { title: "Gestão Financeira", icon: WalletCards, path: "/dashboards/financeiro" },
+    { title: "Gestão de vidas", icon: HeartPulse, path: "/dashboards/vidas" },
+    { title: "Prestadores SOCNET", icon: Network, path: "/dashboards/prestadores-socnet" },
+    { title: "Profissionais", icon: Users, path: "/dashboards/profissionais" },
+    { title: "Volumetria", icon: TrendingUp, path: "/dashboards/volumetria" },
   ]},
   { title: "Serviços", icon: LayoutGrid, items: [
     { title: "Agenda Compromissos", icon: CalendarDays, path: "/agenda" },
@@ -120,8 +122,8 @@ export function SidebarMenu({
     <nav aria-label="Menu de navegação" className="space-y-0.5" role="navigation">
       <button
         type="button"
-        aria-current={pathname === "/visao-geral" || pathname === "/inicio" ? "page" : undefined}
-        className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl border px-2.5 py-2.5 text-left text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${pathname === "/visao-geral" || pathname === "/inicio" ? "border-brand-cyan/50 bg-brand-teal text-white shadow-sm shadow-brand-cyan/10" : "border-transparent text-white/75 hover:border-brand-cyan/30 hover:bg-white/10 hover:text-white"}`}
+        aria-current={pathname === "/visao-geral" || pathname.startsWith("/cliente") ? "page" : undefined}
+        className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl border px-2.5 py-2.5 text-left text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${pathname === "/visao-geral" || pathname.startsWith("/cliente") ? "border-brand-cyan/50 bg-brand-teal text-white shadow-sm shadow-brand-cyan/10" : "border-transparent text-white/75 hover:border-brand-cyan/30 hover:bg-white/10 hover:text-white"}`}
         onClick={() => goTo(homeRoute)}
       >
         <Home className="h-4 w-4 shrink-0 text-brand-blue" />
@@ -175,7 +177,7 @@ export function SidebarMenu({
               >
                 <div className="border-b border-white/15 px-3 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-cyan">{title}</div>
                 <div className="mt-1 space-y-0.5">
-                  {items.map(({ title: itemTitle, icon: ItemIcon, path, color }) => {
+                  {items.map(({ title: itemTitle, icon: ItemIcon, path }) => {
                     const itemActive = isActivePath(pathname, path);
                     return (
                       <button
@@ -186,7 +188,7 @@ export function SidebarMenu({
                         className={`flex w-full cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${itemActive ? "border-brand-cyan/50 bg-brand-teal font-semibold text-white shadow-sm shadow-brand-cyan/10" : "border-transparent text-white/75 hover:border-brand-cyan/30 hover:bg-white/10 hover:text-white"}`}
                         onClick={() => goTo(path)}
                       >
-                        <ItemIcon className={`h-4 w-4 shrink-0 ${itemActive ? "text-brand-cyan" : color ?? "text-brand-cyan"}`} />
+                        <ItemIcon className="h-4 w-4 shrink-0 text-brand-cyan" />
                         <span className="truncate">{itemTitle}</span>
                       </button>
                     );

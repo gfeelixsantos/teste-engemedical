@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
 
 import { IUserRegister } from "@/lib/user/interfaces/IUser";
 import { UserService } from "@/lib/user/services/user.service";
@@ -43,6 +44,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(response);
   } catch (err) {
     console.error("[BFF:register]", err);
+    if (err instanceof ZodError) {
+      return NextResponse.json(
+        {
+          status: 400,
+          message: "VALIDATION_ERROR",
+          issues: err.issues.map((issue) => ({
+            path: issue.path.join("."),
+            message: issue.message,
+          })),
+        },
+        { status: 400 },
+      );
+    }
 
     return NextResponse.json(
       { status: 500, message: "Erro interno ao processar registro." },

@@ -102,7 +102,7 @@ export const config = {
     "/atendimento/:path*",
     "/dashboard/:path*",
     "/visao-geral/:path*",
-    "/inicio/:path*",
+    "/cliente/:path*",
     "/prontuarios/:path*",
     "/recepcao/:path*",
     "/relatorio/:path*",

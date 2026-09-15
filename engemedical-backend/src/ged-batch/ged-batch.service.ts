@@ -24,8 +24,10 @@ import {
   inferScope,
   validateScopeConstraints,
 } from './ged-batch.types';
+// O backend é compilado para CommonJS. O archiver 8 é ESM-only e não pode
+// ser carregado por require() no runtime Node 20 deste serviço.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { ZipArchive } = require('archiver');
+const archiver = require('archiver');
 import * as stream from 'stream';
 import { mergePdfs } from '../utils/util';
 import { ContainerClient } from '@azure/storage-blob';
@@ -572,7 +574,7 @@ export class GedBatchService implements OnModuleInit {
 
     this.logger.log(`GED batch job ${jobId} processing started | ${job.totalFuncionarios} items | tipo=${tipo}`);
 
-    const archive = new ZipArchive('zip', { zlib: { level: 1 } });
+    const archive = archiver('zip', { zlib: { level: 1 } });
     const passthrough = new stream.PassThrough();
     archive.pipe(passthrough);
 

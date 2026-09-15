@@ -112,6 +112,7 @@ export const setCurrentUser = (user: IUserInfo) => {
 export const logout = () => {
   if (typeof window !== "undefined") {
     sessionStorage.removeItem("currentUser");
+    sessionStorage.removeItem("selectedEmpresaId");
     import("@/lib/notification-store").then(({ clearAllNotifications }) => {
       clearAllNotifications();
     });

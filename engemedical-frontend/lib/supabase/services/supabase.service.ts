@@ -63,7 +63,7 @@ export class SupabaseService {
     const { data, error } = await supabase
       .from(SupabaseService.primaryTable)
       .select("*")
-      .ilike("email", normalizedEmail)
+      .eq("email", normalizedEmail)
       .maybeSingle();
 
     if (error) {

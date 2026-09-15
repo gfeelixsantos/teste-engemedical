@@ -233,11 +233,13 @@ const NotificationsList: React.FC<{
 interface HeaderProps {
   onLogout: () => void;
   children?: React.ReactNode;
+  showSearch?: boolean;
 }
 
 export const HeaderApp: React.FC<HeaderProps> = ({
   onLogout,
   children,
+  showSearch = true,
 }) => {
   const router = useRouter();
   const [user, setUser] = useState<IUserInfo | null>(null);
@@ -376,31 +378,35 @@ export const HeaderApp: React.FC<HeaderProps> = ({
 
           {children}
 
-          <button
-            aria-label="Buscar páginas e ações"
-            aria-keyshortcuts="Control+K"
-            className="group mx-4 hidden min-w-0 flex-1 max-w-md cursor-pointer items-center gap-3 rounded-xl border border-brand-line bg-brand-surface px-3 py-2 text-left transition-colors hover:border-brand-500/50 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 lg:flex"
-            type="button"
-            onClick={() => setIsCommandPaletteOpen(true)}
-          >
-            <Search className="h-4 w-4 shrink-0 text-brand-600" />
-            <span className="min-w-0 flex-1 truncate text-sm text-gray-500">
-              Buscar páginas e ações...
-            </span>
-            <kbd className="flex shrink-0 items-center gap-1 rounded-md border border-brand-line bg-white px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 shadow-sm">
-              <Command className="h-3 w-3" /> K
-            </kbd>
-          </button>
-
-          <div className="flex items-center gap-3">
+          {showSearch && (
             <button
               aria-label="Buscar páginas e ações"
-              className="grid h-9 w-9 cursor-pointer place-items-center rounded-xl border border-brand-line bg-brand-surface text-brand-700 transition-colors hover:border-brand-500/50 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 lg:hidden"
+              aria-keyshortcuts="Control+K"
+              className="group mx-4 hidden min-w-0 flex-1 max-w-md cursor-pointer items-center gap-3 rounded-xl border border-brand-line bg-brand-surface px-3 py-2 text-left transition-colors hover:border-brand-500/50 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 lg:flex"
               type="button"
               onClick={() => setIsCommandPaletteOpen(true)}
             >
-              <Search className="h-4 w-4" />
+              <Search className="h-4 w-4 shrink-0 text-brand-600" />
+              <span className="min-w-0 flex-1 truncate text-sm text-gray-500">
+                Buscar páginas e ações...
+              </span>
+              <kbd className="flex shrink-0 items-center gap-1 rounded-md border border-brand-line bg-white px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 shadow-sm">
+                <Command className="h-3 w-3" /> K
+              </kbd>
             </button>
+          )}
+
+          <div className="flex items-center gap-3">
+            {showSearch && (
+              <button
+                aria-label="Buscar páginas e ações"
+                className="grid h-9 w-9 cursor-pointer place-items-center rounded-xl border border-brand-line bg-brand-surface text-brand-700 transition-colors hover:border-brand-500/50 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 lg:hidden"
+                type="button"
+                onClick={() => setIsCommandPaletteOpen(true)}
+              >
+                <Search className="h-4 w-4" />
+              </button>
+            )}
             <div ref={menuRef} className="relative">
               <button
                 aria-expanded={isMenuOpen}

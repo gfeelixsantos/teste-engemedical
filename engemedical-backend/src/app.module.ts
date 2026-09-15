@@ -53,13 +53,17 @@ import { VidasModule } from './vidas/vidas.module';
 import { DocumentosModule } from './documentos/documentos.module';
 import { ProfissionaisModule } from './profissionais/profissionais.module';
 import { HistoryImportModule } from './history-import/history-import.module';
+import { ClienteDashboardModule } from './cliente-dashboard/cliente-dashboard.module';
+import { FinanceiroModule } from './financeiro/financeiro.module';
+import { PrestadoresDashboardModule } from './prestadores-dashboard/prestadores-dashboard.module';
 
-require('dotenv').config({ override: true });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: true });
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: path.resolve(__dirname, '../.env') }),
     VolumetriaModule,
     AbsenteismoModule,
     EsocialModule,
@@ -105,6 +109,9 @@ require('dotenv').config({ override: true });
     DocumentosModule,
     ProfissionaisModule,
     HistoryImportModule,
+    ClienteDashboardModule,
+    FinanceiroModule,
+    PrestadoresDashboardModule,
   ],
   controllers: [AppController, TicketController, HealthController],
   providers: [AppService],

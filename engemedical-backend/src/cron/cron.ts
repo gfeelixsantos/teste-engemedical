@@ -257,33 +257,6 @@ export class CronJobs implements OnModuleInit {
     }
   }
 
-  @Cron('30 18 * * *', { timeZone: 'America/Sao_Paulo' })
-  async grupoToraSftpPullJob() {
-    if (!this.enableGrupoToraSftpCron) {
-      this.logger.warn({
-        event: 'SFTP_INTEGRATOR_GRUPO_TORA_CRON_DISABLED',
-        message: '[CRON][SFTP] Grupo Tora desativado por configuracao',
-      });
-      return;
-    }
-
-    this.logger.log('[CRON][SFTP] Iniciando pull Grupo Tora...');
-    try {
-      const result =
-        await this.sftpIntegratorService.pullLatestAndRunDryRun('grupo-tora');
-      this.logger.log({
-        event: 'SFTP_INTEGRATOR_GRUPO_TORA_DRY_RUN_FINISH',
-        downloaded: result.pull.downloaded,
-        remoteName: result.pull.file.remoteName,
-        size: result.pull.file.size,
-        sha256: result.pull.file.sha256,
-        summary: result.dryRun.summary,
-      });
-    } catch (error) {
-      this.logger.error('[CRON][SFTP] Erro no pull Grupo Tora:', error);
-    }
-  }
-
   @Cron('0 3 * * *', { timeZone: 'America/Sao_Paulo' })
   async cleanupOldGedBatchJobs() {
     this.logger.log('[CRON][GED_BATCH] Limpeza de jobs antigos iniciada...');

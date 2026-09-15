@@ -1,3 +1,4 @@
+import { CadastroEmpresa } from "@/lib/soc/interfaces/CadastroEmpresa";
 import { WebsocketType } from "@/lib/websocket/enums/websocket.enum";
 
 export interface IUserInfo {
@@ -10,6 +11,7 @@ export interface IUserInfo {
   perfil: string;
   tipoUsuario?: "interno" | "cliente";
   registrationCode?: string;
+  empresas?: CadastroEmpresa[];
 }
 
 export interface IUserLogin {
@@ -18,6 +20,7 @@ export interface IUserLogin {
 }
 
 export interface IUserRegister {
+  nome: string;
   email: string;
   password: string;
   codigo: string;

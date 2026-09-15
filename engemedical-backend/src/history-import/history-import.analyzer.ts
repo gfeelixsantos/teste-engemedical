@@ -58,7 +58,17 @@ export function parseHistoryCatalogRows(rows: unknown[][]) {
     if (name || cpf) {
       const id = cpf || normalizeHeader(name);
       if (!employees.has(id)) employees.set(id, { id, name, cpf, unit });
-      if (fileName) files.push({ id: fileName, name: fileName, type, date: rowValue(row, ['Data da ficha', 'Data Ficha']) || null, employeeId: id });
+      if (fileName) files.push({
+        id: fileName,
+        name: fileName,
+        type,
+        date: rowValue(row, ['Data da ficha', 'Data Ficha']) || null,
+        employeeId: id,
+        codigoEmpresa: rowValue(row, ['Código da empresa', 'Codigo da empresa', 'Codigo Empresa', 'Empresa']),
+        codigoFuncionario: rowValue(row, ['Código do funcionário', 'Codigo do funcionario', 'Código funcionário', 'Codigo funcionario']),
+        codigoGed: rowValue(row, ['Código GED', 'Codigo GED', 'CD GED', 'CODIGOGED']),
+        sequencialFicha: rowValue(row, ['Código sequencial ficha', 'Codigo sequencial ficha', 'Sequencial ficha', 'SEQUENCIAFICHA']),
+      });
     }
   }
   return { employees: [...employees.values()], files };

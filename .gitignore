@@ -85,6 +85,10 @@ docs/
 engemedical-backend/docs/
 engemedical-backend/scripts/
 engemedical-backend/supabase/
+!engemedical-backend/supabase/
+engemedical-backend/supabase/*
+!engemedical-backend/supabase/migrations/
+!engemedical-backend/supabase/migrations/*.sql
 engemedical-backend/R2_*.md
 engemedical-backend/test-*.js
 engemedical-backend/test-*.sh

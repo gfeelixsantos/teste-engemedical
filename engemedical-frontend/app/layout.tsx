@@ -40,6 +40,7 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning lang="pt-br">
       <body
+        suppressHydrationWarning
         className={clsx(
           "min-h-screen text-foreground font-sans antialiased",
           fontSans.variable,

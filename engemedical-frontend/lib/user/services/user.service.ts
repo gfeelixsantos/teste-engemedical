@@ -1,5 +1,8 @@
+import { randomUUID } from "node:crypto";
+
 import { IUserInfo, IUserLogin, IUserReauth, IUserRegister } from "../interfaces/IUser";
 import { resolveRegistrationCode, RegistrationUserType } from "../registration-code";
+import { getEmpresasFromRegistrationCode } from "../empresa-parser";
 
 import { Bcrypt } from "@/lib/bcrypt/bcrypt";
 import { SOC } from "@/lib/soc/services/soc";
@@ -21,6 +24,29 @@ type AuthUserRecord = IUserRegister & {
 };
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
+
+const nameParticles = new Set(["da", "das", "de", "di", "do", "dos", "du", "e"]);
+
+const capitalizeNamePart = (part: string, index: number) => {
+  const lower = part.toLocaleLowerCase("pt-BR");
+
+  if (index > 0 && nameParticles.has(lower)) return lower;
+
+  return lower.replace(/(^|[-'])\p{L}/gu, (match) =>
+    match.toLocaleUpperCase("pt-BR"),
+  );
+};
+
+const formatPersonName = (value: string) =>
+  value
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .map(capitalizeNamePart)
+    .join(" ");
+
+const createClientUserCodigo = () =>
+  `CLI-${randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase()}`;
 
 const getClientRegistrationCode = (client: AuthUserRecord) =>
   client.registrationCode || client.registration_code || client.codigo;
@@ -179,6 +205,10 @@ export class UserService {
     }
 
     // Gera token JWT e mapeia para o modelo de sucesso de login
+    const empresaResult = tipoUsuario === "cliente"
+      ? await getEmpresasFromRegistrationCode(registrationCode)
+      : { empresas: [], missingCodes: [], invalidCodes: [], originalCode: registrationCode };
+
     const userInfo: IUserInfo = {
       codigo: userData.codigo,
       nome: userData.nome,
@@ -189,7 +219,12 @@ export class UserService {
       perfil: userData.perfil || "CONVIDADO",
       tipoUsuario,
       registrationCode,
+      empresas: empresaResult.empresas,
     };
+
+    (userInfo as any).missingCodes = empresaResult.missingCodes;
+    (userInfo as any).invalidCodes = empresaResult.invalidCodes;
+
     const token = await JWT.generateJwt(userInfo);
 
     // Atualiza o último login em background
@@ -296,6 +331,7 @@ export class UserService {
   static async register(user: IUserRegister) {
     try {
       const registration = resolveRegistrationCode(user.codigo);
+      const normalizedNome = formatPersonName(user.nome);
       const normalizedEmail = normalizeEmail(user.email);
       const supabaseData = await SupabaseService.getUserByEmail(user.email);
 
@@ -333,8 +369,11 @@ export class UserService {
           );
         }
 
+        const socUserInfo = mapCadastroPessoasToUserInfo(socRegisterUser);
+
         userInfoMapped = {
-          ...mapCadastroPessoasToUserInfo(socRegisterUser),
+          ...socUserInfo,
+          nome: socUserInfo.nome ? formatPersonName(socUserInfo.nome) : normalizedNome,
           email: normalizedEmail,
           tipoUsuario: registration.tipoUsuario,
           registrationCode: registration.normalizedCode,
@@ -342,8 +381,8 @@ export class UserService {
         supabaseCpf = userInfoMapped.cpf || "";
       } else {
         userInfoMapped = {
-          codigo: registration.userCodigo,
-          nome: normalizedEmail,
+          codigo: createClientUserCodigo(),
+          nome: normalizedNome,
           cpf: "",
           email: normalizedEmail,
           perfil: "CLIENTE",

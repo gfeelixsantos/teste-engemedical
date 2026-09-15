@@ -9,11 +9,15 @@ export interface RegistrationCodeResolution {
 
 const INTERNAL_PREFIX = "ENGM-";
 
+export function normalizeRegistrationCode(code: string): string {
+  return String(code ?? "").toUpperCase().replace(/\s+/g, "");
+}
+
 export function resolveRegistrationCode(code: string): RegistrationCodeResolution {
-  const normalizedCode = String(code ?? "").trim().toUpperCase();
+  const normalizedCode = normalizeRegistrationCode(code);
 
   if (normalizedCode.startsWith("ENGM-")) {
-    const socCodigo = normalizedCode.slice(INTERNAL_PREFIX.length).trim();
+    const socCodigo = normalizedCode.slice(INTERNAL_PREFIX.length);
 
     return {
       normalizedCode,

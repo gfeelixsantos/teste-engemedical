@@ -47,6 +47,13 @@ test("submenu lateral oferece suporte a hover e teclado", () => {
   assert.doesNotMatch(source, /const activeGroup = SIDEBAR_GROUPS\.find/);
 });
 
+test("ícones dos dashboards usam o mesmo ciano da sidebar", () => {
+  const dashboards = source.slice(source.indexOf('{ title: "Dashboards"'), source.indexOf('{ title: "Serviços"'));
+
+  assert.doesNotMatch(dashboards, /color:/);
+  assert.match(source, /ItemIcon className=\{`h-4 w-4 shrink-0 \$\{itemActive \? "text-brand-cyan" : "text-brand-cyan"\}`\}/);
+});
+
 test("automação usa o mesmo ícone da página de coleta", async () => {
   const scraperSource = await readFile(new URL("../app/dashboard/components/ScraperMonitor.tsx", import.meta.url), "utf8");
 

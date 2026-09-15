@@ -34,6 +34,8 @@ export type UploadSocged = {
   codigoGed: string;
   tipoGed?: string;
   classificacao?: string;
+  // Impede substituir um GED existente durante importações históricas.
+  sobreescreveArquivo?: boolean;
 
   // campo auxiliar opcional usado internamente, nao enviado a API SOCGED.
   schedulingId?: string;

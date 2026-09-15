@@ -1,12 +1,15 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
   FileText,
+  Building2,
   Search,
+  ChevronDown,
+  Check,
   ShieldCheck,
   UploadCloud,
   Users,
@@ -23,6 +26,8 @@ type Document = {
   date: string | null;
   status: "MATCHED" | "PENDING";
   employee?: Employee;
+  codigoEmpresa?: string;
+  uploadStatus?: "PENDING" | "PROCESSING" | "SENT" | "FAILED" | "SKIPPED";
 };
 type Analysis = {
   id: string;
@@ -31,13 +36,17 @@ type Analysis = {
   employees: Employee[];
   documents: Document[];
   summary: { files: number; employees: number; pending: number };
+  status?: "ANALYZED" | "PROCESSING" | "COMPLETED" | "FAILED" | "CANCELLED";
 };
+type ImportReport = { selected: number; sent: number; generic: number; failed: number };
+type Company = { CODIGO: string; RAZAOSOCIAL?: string; NOMEABREVIADO?: string; CNPJ?: string; CIDADE?: string; UF?: string };
 const PAGE_SIZE = 25;
 
 export default function ImportacaoHistoricoPage() {
   const router = useRouter();
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [employeeId, setEmployeeId] = useState("");
+  const [targetCompany, setTargetCompany] = useState("");
   const [query, setQuery] = useState("");
   const [docQuery, setDocQuery] = useState("");
   const [mode, setMode] = useState("todos");
@@ -50,6 +59,41 @@ export default function ImportacaoHistoricoPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [report, setReport] = useState<ImportReport | null>(null);
+  const [cancelRequested, setCancelRequested] = useState(false);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companiesLoading, setCompaniesLoading] = useState(true);
+  const [companiesError, setCompaniesError] = useState<string | null>(null);
+  const [companySearch, setCompanySearch] = useState("");
+  const [companyPickerOpen, setCompanyPickerOpen] = useState(false);
+  const companyPickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/automacao/importacao-historico?resource=companies")
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message ?? "Não foi possível carregar as empresas.");
+        if (active) setCompanies(Array.isArray(payload) ? payload : []);
+      })
+      .catch((cause) => { if (active) setCompaniesError(cause instanceof Error ? cause.message : "Não foi possível carregar as empresas."); })
+      .finally(() => { if (active) setCompaniesLoading(false); });
+    return () => { active = false; };
+  }, []);
+  useEffect(() => {
+    const closePicker = (event: MouseEvent) => {
+      if (companyPickerRef.current && !companyPickerRef.current.contains(event.target as Node)) setCompanyPickerOpen(false);
+    };
+    document.addEventListener("mousedown", closePicker);
+    return () => document.removeEventListener("mousedown", closePicker);
+  }, []);
+  const availableCompanies = useMemo(() => {
+    const term = companySearch.trim().toLocaleLowerCase("pt-BR");
+    return [...companies]
+      .filter((company) => `${company.RAZAOSOCIAL ?? ""} ${company.NOMEABREVIADO ?? ""} ${company.CODIGO} ${company.CNPJ ?? ""}`.toLocaleLowerCase("pt-BR").includes(term))
+      .sort((a, b) => (a.RAZAOSOCIAL || a.NOMEABREVIADO || "").localeCompare(b.RAZAOSOCIAL || b.NOMEABREVIADO || "", "pt-BR", { sensitivity: "base" }));
+  }, [companies, companySearch]);
+  const selectedCompany = companies.find((company) => String(company.CODIGO) === targetCompany);
   const employees = useMemo(
     () =>
       (analysis?.employees ?? []).filter((e) =>
@@ -121,9 +165,12 @@ export default function ImportacaoHistoricoPage() {
   const analyze = async (file: File) => {
     setError(null);
     setMessage(null);
+    setReport(null);
+    setCancelRequested(false);
     if (!/\.(rar|zip)$/i.test(file.name))
       return setError("Selecione um pacote RAR ou ZIP.");
     setBusy(true);
+    setCancelRequested(false);
     const body = new FormData();
     body.append("file", file);
     try {
@@ -137,6 +184,7 @@ export default function ImportacaoHistoricoPage() {
           payload.message ?? "Não foi possível analisar o pacote.",
         );
       setAnalysis({ ...payload, fileName: file.name });
+      setTargetCompany("");
       setPage(1);
       setEmployeePage(1);
       setMode("todos");
@@ -154,12 +202,12 @@ export default function ImportacaoHistoricoPage() {
     }
   };
   const confirm = async () => {
-    if (!analysis || !employeeId || !selected.length)
-      return setError("Selecione um colaborador e documentos pareados.");
+    if (!analysis || !targetCompany.trim() || !selected.length)
+      return setError("Informe a empresa alvo e selecione documentos.");
     const body = new FormData();
     body.append("action", "confirm");
     body.append("id", analysis.id);
-    body.append("employeeId", employeeId);
+    body.append("targetCompany", targetCompany.trim());
     body.append("documentIds", JSON.stringify(selected));
     setBusy(true);
     try {
@@ -170,11 +218,29 @@ export default function ImportacaoHistoricoPage() {
       const payload = await response.json();
       if (!response.ok)
         throw new Error(payload.message ?? "Não foi possível confirmar.");
-      setMessage("Lote controlado preparado para envio ao SOC.");
+      setAnalysis((current) => current ? { ...current, status: payload.status } : current);
+      setReport({ selected: payload.selected ?? 0, sent: payload.sent ?? 0, generic: payload.generic ?? 0, failed: payload.failed ?? 0 });
+      setMessage(
+        `Importação concluída: ${payload.sent ?? 0} enviado(s), ${payload.generic ?? 0} genérico(s) e ${payload.failed ?? 0} erro(s).`,
+      );
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Falha ao confirmar.");
     } finally {
       setBusy(false);
+    }
+  };
+  const cancel = async () => {
+    if (!analysis || !busy || cancelRequested) return;
+    setCancelRequested(true);
+    setMessage("Solicitação de cancelamento enviada. Finalizando o documento atual…");
+    try {
+      const body = new FormData();
+      body.append("action", "cancel");
+      body.append("id", analysis.id);
+      await fetch("/api/automacao/importacao-historico", { method: "POST", body });
+    } catch {
+      setError("Não foi possível solicitar o cancelamento.");
+      setCancelRequested(false);
     }
   };
   return (
@@ -215,6 +281,14 @@ export default function ImportacaoHistoricoPage() {
             {message}
           </div>
         )}
+        {report && (
+          <section className="mb-5 grid gap-3 rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:grid-cols-4">
+            <ReportMetric label="Selecionados" value={report.selected} />
+            <ReportMetric label="Enviados" value={report.sent} tone="success" />
+            <ReportMetric label="Sem vínculo" value={report.generic} tone="warning" />
+            <ReportMetric label="Com erro" value={report.failed} tone="danger" />
+          </section>
+        )}
         <section className="mb-5 flex flex-col justify-between gap-3 rounded-2xl border border-brand-line bg-white p-4 shadow-sm sm:flex-row sm:items-center">
           <div className="flex min-w-0 items-center gap-3">
             <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-cyan-50 text-brand-600">
@@ -244,6 +318,63 @@ export default function ImportacaoHistoricoPage() {
               }
             />
           </label>
+        </section>
+        <section className="mb-5 rounded-2xl border border-brand-line bg-white p-4 shadow-sm">
+          <label className="block text-xs font-bold uppercase tracking-wide text-brand-muted" htmlFor="target-company">
+            Empresa alvo no SOC
+          </label>
+          <div className="relative mt-2 max-w-2xl" ref={companyPickerRef}>
+            <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" />
+            <button
+              id="target-company"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={companyPickerOpen}
+              onClick={() => !companiesLoading && !companiesError && setCompanyPickerOpen((open) => !open)}
+              disabled={companiesLoading || Boolean(companiesError)}
+              className="flex w-full items-center justify-between rounded-xl border border-brand-line bg-brand-surface py-2 pl-10 pr-3 text-left outline-none transition focus:border-brand-cyan disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span className="min-w-0">
+                <span className={`block truncate text-sm font-semibold ${selectedCompany ? "text-brand-midnight" : "text-brand-muted"}`}>
+                  {companiesLoading ? "Carregando empresas do SOC…" : selectedCompany?.RAZAOSOCIAL || selectedCompany?.NOMEABREVIADO || "Selecione a empresa alvo"}
+                </span>
+                {selectedCompany && <span className="mt-0.5 block truncate text-[11px] text-brand-muted">Código {selectedCompany.CODIGO} · CNPJ {selectedCompany.CNPJ || "não informado"}</span>}
+              </span>
+              <ChevronDown className={`ml-3 h-4 w-4 shrink-0 text-brand-muted transition-transform ${companyPickerOpen ? "rotate-180" : ""}`} />
+            </button>
+            {companyPickerOpen && (
+              <div className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-brand-line bg-white shadow-2xl" role="listbox" aria-label="Empresas disponíveis">
+                <div className="border-b border-brand-line bg-brand-surface/70 p-3">
+                  <div className="flex items-center gap-2 rounded-xl border border-brand-line bg-white px-3 py-2">
+                    <Search className="h-4 w-4 text-brand-muted" />
+                    <input autoFocus value={companySearch} onChange={(event) => setCompanySearch(event.target.value)} placeholder="Buscar por nome, código ou CNPJ" className="w-full bg-transparent text-xs outline-none" />
+                  </div>
+                  <p className="mt-2 text-[11px] font-semibold text-brand-muted">{availableCompanies.length} empresa(s) disponível(is)</p>
+                </div>
+                <div className="max-h-72 overflow-y-auto p-2">
+                  {availableCompanies.map((company) => {
+                    const isSelected = String(company.CODIGO) === targetCompany;
+                    return (
+                      <button key={company.CODIGO} type="button" role="option" aria-selected={isSelected} onClick={() => { setTargetCompany(String(company.CODIGO)); setCompanyPickerOpen(false); setCompanySearch(""); }} className={`flex w-full items-start gap-3 rounded-xl border px-3 py-3 text-left transition ${isSelected ? "border-brand-cyan/40 bg-brand-cyan-50" : "border-transparent hover:border-brand-line hover:bg-brand-surface"}`}>
+                        <span className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg ${isSelected ? "bg-brand-cyan/15 text-brand-700" : "bg-brand-surface text-brand-muted"}`}><Building2 className="h-4 w-4" /></span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-bold text-brand-midnight">{company.RAZAOSOCIAL || company.NOMEABREVIADO || "Empresa sem nome"}</span>
+                          <span className="mt-1 block truncate text-xs text-brand-muted">Código {company.CODIGO} · CNPJ {company.CNPJ || "não informado"}</span>
+                          {(company.CIDADE || company.UF) && <span className="mt-0.5 block truncate text-[11px] text-brand-muted">{[company.CIDADE, company.UF].filter(Boolean).join(" · ")}</span>}
+                        </span>
+                        {isSelected && <Check className="mt-1 h-4 w-4 shrink-0 text-brand-700" />}
+                      </button>
+                    );
+                  })}
+                  {!availableCompanies.length && <p className="px-3 py-6 text-center text-xs text-brand-muted">Nenhuma empresa encontrada.</p>}
+                </div>
+              </div>
+            )}
+          </div>
+          {companiesError && <p className="mt-2 text-xs font-semibold text-red-700">{companiesError}</p>}
+          <p className="mt-2 text-xs text-brand-muted">
+            Lista carregada do cadastro de empresas do SOC. Usaremos a empresa escolhida para consultar os funcionários atuais no FOL e realizar o cruzamento por CPF.
+          </p>
         </section>
         <section className="overflow-hidden rounded-2xl border border-brand-line bg-white shadow-sm">
           <div className="grid grid-cols-3 divide-x divide-brand-line border-b border-brand-line">
@@ -468,7 +599,7 @@ export default function ImportacaoHistoricoPage() {
                             <td className="px-3 py-3">
                               <input
                                 type="checkbox"
-                                disabled={document.status !== "MATCHED"}
+                                disabled={document.uploadStatus === "SENT" || document.uploadStatus === "PROCESSING"}
                                 checked={selected.includes(document.id)}
                                 onChange={() =>
                                   setSelected((s) =>
@@ -498,9 +629,11 @@ export default function ImportacaoHistoricoPage() {
                               <span
                                 className={`inline-flex rounded-full px-2 py-1 font-semibold ${document.status === "MATCHED" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}
                               >
-                                {document.status === "MATCHED"
-                                  ? "Associado automaticamente"
-                                  : "Necessita confirmação"}
+                                {document.uploadStatus === "SENT"
+                                  ? "Enviado ao SOCGED"
+                                  : document.status === "MATCHED"
+                                    ? "Associado no histórico"
+                                    : "Será enviado sem vínculo"}
                               </span>
                             </td>
                           </tr>
@@ -549,16 +682,27 @@ export default function ImportacaoHistoricoPage() {
             <strong>Revisão manual obrigatória.</strong>
             <br />
             <span className="text-xs">
-              Documentos sem associação não podem ser enviados ao SOC.
+              Documentos sem associação serão enviados como SOCGED genérico, sem vínculo com funcionário.
             </span>
           </p>
-          <button
-            onClick={confirm}
-            disabled={busy || !analysis}
-            className="rounded-xl bg-brand-deep px-4 py-2.5 text-sm font-bold text-white disabled:opacity-40"
-          >
-            Confirmar importação
-          </button>
+          <div className="flex flex-wrap justify-end gap-2">
+            {busy && analysis && (
+              <button
+                onClick={cancel}
+                disabled={cancelRequested}
+                className="rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm font-bold text-amber-700 disabled:opacity-50"
+              >
+                {cancelRequested ? "Cancelamento solicitado" : "Cancelar processamento"}
+              </button>
+            )}
+            <button
+              onClick={confirm}
+              disabled={busy || !analysis || !targetCompany.trim() || !selected.length}
+              className="rounded-xl bg-brand-deep px-4 py-2.5 text-sm font-bold text-white disabled:opacity-40"
+            >
+              Confirmar importação
+            </button>
+          </div>
         </div>
       </div>
     </AppShell>
@@ -586,6 +730,21 @@ function Metric({
         <strong className="block text-lg text-brand-midnight">{value}</strong>
         <small className="text-xs text-brand-muted">{label}</small>
       </span>
+    </div>
+  );
+}
+
+function ReportMetric({ label, value, tone = "neutral" }: { label: string; value: number; tone?: "neutral" | "success" | "warning" | "danger" }) {
+  const colors = {
+    neutral: "text-brand-midnight",
+    success: "text-emerald-700",
+    warning: "text-amber-700",
+    danger: "text-red-700",
+  };
+  return (
+    <div className="rounded-xl bg-brand-surface px-4 py-3">
+      <strong className={`block text-xl ${colors[tone]}`}>{value.toLocaleString("pt-BR")}</strong>
+      <span className="text-xs font-semibold text-brand-muted">{label}</span>
     </div>
   );
 }

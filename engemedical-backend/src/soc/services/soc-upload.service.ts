@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UploadSocged } from 'src/azure/types/azure.types';
+import { resolveHistoryUploadMetadata } from '../../history-import/history-import.mapping';
 
 const WSSecurity = require('wssecurity-soap');
 
@@ -41,21 +42,20 @@ export class SocUploadService {
       nomeArquivo.startsWith('ASO_');
 
     if (isAso) {
+      const metadata = resolveHistoryUploadMetadata('ASO', payload.nomeArquivo);
       return {
         mode: 'ASO',
-        classificacao: payload.classificacao || 'ASO',
-        codigoTipoGed:
-          payload.tipoGed ||
-          this.configService.get<string>('CODSOCGED_ASO') ||
-          '41',
+        classificacao: payload.classificacao || metadata.classificacao,
+        codigoTipoGed: payload.tipoGed || metadata.codigoTipoGed,
         codigoGed: '',
       };
     }
 
+    const metadata = resolveHistoryUploadMetadata('PRONTUARIO', payload.nomeArquivo);
     return {
       mode: 'PRONTUARIO',
-      classificacao: payload.classificacao || 'RESULTADO_EXAME',
-      codigoTipoGed: payload.tipoGed || '16',
+      classificacao: payload.classificacao || metadata.classificacao,
+      codigoTipoGed: payload.tipoGed || metadata.codigoTipoGed,
       codigoGed: payload.codigoGed || '3',
     };
   }
@@ -98,7 +98,7 @@ export class SocUploadService {
       '';
 
     const URL = 'https://ws1.soc.com.br/WSSoc/services/UploadArquivosWs';
-    const SOBREESCREVER = true;
+    const SOBREESCREVER = payload.sobreescreveArquivo ?? true;
     const OBSERVACAOGED = `Upload via CMSO 360 Backend em ${new Date().toLocaleString('pt-BR')}`;
 
     const uploadConfig = this.resolveUploadConfig(payload);
@@ -107,11 +107,13 @@ export class SocUploadService {
       `[SOC_UPLOAD] Preparando envio ${uploadConfig.mode} | classificacao=${uploadConfig.classificacao} | tipoGed=${uploadConfig.codigoTipoGed} | codEmpresa=${payload.codEmpresa} | codFuncionario=${payload.codFuncionario} | ficha=${payload.sequencialFicha}`,
     );
 
-    const header = new WSSecurity(user, pass, 'PasswordDigest');
     let lastError: any;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
+        // O nonce/digest precisa ser novo em cada requisição. Reutilizar o
+        // UsernameToken provoca InvalidSecurity/replay attack no SOC.
+        const header = new WSSecurity(user, pass, 'PasswordDigest');
         const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(7)}`;
         const contentId = `attachment_${Date.now()}@soc.com.br`;
 
@@ -197,6 +199,13 @@ export class SocUploadService {
         this.logger.warn(
           `[SOC_UPLOAD] Falha no upload (tentativa ${attempt}/${MAX_ATTEMPTS}): ${error.message}`,
         );
+        const errorMessage = String(error?.message || error).toLowerCase();
+        const nonRetryable =
+          errorMessage.includes('não pode ser vazio') ||
+          errorMessage.includes('nao pode ser vazio') ||
+          errorMessage.includes('invalidsecurity') ||
+          errorMessage.includes('replay attack');
+        if (nonRetryable) break;
         if (attempt < MAX_ATTEMPTS) {
           await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
         }

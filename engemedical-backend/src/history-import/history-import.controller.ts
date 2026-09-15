@@ -13,5 +13,7 @@ export class HistoryImportController {
   @Get(':id')
   get(@Param('id') id: string) { return this.service.get(id); }
   @Post(':id/confirm')
-  confirm(@Param('id') id: string, @Body() body: { employeeId: string; documentIds: string[] }) { return this.service.confirm(id, body.employeeId, body.documentIds); }
+  confirm(@Param('id') id: string, @Body() body: { targetCompany?: string; employeeId?: string; documentIds: string[] }) { return this.service.confirm(id, body.targetCompany || body.employeeId || '', body.documentIds); }
+  @Post(':id/cancel')
+  cancel(@Param('id') id: string) { return this.service.cancel(id); }
 }

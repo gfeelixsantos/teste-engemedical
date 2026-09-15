@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { VidasTabelaGeralItem } from '../types';
+import { getDynamicNestUrl } from '@/config/constants';
 
 export function TabelaGeralVidas() {
   const [data, setData] = useState<VidasTabelaGeralItem[]>([]);
@@ -21,7 +22,7 @@ export function TabelaGeralVidas() {
         busca: query,
       });
 
-      const res = await fetch(`http://localhost:3333/vidas/tabela-geral?${params.toString()}`);
+      const res = await fetch(`${getDynamicNestUrl()}vidas/tabela-geral?${params.toString()}`);
       if (res.ok) {
         const json = await res.json();
         setData(json.data);

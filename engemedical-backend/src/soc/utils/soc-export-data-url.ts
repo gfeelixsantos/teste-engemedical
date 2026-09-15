@@ -50,7 +50,12 @@ export const buildSocExportDataUrl = (
     'SOC_EXPORT_DATA_BASE_URL',
     configService,
   );
-  const parametro = encodeURIComponent(JSON.stringify(payload));
+  const normalizedPayload = { ...payload };
+  if ('funcionarioInicio' in normalizedPayload) {
+    normalizedPayload.funcionarioIni = normalizedPayload.funcionarioInicio;
+    delete normalizedPayload.funcionarioInicio;
+  }
+  const parametro = encodeURIComponent(JSON.stringify(normalizedPayload));
 
   return `${baseUrl}?parametro=${parametro}`;
 };

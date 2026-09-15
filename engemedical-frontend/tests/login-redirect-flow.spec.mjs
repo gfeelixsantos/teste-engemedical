@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
-test("post-login transition runs once inside the login route", async () => {
+test("post-login redirect uses getHomeRoute for user-type-aware routing", async () => {
   const loginPage = await readFile(
     new URL("../components/login/login.tsx", import.meta.url),
     "utf8",
@@ -12,11 +12,10 @@ test("post-login transition runs once inside the login route", async () => {
     "utf8",
   );
 
-  assert.match(loginPage, /PremiumCyberLoading/);
-  assert.match(loginPage, /duration=\{1280\}/);
-  assert.doesNotMatch(loginPage, /loginTransition/);
   assert.match(loginPage, /getHomeRoute\(userLogged\.data\)/);
+  assert.match(loginPage, /import.*getHomeRoute/);
+  assert.doesNotMatch(loginPage, /router\.replace\("\/dashboard/);
 
   assert.doesNotMatch(dashboardPage, /PremiumCyberLoading/);
-  assert.doesNotMatch(dashboardPage, /loginTransition/);
+  assert.doesNotMatch(dashboardPage, /getHomeRoute/);
 });

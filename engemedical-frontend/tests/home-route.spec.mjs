@@ -7,8 +7,8 @@ test("direciona usuário interno para visão geral", () => {
   assert.equal(source.getHomeRoute({ tipoUsuario: "interno" }), "/visao-geral");
 });
 
-test("direciona cliente para início", () => {
-  assert.equal(source.getHomeRoute({ tipoUsuario: "cliente" }), "/inicio");
+test("direciona cliente para /cliente", () => {
+  assert.equal(source.getHomeRoute({ tipoUsuario: "cliente" }), "/cliente");
 });
 
 test("mantém usuários legados na visão geral", () => {

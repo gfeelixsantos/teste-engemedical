@@ -1,8 +1,16 @@
 import { z } from "zod";
 
+const hasFullNameShape = (value: string) => {
+  const parts = value.trim().replace(/\s+/g, " ").split(" ");
+  const letterParts = parts.filter((part) => /\p{L}{2,}/u.test(part));
+
+  return letterParts.length >= 2;
+};
+
 export const userRegisterSchema = z.object({
+  nome: z.string().trim().min(3).max(120).refine(hasFullNameShape),
   email: z.string().trim().email(),
-  codigo: z.string().min(1),
+  codigo: z.string().trim().min(1),
   password: z.string().min(3),
 });
 export type IUserRegister = z.infer<typeof userRegisterSchema>;
