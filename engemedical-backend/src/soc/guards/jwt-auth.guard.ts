@@ -28,17 +28,30 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('JWT_SECRET nao configurado no servidor');
     }
 
-    if (!this.verifyToken(token, secret)) {
+    const verifiedClaims = this.verifyToken(token, secret);
+
+    if (!verifiedClaims) {
       throw new UnauthorizedException('Token invalido ou expirado');
     }
+
+    request.user = {
+      sub: verifiedClaims.sub,
+      userId: verifiedClaims.userId,
+      codigo: verifiedClaims.codigo,
+      email: verifiedClaims.email,
+      perfil: verifiedClaims.perfil,
+    };
 
     return true;
   }
 
-  private verifyToken(token: string, secret: string): boolean {
+  private verifyToken(
+    token: string,
+    secret: string,
+  ): Record<string, unknown> | null {
     try {
       const segments = token.split('.');
-      if (segments.length !== 3) return false;
+      if (segments.length !== 3) return null;
 
       const [headerB64, payloadB64, signatureB64] = segments;
 
@@ -47,21 +60,25 @@ export class JwtAuthGuard implements CanActivate {
         .update(`${headerB64}.${payloadB64}`)
         .digest();
 
-      if (signature.length !== expectedSignature.length) return false;
+      if (signature.length !== expectedSignature.length) return null;
 
-      if (!timingSafeEqual(signature, expectedSignature)) return false;
+      if (!timingSafeEqual(signature, expectedSignature)) return null;
 
       const payloadRaw = this.base64UrlDecode(payloadB64).toString('utf8');
       const payload = JSON.parse(payloadRaw);
 
-      if (payload.exp) {
-        const now = Math.floor(Date.now() / 1000);
-        if (now > payload.exp) return false;
+      if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+        return null;
       }
 
-      return true;
+      if (payload.exp) {
+        const now = Math.floor(Date.now() / 1000);
+        if (now >= payload.exp) return null;
+      }
+
+      return payload;
     } catch {
-      return false;
+      return null;
     }
   }
 
