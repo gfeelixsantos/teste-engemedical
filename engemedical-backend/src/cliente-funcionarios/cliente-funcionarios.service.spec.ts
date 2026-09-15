@@ -1,6 +1,11 @@
+import 'reflect-metadata';
 import { CadastroFuncionarioPorSituacao } from 'src/soc/types/CadastroFuncionarioPorSituacao';
 import { ClienteCompanyAccessService } from './cliente-company-access.service';
-import { ClienteFuncionariosService } from './cliente-funcionarios.service';
+import {
+  ClienteFuncionariosService,
+  MongoClienteFuncionariosSchedulingReader,
+} from './cliente-funcionarios.service';
+import { ClienteFuncionariosStatusService } from './cliente-funcionarios-status.service';
 import {
   ClienteFuncionariosSchedulingReader,
   SchedulingSummary,
@@ -78,6 +83,12 @@ function scheduling(overrides: Partial<SchedulingSummary> = {}): SchedulingSumma
   };
 }
 
+function readerForService(
+  reader: ClienteFuncionariosSchedulingReader,
+): MongoClienteFuncionariosSchedulingReader {
+  return reader as unknown as MongoClienteFuncionariosSchedulingReader;
+}
+
 describe('ClienteFuncionariosService', () => {
   it('autoriza antes de consultar SOC ou Mongo e redige dados sensíveis', async () => {
     const calls: string[] = [];
@@ -99,7 +110,12 @@ describe('ClienteFuncionariosService', () => {
         return scheduling();
       }),
     };
-    const service = new ClienteFuncionariosService(access, soc as never, reader);
+    const service = new ClienteFuncionariosService(
+      access,
+      soc as never,
+      readerForService(reader),
+      new ClienteFuncionariosStatusService(),
+    );
 
     const response = await service.list(
       { companyCode: ' 123 ', page: 1, limit: 10 },
@@ -146,7 +162,12 @@ describe('ClienteFuncionariosService', () => {
         code === '2' ? scheduling({ examDates: [] }) : scheduling(),
       ),
     };
-    const service = new ClienteFuncionariosService(access, soc as never, reader);
+    const service = new ClienteFuncionariosService(
+      access,
+      soc as never,
+      readerForService(reader),
+      new ClienteFuncionariosStatusService(),
+    );
 
     const response = await service.list(
       { companyCode: '123', q: 'ALVARO', status: 'PENDENTE', page: 0, limit: 2 },
@@ -167,7 +188,12 @@ describe('ClienteFuncionariosService', () => {
     const reader: ClienteFuncionariosSchedulingReader = {
       findLatestByEmployee: jest.fn(),
     };
-    const service = new ClienteFuncionariosService(access, soc as never, reader);
+    const service = new ClienteFuncionariosService(
+      access,
+      soc as never,
+      readerForService(reader),
+      new ClienteFuncionariosStatusService(),
+    );
 
     await expect(service.list({ companyCode: '123' }, 'user-1')).resolves.toMatchObject({
       items: [],
@@ -185,7 +211,12 @@ describe('ClienteFuncionariosService', () => {
     const reader: ClienteFuncionariosSchedulingReader = {
       findLatestByEmployee: jest.fn(),
     };
-    const service = new ClienteFuncionariosService(access, soc as never, reader);
+    const service = new ClienteFuncionariosService(
+      access,
+      soc as never,
+      readerForService(reader),
+      new ClienteFuncionariosStatusService(),
+    );
 
     await expect(service.list({ companyCode: '123' }, 'user-1')).rejects.toThrow('sem acesso');
     expect(soc.EdCadastroFuncionariosPorSituacao).not.toHaveBeenCalled();
@@ -201,9 +232,139 @@ describe('ClienteFuncionariosService', () => {
     const service = new ClienteFuncionariosService(
       access,
       soc as never,
-      { findLatestByEmployee: jest.fn() },
+      readerForService({ findLatestByEmployee: jest.fn() }),
+      new ClienteFuncionariosStatusService(),
     );
 
     await expect(service.list({ companyCode: '123' }, 'user-1')).rejects.toThrow('SOC indisponível');
+  });
+
+  it('propaga falha do lookup Mongo', async () => {
+    const access = {
+      assertCanAccess: jest.fn(async () => ({ companyCode: '123', companyName: 'Empresa' })),
+    } as unknown as ClienteCompanyAccessService;
+    const soc = {
+      EdCadastroFuncionariosPorSituacao: jest.fn(async () => [employee()]),
+    };
+    const service = new ClienteFuncionariosService(
+      access,
+      soc as never,
+      readerForService({
+        findLatestByEmployee: jest.fn().mockRejectedValue(new Error('Mongo indisponível')),
+      }),
+      new ClienteFuncionariosStatusService(),
+    );
+
+    await expect(service.list({ companyCode: '123' }, 'user-1')).rejects.toThrow('Mongo indisponível');
+  });
+
+  it('calcula hasNextPage e página além do fim sobre o total filtrado', async () => {
+    const access = {
+      assertCanAccess: jest.fn(async () => ({ companyCode: '123', companyName: 'Empresa' })),
+    } as unknown as ClienteCompanyAccessService;
+    const employees = Array.from({ length: 11 }, (_, index) =>
+      employee({
+        CODIGO: String(index + 1),
+        NOME: `Funcionário ${String(index + 1).padStart(2, '0')}`,
+        DTASO: '01/01/2026',
+      }),
+    );
+    const service = new ClienteFuncionariosService(
+      access,
+      { EdCadastroFuncionariosPorSituacao: jest.fn(async () => employees) } as never,
+      readerForService({ findLatestByEmployee: jest.fn(async () => null) }),
+      new ClienteFuncionariosStatusService(),
+    );
+
+    const firstPage = await service.list({ companyCode: '123', page: 1, limit: 10 }, 'user-1');
+    const secondPage = await service.list({ companyCode: '123', page: 2, limit: 10 }, 'user-1');
+    const beyondEnd = await service.list({ companyCode: '123', page: 3, limit: 10 }, 'user-1');
+
+    expect(firstPage.total).toBe(11);
+    expect(firstPage.items).toHaveLength(10);
+    expect(firstPage.hasNextPage).toBe(true);
+    expect(secondPage.items).toHaveLength(1);
+    expect(secondPage.hasNextPage).toBe(false);
+    expect(beyondEnd.items).toEqual([]);
+    expect(beyondEnd.hasNextPage).toBe(false);
+  });
+
+  it('mantém o contrato de DI com tokens concretos para reader e status', () => {
+    const metadata = Reflect.getMetadata(
+      'design:paramtypes',
+      ClienteFuncionariosService,
+    ) as unknown[];
+
+    expect(metadata?.[2]?.name).toBe('MongoClienteFuncionariosSchedulingReader');
+    expect(metadata?.[3]).toBe(ClienteFuncionariosStatusService);
+  });
+
+  it('projeta campos estreitos e extrai examDates somente de EXAMES.dataExame', async () => {
+    const documents = [
+      {
+        _id: 'sched-1',
+        ATENDIMENTOSTATUS: 'FINALIZADO',
+        DATAAGENDAMENTO: '15/09/2026',
+        DATAAGENDAMENTO_DATE: new Date('2026-09-15T03:00:00.000Z'),
+        TIPOEXAME: '5',
+        TIPOEXAMENOME: 'DEMISSIONAL',
+        EXAMES: [
+          {
+            dataExame: '01/09/2026',
+            grupo: 'Exame Clínico',
+            nomeExame: 'ASO demissional',
+            cpf: 'nao deve ser projetado',
+          },
+        ],
+      },
+      {
+        _id: 'sched-2',
+        ATENDIMENTOSTATUS: 'FINALIZADO',
+        DATAAGENDAMENTO: '01/09/2026',
+        DATAAGENDAMENTO_DATE: new Date('2026-09-01T03:00:00.000Z'),
+        TIPOEXAME: '1',
+        TIPOEXAMENOME: 'ASO',
+        EXAMES: [
+          {
+            dataExame: '20/08/2026',
+            grupo: 'Exame Complementar',
+            nomeExame: 'Audiometria',
+          },
+        ],
+      },
+    ];
+    const cursor = {
+      sort: jest.fn().mockReturnThis(),
+      toArray: jest.fn().mockResolvedValue(documents),
+    };
+    const find = jest.fn().mockReturnValue(cursor);
+    const reader = new MongoClienteFuncionariosSchedulingReader({
+      schedulingsCollection: { find },
+    } as never);
+
+    const result = await reader.findLatestByEmployee('123', 'E-1');
+    const projection = find.mock.calls[0][1].projection;
+
+    expect(projection).toEqual({
+      _id: 1,
+      ATENDIMENTOSTATUS: 1,
+      DATAAGENDAMENTO: 1,
+      DATAAGENDAMENTO_DATE: 1,
+      TIPOEXAME: 1,
+      TIPOEXAMENOME: 1,
+      'EXAMES.dataExame': 1,
+      'EXAMES.grupo': 1,
+      'EXAMES.nomeExame': 1,
+    });
+    expect(projection.EXAMES).toBeUndefined();
+    expect(result).toEqual({
+      id: 'sched-1',
+      atendimentoStatus: 'FINALIZADO',
+      schedulingDate: '15/09/2026',
+      examDates: ['01/09/2026', '20/08/2026'],
+      examType: 'DEMISSIONAL',
+      examTypeCode: '5',
+      examTypeName: 'DEMISSIONAL',
+    });
   });
 });

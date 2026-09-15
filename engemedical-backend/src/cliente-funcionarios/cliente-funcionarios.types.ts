@@ -24,6 +24,8 @@ export interface SchedulingSummary {
   schedulingDate: string | Date | null;
   examDates: Array<string | Date>;
   examType?: string | null;
+  examTypeCode?: string | null;
+  examTypeName?: string | null;
 }
 
 export interface ResolvedFuncionarioStatus {

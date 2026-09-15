@@ -115,6 +115,12 @@ describe('ClienteFuncionariosStatusService', () => {
     ).toBe('VALIDO');
   });
 
+  it('trata exatamente um ano como EXPIRANDO, não como EXPIRADO', () => {
+    expect(
+      service.resolve(employee({ DTASO: '15/09/2025' }), scheduling(), today).status,
+    ).toBe('EXPIRANDO');
+  });
+
   it('retorna VALIDO para exame recente e usa a data mais recente disponível', () => {
     const result = service.resolve(
       employee({ DTASO: '01/01/2020' }),

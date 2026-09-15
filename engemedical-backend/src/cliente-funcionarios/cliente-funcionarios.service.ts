@@ -17,21 +17,27 @@ export class MongoClienteFuncionariosSchedulingReader
 {
   constructor(private readonly mongoService: MongoService) {}
 
+  private readonly projection = {
+    _id: 1,
+    ATENDIMENTOSTATUS: 1,
+    DATAAGENDAMENTO: 1,
+    DATAAGENDAMENTO_DATE: 1,
+    TIPOEXAME: 1,
+    TIPOEXAMENOME: 1,
+    'EXAMES.dataExame': 1,
+    'EXAMES.grupo': 1,
+    'EXAMES.nomeExame': 1,
+  } as const;
+
   async findLatestByEmployee(
     companyCode: string,
     employeeCode: string,
   ): Promise<SchedulingSummary | null> {
     const documents = await this.mongoService.schedulingsCollection
-      .find(
+      .find<ClienteFuncionariosSchedulingDocument>(
         { CODIGOEMPRESA: companyCode, CODIGO: employeeCode },
         {
-          projection: {
-            _id: 1,
-            ATENDIMENTOSTATUS: 1,
-            DATAAGENDAMENTO: 1,
-            DATAAGENDAMENTO_DATE: 1,
-            EXAMES: 1,
-          },
+          projection: this.projection,
         },
       )
       .sort({ DATAAGENDAMENTO_DATE: -1, _id: -1 })
@@ -39,30 +45,55 @@ export class MongoClienteFuncionariosSchedulingReader
 
     if (documents.length === 0) return null;
 
-    const latest = documents[0] as Record<string, any>;
-    const examDates = documents
-      .map((document) => document.DATAAGENDAMENTO_DATE ?? document.DATAAGENDAMENTO)
-      .filter((value) => value !== null && value !== undefined && String(value).trim() !== '');
+    const latest = documents[0];
+    const examDates = documents.flatMap((document) =>
+      (document.EXAMES ?? [])
+        .map((exam) => exam.dataExame)
+        .filter((value): value is string | Date => this.hasValue(value)),
+    );
+    const examTypeCode = this.toNullableText(latest.TIPOEXAME);
+    const examTypeName = this.toNullableText(latest.TIPOEXAMENOME);
 
     return {
       id: String(latest._id),
-      atendimentoStatus: latest.ATENDIMENTOSTATUS
-        ? String(latest.ATENDIMENTOSTATUS)
-        : null,
+      atendimentoStatus: this.toNullableText(latest.ATENDIMENTOSTATUS),
       schedulingDate: latest.DATAAGENDAMENTO ?? latest.DATAAGENDAMENTO_DATE ?? null,
       examDates,
-      examType: latest.EXAMES?.[0]?.grupo ?? latest.EXAMES?.[0]?.nomeExame ?? null,
+      examType: examTypeName ?? examTypeCode,
+      examTypeCode,
+      examTypeName,
     };
   }
+
+  private hasValue(value: unknown): value is string | Date {
+    return (
+      (typeof value === 'string' && value.trim().length > 0) || value instanceof Date
+    );
+  }
+
+  private toNullableText(value: unknown): string | null {
+    const text = String(value ?? '').trim();
+    return text || null;
+  }
 }
+
+type ClienteFuncionariosSchedulingDocument = {
+  _id: unknown;
+  ATENDIMENTOSTATUS?: unknown;
+  DATAAGENDAMENTO?: string | null;
+  DATAAGENDAMENTO_DATE?: Date | null;
+  TIPOEXAME?: unknown;
+  TIPOEXAMENOME?: unknown;
+  EXAMES?: Array<{ dataExame?: string | Date | null }>;
+};
 
 @Injectable()
 export class ClienteFuncionariosService {
   constructor(
     private readonly accessService: ClienteCompanyAccessService,
     private readonly socExportService: SocExportService,
-    private readonly schedulingReader: ClienteFuncionariosSchedulingReader,
-    private readonly statusService = new ClienteFuncionariosStatusService(),
+    private readonly schedulingReader: MongoClienteFuncionariosSchedulingReader,
+    private readonly statusService: ClienteFuncionariosStatusService,
   ) {}
 
   async list(

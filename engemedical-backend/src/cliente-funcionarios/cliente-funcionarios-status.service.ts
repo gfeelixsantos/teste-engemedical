@@ -170,6 +170,8 @@ export class ClienteFuncionariosStatusService {
         TIPOASO?: unknown;
       }).TIPOASO,
       scheduling?.examType,
+      scheduling?.examTypeCode,
+      scheduling?.examTypeName,
     ]
       .map((value) => String(value ?? '').trim().toUpperCase())
       .filter(Boolean);
