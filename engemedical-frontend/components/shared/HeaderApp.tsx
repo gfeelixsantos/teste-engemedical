@@ -8,6 +8,7 @@ import {
   Bell,
   CheckCheck,
   CheckCircle,
+  ClipboardCheck,
   Command,
   ChevronDown,
   ChevronLeft,
@@ -28,6 +29,7 @@ import { getCurrentUser } from "@/lib/utils";
 import { getHomeRoute } from "@/lib/user/home-route.mjs";
 import { IUserInfo } from "@/lib/user/interfaces/IUser";
 import { SIDEBAR_GROUPS } from "@/components/shared/SidebarMenu";
+import { useEmpresas } from "@/components/cliente/EmpresaProvider";
 import {
   type AppNotification,
   addNotification,
@@ -40,6 +42,12 @@ import {
 } from "@/lib/notification-store";
 
 type MenuView = "menu" | "notifications";
+
+type ActivationQuickSummary = {
+  status: string;
+  progress: number;
+  pendingItems: string[];
+};
 
 const getSpecialtyColor = (especialidade: string) => {
   const colorMap: Record<string, string> = {
@@ -250,6 +258,8 @@ export const HeaderApp: React.FC<HeaderProps> = ({
   const [notifications, setNotifications] = useState<AppNotification[]>(() =>
     getNotifications(),
   );
+  const { selectedEmpresa } = useEmpresas();
+  const [activationSummary, setActivationSummary] = useState<ActivationQuickSummary | null>(null);
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -303,6 +313,23 @@ export const HeaderApp: React.FC<HeaderProps> = ({
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (user?.tipoUsuario !== "cliente" || !selectedEmpresa?.CODIGO) {
+      setActivationSummary(null);
+      return;
+    }
+
+    let cancelled = false;
+    fetch(`/api/cliente/ativacao?empresa=${encodeURIComponent(String(selectedEmpresa.CODIGO))}`, { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => {
+        if (!cancelled && payload?.activation) setActivationSummary(payload.activation);
+      })
+      .catch(() => { if (!cancelled) setActivationSummary(null); });
+
+    return () => { cancelled = true; };
+  }, [selectedEmpresa?.CODIGO, user?.tipoUsuario]);
 
   const unreadNotificationsCount = useMemo(
     () => notifications.filter((n) => !n.read).length,
@@ -472,6 +499,26 @@ export const HeaderApp: React.FC<HeaderProps> = ({
                       </p>
                       <p className="text-xs text-white/80">{user?.perfil}</p>
                     </div>
+
+                    {user?.tipoUsuario === "cliente" && (
+                      <div className="border-b border-gray-100 p-3">
+                        <button
+                          className="flex w-full items-center gap-3 rounded-xl border border-brand-line bg-brand-50/70 p-3 text-left transition-colors hover:bg-brand-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                          onClick={() => handleNavigate("/cliente/ativacao")}
+                        >
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-brand-700 shadow-sm">
+                            <ClipboardCheck className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-xs font-semibold text-brand-900">Central de Ativação</span>
+                            <span className="mt-0.5 block truncate text-[11px] text-brand-700">
+                              {activationSummary ? `${activationSummary.progress}% concluído${activationSummary.pendingItems.length ? ` · ${activationSummary.pendingItems.length} pendência(s)` : ""}` : "Acompanhar empresa ativa"}
+                            </span>
+                          </span>
+                          {activationSummary?.status === "COMPLETED" ? <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" /> : <ClipboardCheck className="h-4 w-4 shrink-0 text-brand-600" />}
+                        </button>
+                      </div>
+                    )}
 
                     <div className="border-b border-gray-100 px-4 py-3">
                       {(() => {

@@ -57,14 +57,22 @@ import { ClienteDashboardModule } from './cliente-dashboard/cliente-dashboard.mo
 import { FinanceiroModule } from './financeiro/financeiro.module';
 import { PrestadoresDashboardModule } from './prestadores-dashboard/prestadores-dashboard.module';
 import { ClienteFuncionariosModule } from './cliente-funcionarios/cliente-funcionarios.module';
+import { ClienteAtivacaoModule } from './cliente-ativacao/cliente-ativacao.module';
 
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: true });
+const isProd = process.env.NODE_ENV === 'production';
+if (!isProd) {
+  require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: true });
+}
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: path.resolve(__dirname, '../.env') }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: isProd ? undefined : path.resolve(__dirname, '../.env'),
+      ignoreEnvFile: isProd,
+    }),
     VolumetriaModule,
     AbsenteismoModule,
     EsocialModule,
@@ -114,6 +122,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: t
     FinanceiroModule,
     PrestadoresDashboardModule,
     ClienteFuncionariosModule,
+    ClienteAtivacaoModule,
   ],
   controllers: [AppController, TicketController, HealthController],
   providers: [AppService],

@@ -20,5 +20,6 @@ import {
     MongoClienteFuncionariosSchedulingReader,
     ClienteFuncionariosService,
   ],
+  exports: [ClienteCompanyAccessService],
 })
 export class ClienteFuncionariosModule {}
