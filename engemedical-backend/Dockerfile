@@ -6,7 +6,7 @@ RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
 WORKDIR /app
 
-COPY engemedical-backend/package.json engemedical-backend/pnpm-lock.yaml engemedical-backend/pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 
