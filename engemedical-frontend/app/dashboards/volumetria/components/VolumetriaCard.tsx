@@ -11,7 +11,7 @@ export function VolumetriaCard() {
     <button
       type="button"
       onClick={() => router.push('/dashboards/convocacao')}
-      className="w-full text-left bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition-shadow"
+      className="w-full text-left bg-white rounded-xl border border-gray-200 p-4 shadow-md hover:shadow-lg transition-shadow"
     >
       <motion.div
         className="flex items-start gap-3"

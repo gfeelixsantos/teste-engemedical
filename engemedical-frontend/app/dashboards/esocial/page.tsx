@@ -11,7 +11,8 @@ import { AnaliseEmpresasSection } from './components/AnaliseEmpresasSection';
 import { TabelaHierarquicaSection } from './components/TabelaHierarquicaSection';
 import { TabelaEventosDetalhados } from './components/TabelaEventosDetalhados';
 import type { EsocialDashboardData } from './types';
-import { X, SlidersHorizontal, RefreshCw } from 'lucide-react';
+import { X, SlidersHorizontal, Globe } from 'lucide-react';
+import { DashboardPageHeader } from '@/components/shared/DashboardPageHeader';
 
 export default function EsocialPage() {
   const [selectedXml, setSelectedXml] = useState('');
@@ -54,28 +55,21 @@ export default function EsocialPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-6 px-4 md:px-8">
+    <div className="dashboard-content min-h-screen bg-slate-50/50 py-6 px-4 md:px-8">
       <div className="max-w-7xl mx-auto space-y-4">
+        <DashboardPageHeader
+          icon={Globe}
+          title="eSocial"
+          subtitle="Acompanhe os eventos eSocial, status de envio e inconsistências por empresa."
+          onRefresh={handleForceRefresh}
+          isRefreshing={isRefreshing || isFetching}
+        />
 
-        {/* Header Branding + Top 3 KPIs + Botão Refresh */}
-        <div className="relative">
-          <HeaderKpisEsocial
-            totalEmpresas={data?.kpis?.totalEmpresas}
-            pctInconsistentes={data?.kpis?.taxaConclusao ? Math.round(100 - data.kpis.taxaConclusao) : 33}
-            totalRegistrosXml={data?.kpis?.totalRegistros}
-          />
-          <div className="absolute top-3 right-3">
-            <button
-              onClick={handleForceRefresh}
-              disabled={isRefreshing || isFetching}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold bg-white/90 border border-gray-200 text-gray-600 rounded-lg shadow-sm hover:bg-gray-50 disabled:opacity-50 transition-colors"
-              title="Limpar cache e buscar dados atualizados do SOC (inclui 2026)"
-            >
-              <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Atualizando...' : 'Atualizar Dados'}
-            </button>
-          </div>
-        </div>
+        <HeaderKpisEsocial
+          totalEmpresas={data?.kpis?.totalEmpresas}
+          pctInconsistentes={data?.kpis?.taxaConclusao ? Math.round(100 - data.kpis.taxaConclusao) : 33}
+          totalRegistrosXml={data?.kpis?.totalRegistros}
+        />
 
         {/* Registro XML - Pill Selector */}
         <XmlPillsFilter
@@ -151,4 +145,3 @@ export default function EsocialPage() {
     </div>
   );
 }
-

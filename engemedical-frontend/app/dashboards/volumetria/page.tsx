@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Calendar, Filter } from 'lucide-react';
+import { Filter, TrendingUp } from 'lucide-react';
 import { getDynamicNestUrl } from '@/config/constants';
+import { DashboardPageHeader } from '@/components/shared/DashboardPageHeader';
 import { VolumetriaDashboardResponse } from './types';
 import { KpiCards } from './components/KpiCards';
 import { ControleAgendamentos } from './components/ControleAgendamentos';
@@ -60,39 +61,14 @@ export default function VolumetriaDashboardPage() {
   };
 
   return (
-    <div className="p-6 space-y-8 bg-background min-h-screen">
-      {/* Header do Dashboard */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black tracking-tight text-foreground">Volumetria de Agendamentos</h1>
-            <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-              Power BI Integrated
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Análise consolidada de agendamentos, exames, atendimentos e horários
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {data?.kpis?.ultimaAtualizacao && (
-            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" />
-              Atualizado: {new Date(data.kpis.ultimaAtualizacao).toLocaleTimeString('pt-BR')}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={handleRefresh}
-            disabled={refreshing || loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-gray-200 text-gray-700 rounded-lg shadow-xs hover:bg-gray-50 disabled:opacity-50 transition-colors"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Atualizando...' : 'Atualizar Dados'}
-          </button>
-        </div>
-      </div>
+    <div className="dashboard-content p-6 space-y-8 bg-slate-50/50 min-h-screen">
+      <DashboardPageHeader
+        icon={TrendingUp}
+        title="Volumetria de Agendamentos"
+        subtitle={`Análise consolidada de agendamentos, exames, atendimentos e horários${data?.kpis?.ultimaAtualizacao ? ` — Atualizado às ${new Date(data.kpis.ultimaAtualizacao).toLocaleTimeString('pt-BR')}` : '.'}`}
+        onRefresh={handleRefresh}
+        isRefreshing={refreshing || loading}
+      />
 
       {/* Filtro de Agendas (Pills) */}
       <div className="space-y-2">

@@ -25,7 +25,7 @@ export function Filters({ agendas, empresas, tiposCompromisso }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-md">
       <div className="flex flex-wrap items-start gap-3">
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-gray-500" />

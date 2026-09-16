@@ -86,12 +86,12 @@ export function ControleGeralSection({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-4 h-[550px] animate-pulse" />
+      <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-4 h-[550px] animate-pulse" />
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-4">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-4">
       <h2 className="text-base font-bold text-gray-800 text-center uppercase tracking-wide mb-6">
         Controle Geral de Agendamentos
       </h2>

@@ -53,12 +53,12 @@ export function UnidadeSetorCargoSection({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6 h-[320px] animate-pulse" />
+      <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-6 h-[320px] animate-pulse" />
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* 1: Nº de Atestados por Unidade */}
         <div>

@@ -69,17 +69,20 @@ export function SituacaoDonut({ data }: { data: SituacaoItem[] }) {
             ))}
           </Pie>
           <Tooltip
-            contentStyle={{
-              backgroundColor: '#1E293B',
-              borderRadius: '8px',
-              border: 'none',
-              color: '#FFF',
-              fontSize: '12px',
+            content={({ active, payload }) => {
+              if (!active || !payload?.length) return null;
+
+              const item = payload[0].payload as SituacaoItem;
+
+              return (
+                <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 shadow-lg">
+                  <p className="mb-1 font-bold text-slate-900">{item.situacao}</p>
+                  <p>{item.exames.toLocaleString('pt-BR')} exames</p>
+                  <p>{item.funcionarios.toLocaleString('pt-BR')} funcionários</p>
+                  <p>{item.percentual.toFixed(2)}%</p>
+                </div>
+              );
             }}
-            formatter={(value: number, name: string) => [
-              `${value.toLocaleString('pt-BR')} exames`,
-              name,
-            ]}
           />
         </PieChart>
       </ResponsiveContainer>

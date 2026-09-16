@@ -11,9 +11,9 @@ export function KpiCards({ kpis }: { kpis: ConvocacaoKPIs }) {
     num.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-[#E5E9EC] p-3 rounded-2xl border border-gray-200 shadow-sm">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 justify-center gap-3">
       {/* Total de Exames */}
-      <div className="bg-white rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-xs border border-gray-100">
+      <div className="bg-white rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-md border border-gray-100">
         <span className="text-2xl font-black text-[#0F172A] tracking-tight">
           <CountUp end={kpis.totalExames} duration={1.2} formattingFn={formatNumber} />
         </span>
@@ -23,7 +23,7 @@ export function KpiCards({ kpis }: { kpis: ConvocacaoKPIs }) {
       </div>
 
       {/* Nº Funcionários Convocados */}
-      <div className="bg-white rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-xs border border-gray-100">
+      <div className="bg-white rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-md border border-gray-100">
         <span className="text-2xl font-black text-[#0F172A] tracking-tight">
           <CountUp end={kpis.totalFuncionariosConvocados} duration={1.2} formattingFn={formatNumber} />
         </span>
@@ -33,7 +33,7 @@ export function KpiCards({ kpis }: { kpis: ConvocacaoKPIs }) {
       </div>
 
       {/* % Funcionários com Exames em Dia */}
-      <div className="bg-white rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-xs border border-gray-100">
+      <div className="bg-white rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-md border border-gray-100">
         <span className="text-2xl font-black text-[#0F172A] tracking-tight">
           <CountUp end={kpis.percentFuncionariosEmDia} duration={1.2} decimals={1} formattingFn={formatPercent} />
         </span>
@@ -43,7 +43,7 @@ export function KpiCards({ kpis }: { kpis: ConvocacaoKPIs }) {
       </div>
 
       {/* % Conformidade Total de Exames */}
-      <div className="bg-white rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-xs border border-gray-100">
+      <div className="bg-white rounded-xl p-4 flex flex-col items-center justify-center text-center shadow-md border border-gray-100">
         <span className="text-2xl font-black text-[#0F172A] tracking-tight">
           <CountUp end={kpis.percentConformidadeTotal} duration={1.2} decimals={1} formattingFn={formatPercent} />
         </span>

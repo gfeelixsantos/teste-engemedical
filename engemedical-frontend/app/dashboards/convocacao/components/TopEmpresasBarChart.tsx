@@ -46,10 +46,10 @@ export function TopEmpresasBarChart({ data = [] }: { data?: EmpresaItem[] }) {
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#1E293B',
+              backgroundColor: '#FFFFFF',
               borderRadius: '8px',
-              border: 'none',
-              color: '#FFF',
+              border: '1px solid #E2E8F0',
+              color: '#334155',
               fontSize: '11px',
             }}
             formatter={(val: number, name: string, item: any) => [

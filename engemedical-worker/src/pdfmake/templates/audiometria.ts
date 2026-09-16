@@ -1,4 +1,6 @@
 import { TDocumentDefinitions, Content, TableCell } from 'pdfmake/interfaces';
+import * as fs from 'fs';
+import * as path from 'path';
 import { ASSINATURAS_URL } from 'src/soc/assinaturas';
 import { getExamesList } from 'src/exames/exames.provider';
 import { createGridSection, formatCPF, getImageBase64 } from 'src/utils/util';
@@ -33,7 +35,6 @@ export interface AudiometriaData {
   observacoesMeatoscopia: string;
   orientacaoPlugSilicone: string;
 
-  // Via Aérea
   viaAereaOD250: string;
   viaAereaOD500: string;
   viaAereaOD1000: string;
@@ -51,7 +52,6 @@ export interface AudiometriaData {
   viaAereaOE6000: string;
   viaAereaOE8000: string;
 
-  // Via Óssea
   viaOsseaOD500: string;
   viaOsseaOD1000: string;
   viaOsseaOD2000: string;
@@ -63,7 +63,6 @@ export interface AudiometriaData {
   viaOsseaOE3000: string;
   viaOsseaOE4000: string;
 
-  // Mascaramento Via Aérea - SEPARADO POR TIPO
   mascaramentoVAOD250: boolean;
   mascaramentoVAOD500: boolean;
   mascaramentoVAOD1000: boolean;
@@ -81,7 +80,6 @@ export interface AudiometriaData {
   mascaramentoVAOE6000: boolean;
   mascaramentoVAOE8000: boolean;
 
-  // Mascaramento Via Óssea - SEPARADO POR TIPO
   mascaramentoVOOD500: boolean;
   mascaramentoVOOD1000: boolean;
   mascaramentoVOOD2000: boolean;
@@ -93,7 +91,6 @@ export interface AudiometriaData {
   mascaramentoVOOE3000: boolean;
   mascaramentoVOOE4000: boolean;
 
-  // IRF
   realizarIRF: boolean;
   srtOD: string;
   srtOE: string;
@@ -102,7 +99,6 @@ export interface AudiometriaData {
   irfDBOD: string;
   irfDBOE: string;
 
-  // Resultados calculados
   resultadoSRTOD: string;
   resultadoSRTOE: string;
   resultadoIRFOD: string;
@@ -142,7 +138,7 @@ export interface AudiometriaData {
 
 function recalcularParaLaudo(form: AudiometriaData): AudiometriaData {
   if (!form) return form;
-  
+
   const parseValor = (v: string | null | undefined | number): number | null => {
     if (v === null || v === undefined || v === '' || v === '-' || v === '--' || v === '---') {
       return null;
@@ -261,7 +257,7 @@ function recalcularParaLaudo(form: AudiometriaData): AudiometriaData {
 
   const mediaOD = calcularMediaTonal([form.viaAereaOD500, form.viaAereaOD1000, form.viaAereaOD2000, form.viaAereaOD4000]);
   const mediaOE = calcularMediaTonal([form.viaAereaOE500, form.viaAereaOE1000, form.viaAereaOE2000, form.viaAereaOE4000]);
-  
+
   const mediaVoOD = calcularMediaTonal([form.viaOsseaOD500, form.viaOsseaOD1000, form.viaOsseaOD2000, form.viaOsseaOD4000]);
   const mediaVoOE = calcularMediaTonal([form.viaOsseaOE500, form.viaOsseaOE1000, form.viaOsseaOE2000, form.viaOsseaOE4000]);
 
@@ -279,7 +275,6 @@ function recalcularParaLaudo(form: AudiometriaData): AudiometriaData {
     const p4k = parseValor(v4k);
     const p8k = parseValor(v8k);
     if (p2k === null || p4k === null || p8k === null) return false;
-    // Entalhe só é válido quando há perda fora da zona de normalidade (> 25 dB)
     return p4k > 25 && p4k >= p2k + 10 && p4k >= p8k + 10;
   };
 
@@ -301,16 +296,32 @@ function recalcularParaLaudo(form: AudiometriaData): AudiometriaData {
   };
 }
 
+// ═══════════════════════════════════════════════════════════════
+// CORES PREMIUM CORPORATE HEALTH
+// ═══════════════════════════════════════════════════════════════
+const C = {
+  verdeEscuro: '#1B5E20',
+  verde: '#2E7D32',
+  verdeClaro: '#4CAF50',
+  ciano: '#0097A7',
+  azulEscuro: '#0D47A1',
+  preto: '#1A1A1A',
+  texto: '#212121',
+  muted: '#757575',
+  borda: '#E0E0E0',
+  fundo: '#F5F5F5',
+  branco: '#FFFFFF',
+  apto: '#2E7D32',
+  inapto: '#C62828',
+  COR_OD: '#B71C1C',
+  COR_OE: '#0D47A1',
+};
+
 export async function gerarDocAudiometria(
   asoData: any,
   profissional: any,
   assinaturaDigitalObrigatoria: boolean = false,
 ): Promise<TDocumentDefinitions> {
-  const PRIMARY = '#114E34';
-  const LIGHT_TEXT = '#333333';
-  const COR_OD = '#B71C1C';
-  const COR_OE = '#0D47A1';
-
   const {
     NOMEEMPRESA,
     CNPJEMPRESA,
@@ -340,24 +351,39 @@ export async function gerarDocAudiometria(
           new Date(DATANASCIMENTO.split('/').reverse().join('-')).getTime()) /
           (365.25 * 24 * 60 * 60 * 1000),
       )
-    : 'N/D'; // --- Assets
+    : 'N/D';
 
-  const logoEmpresa = await getImageBase64(
-    'https://cmsocupacional.com.br/images/logo.png',
+  // ═══ LOGOS LOCAIS ═══
+  const logoLocalPath = path.resolve(
+    process.cwd(),
+    'src',
+    'assets',
+    'images',
+    'logo.png',
   );
-  const watermarkBase64 = await getImageBase64(
-    'https://centromedicodesaudeocupacional.formaedu.com.br/wp-content/uploads/sites/6/2024/11/LOGO-220x221.png',
+  const logoEmpresa = fs.existsSync(logoLocalPath)
+    ? `data:image/png;base64,${fs.readFileSync(logoLocalPath).toString('base64')}`
+    : await getImageBase64('https://engemedical.com.br/images/logo.png');
+
+  const iconeLocalPath = path.resolve(
+    process.cwd(),
+    'src',
+    'assets',
+    'images',
+    'icone.png',
   );
+  const watermarkBase64 = fs.existsSync(iconeLocalPath)
+    ? `data:image/png;base64,${fs.readFileSync(iconeLocalPath).toString('base64')}`
+    : await getImageBase64('https://engemedical.com.br/images/icone.png');
+
   let assinaturaProfissional = await getImageBase64(ASSINATURAS_URL[codigo]);
-
-  // fallback caso não tenha assinatura
-  if (!assinaturaProfissional)
+  if (!assinaturaProfissional) {
     assinaturaProfissional = await getImageBase64(
-      'https://cmsocupacional.com.br/images/logo.png',
+      'https://engemedical.com.br/images/logo.png',
     );
+  }
 
-  // --- GRÁFICO AUDIOMÉTRICO SVG ---
-  const { od: odSVG, oe: oeSVG } = generateAudiogramSVG(form); // ======= 1. DADOS TÉCNICOS DO EXAME E MEATOSCOPIA (ATUALIZADO) =======
+  const { od: odSVG, oe: oeSVG } = generateAudiogramSVG(form);
 
   const dadosTecnicosGrid: TableCell[][] = [
     [
@@ -385,8 +411,6 @@ export async function gerarDocAudiometria(
       form.observacoesMeatoscopia || '-',
     ],
   ];
-
-  // ======= 3. ANAMNESE AUDIOLÓGICA (ATUALIZADO para 6 colunas e incluir todos os campos) =======
 
   const anamneseGrid: TableCell[][] = [
     [
@@ -437,7 +461,7 @@ export async function gerarDocAudiometria(
       '',
       '',
     ],
-  ]; // ======= 4. RESULTADOS LLOYD & KAPLAN + CLASSIFICAÇÕES =======
+  ];
 
   const resultadosGrid = {
     headerRows: 1,
@@ -451,67 +475,25 @@ export async function gerarDocAudiometria(
         { text: 'Tipo de Perda', style: 'tableHeader', alignment: 'center' },
       ],
       [
-        {
-          text: 'Direito (OD)',
-          color: COR_OD,
-          alignment: 'center',
-          bold: true,
-        },
-        {
-          text: form.perdaAuditivaOD || 'N/D',
-          alignment: 'center',
-          fontSize: 8,
-        }, // Grau de Perda
-        {
-          text: form.classificacaoOD || 'N/D',
-          alignment: 'center',
-          fontSize: 8,
-        },
-        {
-          text: form.configuracaoOD || 'N/D',
-          alignment: 'center',
-          fontSize: 8,
-        },
+        { text: 'Direito (OD)', color: C.COR_OD, alignment: 'center', bold: true },
+        { text: form.perdaAuditivaOD || 'N/D', alignment: 'center', fontSize: 8 },
+        { text: form.classificacaoOD || 'N/D', alignment: 'center', fontSize: 8 },
+        { text: form.configuracaoOD || 'N/D', alignment: 'center', fontSize: 8 },
         { text: form.tipoPerdaOD || 'N/D', alignment: 'center', fontSize: 8 },
       ],
       [
-        {
-          text: 'Esquerdo (OE)',
-          color: COR_OE,
-          alignment: 'center',
-          bold: true,
-        },
-        {
-          text: form.perdaAuditivaOE || 'N/D',
-          alignment: 'center',
-          fontSize: 8,
-        }, // Grau de Perda
-        {
-          text: form.classificacaoOE || 'N/D',
-          alignment: 'center',
-          fontSize: 8,
-        },
-        {
-          text: form.configuracaoOE || 'N/D',
-          alignment: 'center',
-          fontSize: 8,
-        },
+        { text: 'Esquerdo (OE)', color: C.COR_OE, alignment: 'center', bold: true },
+        { text: form.perdaAuditivaOE || 'N/D', alignment: 'center', fontSize: 8 },
+        { text: form.classificacaoOE || 'N/D', alignment: 'center', fontSize: 8 },
+        { text: form.configuracaoOE || 'N/D', alignment: 'center', fontSize: 8 },
         { text: form.tipoPerdaOE || 'N/D', alignment: 'center', fontSize: 8 },
       ],
     ],
-  }; // ======= SRT / IRF (mesmo layout da tabela resultados) =======
+  };
 
   const exibirIRF =
     form.realizarIRF &&
-    (form.srtOD ||
-      form.srtOE ||
-      form.irfOD ||
-      form.irfOE ||
-      form.irfDBOD ||
-      form.irfDBOE ||
-      form.resultadoIRFMonoauralOD ||
-      form.resultadoIRFMonoauralOE ||
-      form.resultadoIRFDissimetrica);
+    (form.srtOD || form.srtOE || form.irfOD || form.irfOE || form.irfDBOD || form.irfDBOE || form.resultadoIRFMonoauralOD || form.resultadoIRFMonoauralOE || form.resultadoIRFDissimetrica);
 
   const irfGrid = exibirIRF
     ? {
@@ -526,51 +508,27 @@ export async function gerarDocAudiometria(
             { text: 'Resultado', style: 'tableHeader', alignment: 'center' },
           ],
           [
-            {
-              text: 'Direito (OD)',
-              color: COR_OD,
-              alignment: 'center',
-              bold: true,
-            },
+            { text: 'Direito (OD)', color: C.COR_OD, alignment: 'center', bold: true },
             { text: form.srtOD || '-', alignment: 'center', fontSize: 9 },
             { text: form.irfOD || '-', alignment: 'center', fontSize: 9 },
             { text: form.irfDBOD || '-', alignment: 'center', fontSize: 9 },
-            {
-              text: form.resultadoIRFMonoauralOD || '-',
-              alignment: 'center',
-              fontSize: 9,
-            },
+            { text: form.resultadoIRFMonoauralOD || '-', alignment: 'center', fontSize: 9 },
           ],
           [
-            {
-              text: 'Esquerdo (OE)',
-              color: COR_OE,
-              alignment: 'center',
-              bold: true,
-            },
+            { text: 'Esquerdo (OE)', color: C.COR_OE, alignment: 'center', bold: true },
             { text: form.srtOE || '-', alignment: 'center', fontSize: 9 },
             { text: form.irfOE || '-', alignment: 'center', fontSize: 9 },
             { text: form.irfDBOE || '-', alignment: 'center', fontSize: 9 },
-            {
-              text: form.resultadoIRFMonoauralOE || '-',
-              alignment: 'center',
-              fontSize: 9,
-            },
+            { text: form.resultadoIRFMonoauralOE || '-', alignment: 'center', fontSize: 9 },
           ],
           [
-            {
-              text: `IRF Dissimétrica: ${form.resultadoIRFDissimetrica || ''}`,
-              colSpan: 5,
-              alignment: 'center',
-              fontSize: 9,
-            },
+            { text: `IRF Dissimétrica: ${form.resultadoIRFDissimetrica || ''}`, colSpan: 5, alignment: 'center', fontSize: 9 },
           ],
         ],
       }
-    : null; // ======= Conteúdo Dinâmico Adicional =======
+    : null;
 
   const detalhesAdicionais: Content[] = [
-    // Detalhes Entalhe
     {
       columns: [
         {
@@ -578,200 +536,155 @@ export async function gerarDocAudiometria(
           fontSize: 6,
           bold: true,
           alignment: 'right',
-          color: LIGHT_TEXT,
+          color: C.texto,
         },
       ],
       margin: [0, 5, 0, 5],
     },
-  ]; // ======= DOCUMENTO FINAL =======
+  ];
+
+  const section = (title: string, color: string = C.ciano) => ({
+    table: {
+      widths: ['*'],
+      body: [[{
+        columns: [
+          { width: 4, text: '', fillColor: color },
+          { width: '*', text: title, fontSize: 9.5, bold: true, color: C.texto, margin: [10, 5, 8, 5] },
+        ],
+      }]],
+    },
+    layout: {
+      hLineWidth: () => 0,
+      vLineWidth: () => 0,
+      fillColor: () => '#ECEFF1',
+      paddingLeft: () => 0,
+      paddingRight: () => 0,
+      paddingTop: () => 0,
+      paddingBottom: () => 0,
+    },
+    margin: [0, 10, 0, 0],
+  });
+
+  const card = (content: any) => ({
+    table: {
+      widths: ['*'],
+      body: [[{ stack: content, margin: [12, 8, 12, 8] }]],
+    },
+    layout: {
+      hLineWidth: () => 0,
+      vLineWidth: () => 0,
+      fillColor: () => C.branco,
+      paddingLeft: () => 0,
+      paddingRight: () => 0,
+      paddingTop: () => 0,
+      paddingBottom: () => 0,
+    },
+  });
 
   return {
     pageSize: 'A4',
-    pageMargins: [30, 35, 30, 110],
+    pageMargins: [20, 20, 20, 85],
     background: watermarkBase64
-      ? [
-          {
-            image: watermarkBase64,
-            width: 350,
-            opacity: 0.04,
-            absolutePosition: { x: 150, y: 250 },
-          },
-        ]
+      ? [{ image: watermarkBase64, width: 600, opacity: 0.06, absolutePosition: { x: 320, y: 50 } }]
       : undefined,
     content: [
-      // TÍTULO
+      // ═══ CABEÇALHO ═══
       {
         columns: [
+          { width: 120, stack: [logoEmpresa ? { image: logoEmpresa, fit: [110, 110], alignment: 'center' } : { text: '' }] },
           {
             width: '*',
             stack: [
-              {
-                text: 'AUDIOMETRIA OCUPACIONAL',
-                style: 'mainTitle',
-                margin: [0, 0, 0, 5],
-                color: PRIMARY,
-              },
-              { text: `${TIPOEXAMENOME}` },
-              { text: `OD: ${form.resultadoOD}`, color: COR_OD, fontSize: 8 },
-              { text: `OE: ${form.resultadoOE}`, color: COR_OE, fontSize: 8 },
-              form.criterioPCD?.includes('Atende')
-                ? {
-                    text: `PCD: ${form.criterioPCD || ''}`,
-                    fontSize: 8,
-                  }
-                : { text: '' },
+              { text: 'AUDIOMETRIA', fontSize: 22, bold: true, color: C.azulEscuro, alignment: 'center', characterSpacing: 3, margin: [0, 4, 0, 3] },
+              { text: TIPOEXAMENOME || 'Avaliação Audiológica Ocupacional', fontSize: 9, color: C.muted, alignment: 'center', characterSpacing: 1, margin: [0, 0, 0, 0] },
+              { text: `OD: ${form.resultadoOD}`, fontSize: 8, color: C.COR_OD, alignment: 'center', margin: [2, 2, 0, 0] },
+              { text: `OE: ${form.resultadoOE}`, fontSize: 8, color: C.COR_OE, alignment: 'center', margin: [2, 0, 0, 0] },
             ],
+            margin: [0, 8, 0, 0],
           },
-          {
-            stack: [
-              logoEmpresa
-                ? {
-                    image: logoEmpresa,
-                    width: 120,
-                    alignment: 'right',
-                    margin: [0, 0, 0, 5],
-                  }
-                : {},
-              {
-                text: `${UNIDADEATENDIMENTO}, ${new Date().toLocaleDateString('pt-br')}`,
-                alignment: 'right',
-                fontSize: 7,
-                color: LIGHT_TEXT,
-              },
-            ],
-          },
+          { width: 120, text: '' },
         ],
-        margin: [0, 0, 0, 5],
-      }, // DADOS PACIENTE
-
-      {
-        columns: [
-          {
-            width: '*',
-            stack: [
-              { text: NOME || 'N/D', bold: true, fontSize: 11 },
-              {
-                text: `CPF: ${formatCPF(CPFFUNCIONARIO)}   Nasc: ${DATANASCIMENTO || 'N/D'}   Idade: ${idade} anos`,
-                fontSize: 10,
-                color: LIGHT_TEXT,
-              },
-            ],
-          },
-        ],
-        margin: [0, 0, 0, 8],
-      }, // EMPRESA
-
-      {
-        table: {
-          widths: ['*'],
-          body: [
-            [
-              {
-                stack: [
-                  { text: `${NOMEEMPRESA || 'N/D'}` },
-                  {
-                    text: `CNPJ: ${CNPJEMPRESA || 'N/D'}   Cargo: ${NOMECARGO || 'N/D'}   Setor: ${NOMESETOR || 'N/D'}`,
-                    fontSize: 10,
-                    color: LIGHT_TEXT,
-                  },
-                ],
-              },
-            ],
-          ],
-        },
-        layout: 'noBorders',
-        margin: [0, 0, 0, 10],
-      }, // SEÇÕES
-
-      createGridSection('Dados Técnicos do Exame', dadosTecnicosGrid, {
-        fontSize: 8,
-      }), // GRÁFICO AUDIOMÉTRICO (Novo elemento)
-
-      // Título da Seção
-      {
-        text: 'Audiometria',
-        style: 'sectionTitle',
-        alignment: 'center',
-        margin: [0, 0, 0, 0],
-      },
-
-      // Container Columns para renderizar lado a lado
-      {
-        columns: [
-          // Gráfico Ouvido Direito (OD)
-          {
-            // Ocupa a metade da largura
-            width: '*',
-            stack: [
-              {
-                svg: odSVG,
-                width: 260,
-                alignment: 'center',
-              },
-            ],
-          },
-
-          // Gráfico Ouvido Esquerdo (OE)
-          {
-            // Ocupa a outra metade da largura
-            width: '*',
-            stack: [
-              {
-                svg: oeSVG,
-                width: 260,
-                alignment: 'center',
-              },
-            ],
-          },
-        ],
-        // Margem abaixo do bloco de colunas
-        margin: [0, 0, 0, 0],
-      }, // RESULTADOS (centralizada)
-      //       createGridSection('Audiometria Tonal', audiometriaGrid, { fontSize: 7 }),
-
-      {
-        text: 'Resultados',
-        style: 'sectionTitle',
-        alignment: 'center',
         margin: [0, 0, 0, 0],
       },
       {
-        table: resultadosGrid,
-        layout: 'lightHorizontalLines',
+        canvas: [{ type: 'line', x1: 0, y1: 0, x2: 553, y2: 0, lineWidth: 1.5, lineColor: C.ciano }],
+        margin: [0, 4, 0, 8],
+      },
+
+      // ═══ DADOS DO FUNCIONÁRIO + EMPRESA ═══
+      {
+        columns: [
+          {
+            width: '50%',
+            stack: [
+              section('DADOS DO FUNCIONÁRIO', C.azulEscuro),
+              card([
+                { columns: [{ text: 'Nome:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: NOME || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'CPF:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: formatCPF(CPFFUNCIONARIO), fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'Nascimento:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: `${DATANASCIMENTO || 'N/D'} — ${idade} anos`, fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'Cargo:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: NOMECARGO || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'Setor:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: NOMESETOR || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+              ]),
+            ],
+          },
+          {
+            width: '50%',
+            stack: [
+              section('DADOS DA EMPRESA', C.verde),
+              card([
+                { columns: [{ text: 'Razão social:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: NOMEEMPRESA || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'CNPJ:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: CNPJEMPRESA || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'Unidade:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: UNIDADEATENDIMENTO || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+                { text: '', margin: [0, 0, 0, 0] },
+                { columns: [{ text: 'Data do exame:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo' }).format(new Date()), fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+              ]),
+            ],
+          },
+        ],
+        columnGap: 10,
         margin: [0, 0, 0, 0],
-        alignment: 'center',
-      }, // DETALHES ADICIONAIS (Média Tonal / Entalhe)
+      },
 
-      ...detalhesAdicionais, // SRT / IRF
+      // ═══ DADOS TÉCNICOS ═══
+      section('DADOS TÉCNICOS DO EXAME', C.ciano),
+      card([
+        createGridSection('', dadosTecnicosGrid, { fontSize: 8 }),
+      ]),
 
+      // ═══ AUDIOMETRIA ═══
+      section('AUDIOMETRIA TONAL', C.azulEscuro),
+      {
+        columns: [
+          { width: '*', stack: [{ svg: odSVG, width: 260, alignment: 'center' }] },
+          { width: '*', stack: [{ svg: oeSVG, width: 260, alignment: 'center' }] },
+        ],
+        margin: [0, 0, 0, 0],
+      },
+
+      // ═══ RESULTADOS ═══
+      section('RESULTADOS LLOYD & KAPLAN', C.verde),
+      card([
+        { table: resultadosGrid, layout: 'lightHorizontalLines', margin: [0, 0, 0, 0], alignment: 'center' },
+        ...detalhesAdicionais,
+      ]),
+
+      // ═══ SRT/IRF ═══
       ...(exibirIRF
         ? [
-            {
-              text: 'Índices de Reconhecimento de Fala (SRT / IRF)',
-              style: 'sectionTitle',
-              alignment: 'center',
-              margin: [0, 5, 0, 5],
-            },
-            {
-              table: irfGrid,
-              layout: 'lightHorizontalLines',
-              margin: [0, 0, 0, 10],
-              alignment: 'center',
-            },
+            section('ÍNDICES DE RECONHECIMENTO DE FALA', C.ciano),
+            card([
+              { table: irfGrid, layout: 'lightHorizontalLines', margin: [0, 0, 0, 0], alignment: 'center' },
+            ]),
           ]
-        : []), // CONCLUSÃO
+        : []),
 
-      //       // ANAMNESE AUDIOLÓGICA (com a nova grade de 6 colunas)
-      //       {
-      //         ...createGridSection('', anamneseGrid, { fontSize: 8 }),
-      //         margin: [0, 0, 0, 15],
-      //       },
-
+      // ═══ CONCLUSÃO ═══
       {
         text: 'Os dados obtidos são subjetivos e correspondem ao exame realizado na presente data',
         alignment: 'center',
         bold: true,
         fontSize: 9,
+        margin: [0, 10, 0, 5],
       },
       {
         text: form.observacoes || ' ',
@@ -780,59 +693,46 @@ export async function gerarDocAudiometria(
         margin: [0, 0, 0, 10],
       },
 
-      // --- ANAMNESE EM NOVA PÁGINA (6 colunas via createGridSection) ---
-
-      {
-        text: 'Anamnese Audiológica',
-        style: 'sectionTitle',
-        alignment: 'center',
-        pageBreak: 'before',
-        margin: [0, 5, 0, 10],
-      }, // Repete dados paciente na página da anamnese
-
+      // ═══ ANAMNESE EM NOVA PÁGINA ═══
+      { text: '', pageBreak: 'before' },
       {
         columns: [
+          { width: 120, stack: [logoEmpresa ? { image: logoEmpresa, fit: [110, 110], alignment: 'center' } : { text: '' }] },
           {
             width: '*',
             stack: [
-              { text: NOME || 'N/D', bold: true, fontSize: 11 },
-              {
-                text: `CPF: ${formatCPF(CPFFUNCIONARIO)}   Nasc: ${DATANASCIMENTO || 'N/D'}   Idade: ${idade} anos`,
-                fontSize: 10,
-                color: LIGHT_TEXT,
-              },
+              { text: 'ANAMNESE AUDIOLÓGICA', fontSize: 22, bold: true, color: C.azulEscuro, alignment: 'center', characterSpacing: 3, margin: [0, 4, 0, 3] },
+              { text: TIPOEXAMENOME || 'Avaliação Audiológica Ocupacional', fontSize: 9, color: C.muted, alignment: 'center', characterSpacing: 1 },
             ],
+            margin: [0, 8, 0, 0],
           },
+          { width: 120, text: '' },
+        ],
+        margin: [0, 0, 0, 0],
+      },
+      {
+        canvas: [{ type: 'line', x1: 0, y1: 0, x2: 553, y2: 0, lineWidth: 1.5, lineColor: C.ciano }],
+        margin: [0, 4, 0, 8],
+      },
+      {
+        columns: [
+          { text: NOME || 'N/D', bold: true, fontSize: 11, color: C.texto },
+          { text: `CPF: ${formatCPF(CPFFUNCIONARIO)}  |  Nasc: ${DATANASCIMENTO || 'N/D'}  |  Idade: ${idade} anos`, fontSize: 9, color: C.muted, alignment: 'right' },
         ],
         margin: [0, 0, 0, 8],
-      }, // repete info da empresa
-
-      {
-        table: {
-          widths: ['*'],
-          body: [
-            [
-              {
-                stack: [
-                  { text: `${NOMEEMPRESA || 'N/D'}`, bold: true },
-                  {
-                    text: `CNPJ: ${CNPJEMPRESA || 'N/D'}   Cargo: ${NOMECARGO || 'N/D'}   Setor: ${NOMESETOR || 'N/D'}`,
-                    fontSize: 10,
-                    color: LIGHT_TEXT,
-                  },
-                ],
-              },
-            ],
-          ],
-        },
-        layout: 'noBorders',
-        margin: [0, 0, 0, 10],
-      }, // ANAMNESE AUDIOLÓGICA (com a nova grade de 6 colunas)
-
-      {
-        ...createGridSection('', anamneseGrid, { fontSize: 8 }),
-        margin: [0, 0, 0, 15],
       },
+      {
+        columns: [
+          { text: NOMEEMPRESA || 'N/D', bold: true, fontSize: 10, color: C.texto },
+          { text: `Cargo: ${NOMECARGO || 'N/D'}  |  Setor: ${NOMESETOR || 'N/D'}`, fontSize: 9, color: C.muted, alignment: 'right' },
+        ],
+        margin: [0, 0, 0, 10],
+      },
+      section('ANAMNESE AUDIOLÓGICA', C.azulEscuro),
+      card([
+        createGridSection('', anamneseGrid, { fontSize: 8 }),
+      ]),
+
       ...(await getPaginaOrientacaoPlugSilicone(
         form,
         asoData,
@@ -846,10 +746,7 @@ export async function gerarDocAudiometria(
       {
         ...profissional,
         nome: audiometria?.profissional || profissional?.nome,
-        profissional:
-          audiometria?.profissional ||
-          profissional?.profissional ||
-          profissional?.nome,
+        profissional: audiometria?.profissional || profissional?.profissional || profissional?.nome,
       },
       NOME,
       CPFFUNCIONARIO,
@@ -860,12 +757,12 @@ export async function gerarDocAudiometria(
     ),
 
     styles: {
-      mainTitle: { fontSize: 16, bold: true, color: PRIMARY },
-      sectionTitle: { fontSize: 12, bold: true, color: PRIMARY },
-      tableHeader: { bold: true, fillColor: '#E8EAF6', color: PRIMARY },
-      tableLabel: { bold: true, color: LIGHT_TEXT },
+      mainTitle: { fontSize: 16, bold: true, color: C.azulEscuro },
+      sectionTitle: { fontSize: 12, bold: true, color: C.azulEscuro },
+      tableHeader: { bold: true, fillColor: '#E8EAF6', color: C.azulEscuro },
+      tableLabel: { bold: true, color: C.texto },
     },
 
-    defaultStyle: { fontSize: 10, lineHeight: 1.15 },
+    defaultStyle: { fontSize: 10, lineHeight: 1.15, color: C.texto },
   };
 }

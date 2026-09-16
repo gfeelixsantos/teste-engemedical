@@ -40,6 +40,7 @@ export class JwtAuthGuard implements CanActivate {
       codigo: verifiedClaims.codigo,
       email: verifiedClaims.email,
       perfil: verifiedClaims.perfil,
+      registrationCode: verifiedClaims.registrationCode,
     };
 
     return true;

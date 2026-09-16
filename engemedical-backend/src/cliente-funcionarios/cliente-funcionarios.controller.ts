@@ -34,6 +34,7 @@ type ClienteFuncionariosRequest = Request & {
     sub?: unknown;
     userId?: unknown;
     codigo?: unknown;
+    registrationCode?: unknown;
   };
 };
 
@@ -46,10 +47,10 @@ export class ClienteFuncionariosController {
   async list(@Req() request: ClienteFuncionariosRequest): Promise<unknown> {
     const query = request.query ?? {};
     const normalizedQuery = this.normalizeQuery(query);
-    const userId = this.readUserId(request);
+    const registrationCode = this.readRegistrationCode(request);
 
     try {
-      return await this.service.list(normalizedQuery, userId);
+      return await this.service.list(normalizedQuery, registrationCode);
     } catch (error) {
       if (this.isBoundaryException(error)) {
         throw error;
@@ -160,16 +161,22 @@ export class ClienteFuncionariosController {
     return String(value).trim();
   }
 
-  private readUserId(request: ClienteFuncionariosRequest): string {
-    const candidate = request.user?.sub ?? request.user?.userId ?? request.user?.codigo;
+  private readRegistrationCode(request: ClienteFuncionariosRequest): string {
+    // Tokens atuais de cliente carregam registrationCode. O fallback mantém
+    // compatibilidade com tokens antigos enquanto a sessão é renovada.
+    const candidate =
+      request.user?.registrationCode ??
+      request.user?.sub ??
+      request.user?.userId ??
+      request.user?.codigo;
     if (
-      (typeof candidate !== 'string' && typeof candidate !== 'number') ||
+      typeof candidate !== 'string' ||
       !String(candidate).trim()
     ) {
-      throw new UnauthorizedException('Usuário autenticado não identificado.');
+      throw new UnauthorizedException('Empresas do usuário não identificadas.');
     }
 
-    return String(candidate).trim();
+    return candidate.trim();
   }
 
   private isTimeoutError(error: unknown): boolean {

@@ -1740,9 +1740,11 @@ export class SocService {
         </div>
         
         <div style="padding: 30px 36px; background-color: #fff;">
-          <div style="padding: 18px 20px; margin-bottom: 24px; background: #effaf9; border: 1px solid #bfe8e4; border-radius: 12px; color: #185d62; font-size: 13px; line-height: 1.55;">
-            <strong style="display:block; margin-bottom: 4px; color: #0f4d57;">Validação segura finalizada</strong>
-            Este relatório representa uma simulação operacional. O SOC não recebeu comandos de alteração nesta execução. A planilha detalhada está anexada a este e-mail.
+          <div style="padding: 18px 20px; margin-bottom: 24px; background: ${dryRun ? '#effaf9' : '#f0faf7'}; border: 1px solid ${dryRun ? '#bfe8e4' : '#ccebe1'}; border-radius: 12px; color: ${dryRun ? '#185d62' : '#15803d'}; font-size: 13px; line-height: 1.55;">
+            <strong style="display:block; margin-bottom: 4px; color: ${dryRun ? '#0f4d57' : '#166534'};">${dryRun ? 'Validação segura finalizada' : 'Inativação executada com sucesso'}</strong>
+            ${dryRun
+              ? 'Este relatório representa uma simulação operacional. O SOC não recebeu comandos de alteração nesta execução. A planilha detalhada está anexada a este e-mail.'
+              : 'As inativações foram enviadas ao SOC conforme os dados listados abaixo. A planilha detalhada está anexada a este e-mail.'}
           </div>
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px;">
             <div style="padding: 14px; background: #f7fafb; border: 1px solid #e3eef0; border-radius: 10px;"><small style="display:block;color:#6b8790;">Empresas avaliadas</small><strong style="font-size:22px;color:#002e42;">${stats.totalEmpresasAlvo}</strong></div>

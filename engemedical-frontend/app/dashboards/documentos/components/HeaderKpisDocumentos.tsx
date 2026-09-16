@@ -17,13 +17,13 @@ export function HeaderKpisDocumentos({ kpis, totalAcoesPgr = 4 }: HeaderKpisProp
   const vencidos = kpis?.vencidos ?? 3;
 
   return (
-    <div className="space-y-4 mb-6">
+    <div className="mb-6 flex justify-center">
       {/* Top Bar Branding + 6 KPIs principales */}
-      <div className="flex flex-col xl:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      <div className="flex justify-center">
         {/* 6 Top Cards em Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 w-full xl:w-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 justify-center gap-3">
           {/* Card 1 */}
-          <div className="bg-slate-100/80 rounded-xl px-4 py-2.5 text-center min-w-[120px]">
+          <div className="bg-white rounded-xl border border-gray-200 px-4 py-2.5 text-center shadow-md min-w-[120px]">
             <div className="text-xl font-extrabold text-teal-700 leading-none mb-1">
               <CountUp end={docsAtivos} separator="." />
             </div>
@@ -33,7 +33,7 @@ export function HeaderKpisDocumentos({ kpis, totalAcoesPgr = 4 }: HeaderKpisProp
           </div>
 
           {/* Card 2 */}
-          <div className="bg-slate-100/80 rounded-xl px-4 py-2.5 text-center min-w-[110px]">
+          <div className="bg-white rounded-xl border border-gray-200 px-4 py-2.5 text-center shadow-md min-w-[110px]">
             <div className="text-xl font-extrabold text-teal-700 leading-none mb-1">
               <CountUp end={totalPGR} separator="." />
             </div>
@@ -43,7 +43,7 @@ export function HeaderKpisDocumentos({ kpis, totalAcoesPgr = 4 }: HeaderKpisProp
           </div>
 
           {/* Card 3 */}
-          <div className="bg-slate-100/80 rounded-xl px-4 py-2.5 text-center min-w-[120px]">
+          <div className="bg-white rounded-xl border border-gray-200 px-4 py-2.5 text-center shadow-md min-w-[120px]">
             <div className="text-xl font-extrabold text-teal-700 leading-none mb-1">
               <CountUp end={totalPCMSO} separator="." />
             </div>
@@ -53,7 +53,7 @@ export function HeaderKpisDocumentos({ kpis, totalAcoesPgr = 4 }: HeaderKpisProp
           </div>
 
           {/* Card 4 */}
-          <div className="bg-slate-100/80 rounded-xl px-4 py-2.5 text-center min-w-[100px]">
+          <div className="bg-white rounded-xl border border-gray-200 px-4 py-2.5 text-center shadow-md min-w-[100px]">
             <div className="text-xl font-extrabold text-teal-700 leading-none mb-1">
               <CountUp end={vigentes} separator="." />
             </div>
@@ -63,7 +63,7 @@ export function HeaderKpisDocumentos({ kpis, totalAcoesPgr = 4 }: HeaderKpisProp
           </div>
 
           {/* Card 5 */}
-          <div className="bg-slate-100/80 rounded-xl px-4 py-2.5 text-center min-w-[100px]">
+          <div className="bg-white rounded-xl border border-gray-200 px-4 py-2.5 text-center shadow-md min-w-[100px]">
             <div className="text-xl font-extrabold text-teal-700 leading-none mb-1">
               <CountUp end={aVencer} separator="." />
             </div>
@@ -73,7 +73,7 @@ export function HeaderKpisDocumentos({ kpis, totalAcoesPgr = 4 }: HeaderKpisProp
           </div>
 
           {/* Card 6 */}
-          <div className="bg-slate-100/80 rounded-xl px-4 py-2.5 text-center min-w-[100px]">
+          <div className="bg-white rounded-xl border border-gray-200 px-4 py-2.5 text-center shadow-md min-w-[100px]">
             <div className="text-xl font-extrabold text-teal-700 leading-none mb-1">
               <CountUp end={vencidos} separator="." />
             </div>

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongoModule } from '../mongo/mongo.module';
 import { SocModule } from '../soc/soc.module';
-import { SupabaseModule } from '../supabase/supabase.module';
 import { JwtAuthGuard } from '../soc/guards/jwt-auth.guard';
 import { ClienteCompanyAccessService } from './cliente-company-access.service';
 import { ClienteFuncionariosController } from './cliente-funcionarios.controller';
@@ -12,7 +11,7 @@ import {
 } from './cliente-funcionarios.service';
 
 @Module({
-  imports: [MongoModule, SocModule, SupabaseModule],
+  imports: [MongoModule, SocModule],
   controllers: [ClienteFuncionariosController],
   providers: [
     JwtAuthGuard,

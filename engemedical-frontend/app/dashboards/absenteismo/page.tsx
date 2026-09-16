@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { UserX } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getDynamicNestUrl } from '@/config/constants';
+import { DashboardPageHeader } from '@/components/shared/DashboardPageHeader';
 import { HeaderKpisAbsenteismo } from './components/HeaderKpisAbsenteismo';
 import { IndiceImpactoFinanceiroSection } from './components/IndiceImpactoFinanceiroSection';
 import { AbsenteismoGeralSection } from './components/AbsenteismoGeralSection';
@@ -16,7 +18,7 @@ export default function AbsenteismoPage() {
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
 
-  const { data, isLoading, error } = useQuery<AbsenteismoDashboardData>({
+  const { data, isLoading, isFetching, error, refetch } = useQuery<AbsenteismoDashboardData>({
     queryKey: ['absenteismo', dataInicio, dataFim],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -30,8 +32,17 @@ export default function AbsenteismoPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-6 px-4 md:px-8">
+    <div className="dashboard-content min-h-screen bg-slate-50/50 py-6 px-4 md:px-8">
       <div className="max-w-7xl mx-auto space-y-4">
+        <DashboardPageHeader
+          eyebrow="Dashboards"
+          icon={UserX}
+          title="Absenteísmo"
+          subtitle="Acompanhe os indicadores de afastamentos, perdas e distribuição do absenteísmo."
+          onRefresh={refetch}
+          isRefreshing={isFetching}
+        />
+
         {/* Error notification */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">

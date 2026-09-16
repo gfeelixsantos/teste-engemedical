@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { LicencaNormalizada } from '../types';
+import {
+  getDashboardStatusRowHoverClass,
+  getDashboardStatusTextClass,
+} from '../../../../components/shared/dashboardStatusColors';
 
 interface TabelaGeralProps {
   data?: LicencaNormalizada[];
@@ -224,7 +228,7 @@ const FALLBACK_ROWS: LicencaNormalizada[] = [
 export function TabelaGeralAbsenteismo({ data, total, isLoading }: TabelaGeralProps) {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = 10;
 
   const rows = (data && data.length > 0) ? data : FALLBACK_ROWS;
 
@@ -245,12 +249,12 @@ export function TabelaGeralAbsenteismo({ data, total, isLoading }: TabelaGeralPr
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6 h-[300px] animate-pulse" />
+      <div className="bg-white rounded-xl border border-gray-100 shadow-md p-5 mb-6 h-[300px] animate-pulse" />
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-md p-5 mb-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <h2 className="text-base font-bold text-gray-800 text-center sm:text-left uppercase tracking-wide">
           Tabela Geral
@@ -272,14 +276,13 @@ export function TabelaGeralAbsenteismo({ data, total, isLoading }: TabelaGeralPr
 
       <div className="overflow-x-auto rounded-lg border border-gray-200">
         <table className="w-full text-xs text-left">
-          <thead className="bg-slate-50 text-gray-700 font-bold border-b border-gray-200">
+          <thead className="bg-brand-700 text-white font-bold border-b border-brand-800">
             <tr>
-              <th className="py-2.5 px-3">SubGrupo</th>
               <th className="py-2.5 px-2">Empresa</th>
               <th className="py-2.5 px-3">Unidade</th>
-              <th className="py-2.5 px-2">Setor</th>
-              <th className="py-2.5 px-3">Cargo</th>
               <th className="py-2.5 px-3">Funcionário</th>
+              <th className="py-2.5 px-3">Cargo</th>
+              <th className="py-2.5 px-2">Setor</th>
               <th className="py-2.5 px-2">Situação</th>
               <th className="py-2.5 px-3">Tipo de Afastamento</th>
               <th className="py-2.5 px-2">Início do Atestado</th>
@@ -287,23 +290,27 @@ export function TabelaGeralAbsenteismo({ data, total, isLoading }: TabelaGeralPr
               <th className="py-2.5 px-2 text-right">Dias Perdidos</th>
               <th className="py-2.5 px-2 text-center">Horas Afastado</th>
               <th className="py-2.5 px-2 text-center">CID</th>
+              <th className="py-2.5 px-3">SubGrupo</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-gray-700">
             {visible.map((r, i) => (
-              <tr key={i} className="hover:bg-slate-50/70 transition-colors">
-                <td className="py-2 px-3 text-[11px] max-w-[140px] truncate text-gray-600">
-                  {r.subgrupo || 'MATRIZ CE - CLIENTE DIRETO'}
-                </td>
+              <tr
+                key={i}
+                className={`cursor-pointer transition-colors ${getDashboardStatusRowHoverClass(r.situacao || 'Ativo')}`}
+              >
                 <td className="py-2 px-2 font-semibold text-gray-900">{r.empresaNome || 'CREMEC'}</td>
                 <td className="py-2 px-3 text-[11px] max-w-[160px] truncate text-gray-600">
                   {r.unidade || 'CONSELHO REGIONAL DE MEDICINA DO ESTADO DO CEARA'}
                 </td>
-                <td className="py-2 px-2 font-medium text-gray-800">{r.setor || 'ALMOXARIFADO'}</td>
-                <td className="py-2 px-3 font-medium text-gray-800">{r.cargo || 'ASSISTENTE ADMINISTRATIVO'}</td>
                 <td className="py-2 px-3 font-bold text-gray-900">{r.nomeFuncionario || 'FUNCIONARIO'}</td>
+                <td className="py-2 px-3 font-medium text-gray-800">{r.cargo || 'ASSISTENTE ADMINISTRATIVO'}</td>
+                <td className="py-2 px-2 font-medium text-gray-800">{r.setor || 'ALMOXARIFADO'}</td>
                 <td className="py-2 px-2">
-                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${r.situacao === 'Inativo' ? 'bg-gray-100 text-gray-600 border border-gray-200' : 'bg-teal-50 text-teal-700 border border-teal-200'}`}>
+                  <span
+                    className={`font-semibold ${getDashboardStatusTextClass(r.situacao || 'Ativo')}`}
+                    title={`Situação: ${r.situacao || 'Ativo'}`}
+                  >
                     {r.situacao || 'Ativo'}
                   </span>
                 </td>
@@ -313,6 +320,9 @@ export function TabelaGeralAbsenteismo({ data, total, isLoading }: TabelaGeralPr
                 <td className="py-2 px-2 text-right font-extrabold text-teal-800">{r.diasPerdidos}</td>
                 <td className="py-2 px-2 text-center font-mono text-gray-500">{r.horasAfastado || '00:00:00'}</td>
                 <td className="py-2 px-2 text-center font-semibold text-gray-700">{r.cid || 'Sem CID'}</td>
+                <td className="py-2 px-3 text-[11px] max-w-[140px] truncate text-gray-600">
+                  {r.subgrupo || 'MATRIZ CE - CLIENTE DIRETO'}
+                </td>
               </tr>
             ))}
           </tbody>

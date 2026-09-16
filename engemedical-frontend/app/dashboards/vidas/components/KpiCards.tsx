@@ -8,9 +8,6 @@ interface Props {
   kpis?: VidasKPIs;
 }
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-
 const CARDS_ROW1 = [
   { key: 'totalRegistros', label: 'Total Registros', icon: Users, color: 'bg-blue-500' },
   { key: 'totalEmpresas', label: 'Empresas', icon: Building2, color: 'bg-indigo-500' },
@@ -27,17 +24,20 @@ const CARDS_ROW2 = [
 export default function KpiCards({ kpis }: Props) {
   const renderCards = (cards: typeof CARDS_ROW1) =>
     cards.map(({ key, label, icon: Icon, color, isCurrency }) => (
-      <div key={key} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition">
+      <div key={key} className="bg-white rounded-xl border border-gray-200 p-4 shadow-md hover:shadow-lg transition">
         <div className={`w-10 h-10 ${color} rounded-lg flex items-center justify-center mb-2`}>
           <Icon className="w-5 h-5 text-white" />
         </div>
         <div className="text-2xl font-bold text-gray-800">
           {kpis ? (
-            isCurrency ? (
-              formatCurrency(kpis[key as keyof VidasKPIs] as number)
-            ) : (
-              <CountUp end={kpis[key as keyof VidasKPIs] as number} duration={1.2} separator="." />
-            )
+            <CountUp
+              end={kpis[key as keyof VidasKPIs] as number}
+              duration={1.2}
+              separator="."
+              decimals={isCurrency ? 2 : 0}
+              decimal=","
+              prefix={isCurrency ? 'R$ ' : ''}
+            />
           ) : (
             <span className="inline-block h-7 w-20 bg-gray-200 rounded animate-pulse" />
           )}

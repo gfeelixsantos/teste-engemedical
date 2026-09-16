@@ -15,7 +15,7 @@ export function HorariosEDias({ porHorario, porDiaSemana, heatmap }: HorariosEDi
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Distribuição de Agendamentos por Horário */}
-        <div className="p-6 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-4">
+        <div className="p-6 shadow-md border border-gray-200 rounded-2xl bg-white space-y-4">
           <div className="border-b pb-3">
             <h3 className="text-base font-bold">Distribuição de Agendamentos por Horário</h3>
             <p className="text-xs text-gray-400">Volume concentrado por horário de atendimento</p>
@@ -34,7 +34,7 @@ export function HorariosEDias({ porHorario, porDiaSemana, heatmap }: HorariosEDi
         </div>
 
         {/* Distribuição de Agendamentos por Dia da Semana */}
-        <div className="p-6 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-4">
+        <div className="p-6 shadow-md border border-gray-200 rounded-2xl bg-white space-y-4">
           <div className="border-b pb-3">
             <h3 className="text-base font-bold">Distribuição de Agendamentos por Dia da Semana</h3>
             <p className="text-xs text-gray-400">Comparativo de Segunda a Domingo</p>
@@ -54,7 +54,7 @@ export function HorariosEDias({ porHorario, porDiaSemana, heatmap }: HorariosEDi
       </div>
 
       {/* Matriz Cruzada: Distribuição por Dia e Horário (Heatmap) */}
-      <div className="p-6 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-4">
+      <div className="p-6 shadow-md border border-gray-200 rounded-2xl bg-white space-y-4">
         <div className="border-b pb-3">
           <h3 className="text-base font-bold">Distribuição de Agendamentos por Dia e Horário</h3>
           <p className="text-xs text-gray-400">Cruzamento detalhado de horários x dias da semana</p>
@@ -62,7 +62,7 @@ export function HorariosEDias({ porHorario, porDiaSemana, heatmap }: HorariosEDi
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
-            <thead>
+            <thead className="bg-brand-700 text-white">
               <tr className="border-b bg-gray-50 text-gray-500 font-semibold">
                 <th className="py-2.5 px-3">Dia da Semana</th>
                 {heatmap.horariosColunas.map((col) => (

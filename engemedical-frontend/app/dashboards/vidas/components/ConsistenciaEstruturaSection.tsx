@@ -33,7 +33,7 @@ export function ConsistenciaEstruturaSection({
   ];
 
   return (
-    <div className="p-6 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-6">
+    <div className="p-6 shadow-md border border-gray-200 rounded-2xl bg-white space-y-6">
       <div className="border-b pb-4 space-y-3">
         <h2 className="text-xl font-bold tracking-tight text-gray-800 text-center">Consistência Cadastral por Estrutura Organizacional</h2>
 

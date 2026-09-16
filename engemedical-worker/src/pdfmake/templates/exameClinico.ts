@@ -1,7 +1,9 @@
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
+import * as fs from 'fs';
+import * as path from 'path';
 import { ASSINATURAS_URL } from 'src/soc/assinaturas';
 import { getExamesList } from 'src/exames/exames.provider';
-import { createGridSection, formatCPF, getImageBase64 } from 'src/utils/util';
+import { formatCPF, getImageBase64 } from 'src/utils/util';
 import { getRestricoesCompletas } from '../ClinicoRestricoes';
 import { buildPdfFooter } from '../pdfFooterHelper';
 
@@ -156,6 +158,26 @@ function buildTestesArticularesGrid4Cols(t?: TestesArticulares): string[][] {
   return finalRows;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// CORES PREMIUM CORPORATE HEALTH
+// ═══════════════════════════════════════════════════════════════
+const C = {
+  verdeEscuro: '#1B5E20',
+  verde: '#2E7D32',
+  verdeClaro: '#4CAF50',
+  ciano: '#0097A7',
+  azulEscuro: '#0D47A1',
+  preto: '#1A1A1A',
+  texto: '#212121',
+  muted: '#757575',
+  borda: '#E0E0E0',
+  fundo: '#F5F5F5',
+  branco: '#FFFFFF',
+  apto: '#2E7D32',
+  inapto: '#C62828',
+  attention: '#E65100',
+};
+
 export async function gerarDocExameClinico(
   asoData: any,
   profissional: any,
@@ -199,17 +221,35 @@ export async function gerarDocExameClinico(
       )
     : 'N/D';
 
-  const logoEmpresa = await getImageBase64(
-    'https://cmsocupacional.com.br/images/logo.png',
+  // ═══ LOGOS LOCAIS ═══
+  const logoLocalPath = path.resolve(
+    process.cwd(),
+    'src',
+    'assets',
+    'images',
+    'logo.png',
   );
-  const watermarkBase64 = await getImageBase64(
-    'https://centromedicodesaudeocupacional.formaedu.com.br/wp-content/uploads/sites/6/2024/11/LOGO-220x221.png',
+  const logoEmpresa = fs.existsSync(logoLocalPath)
+    ? `data:image/png;base64,${fs.readFileSync(logoLocalPath).toString('base64')}`
+    : await getImageBase64('https://engemedical.com.br/images/logo.png');
+
+  const iconeLocalPath = path.resolve(
+    process.cwd(),
+    'src',
+    'assets',
+    'images',
+    'icone.png',
   );
+  const watermarkBase64 = fs.existsSync(iconeLocalPath)
+    ? `data:image/png;base64,${fs.readFileSync(iconeLocalPath).toString('base64')}`
+    : await getImageBase64(
+        'https://engemedical.com.br/images/icone.png',
+      );
 
   let assinaturaProfissional = await getImageBase64(ASSINATURAS_URL[codigo]);
   if (!assinaturaProfissional) {
     assinaturaProfissional = await getImageBase64(
-      'https://cmsocupacional.com.br/images/logo.png',
+      'https://engemedical.com.br/images/logo.png',
     );
   }
   let assinaturaMedico: string | null = null;
@@ -217,7 +257,7 @@ export async function gerarDocExameClinico(
     assinaturaMedico = await getImageBase64(ASSINATURAS_URL[form.codigoMedico]);
     if (!assinaturaMedico) {
       assinaturaMedico = await getImageBase64(
-        'https://cmsocupacional.com.br/images/logo.png',
+        'https://engemedical.com.br/images/logo.png',
       );
     }
   }
@@ -292,235 +332,406 @@ export async function gerarDocExameClinico(
   const medicoNome =
     form.medico || exameClinico?.profissional || profissional?.nome || 'N/D';
 
+  // ═══ HELPERS LOCAIS ═══
+  const section = (title: string, color: string = C.ciano) => ({
+    table: {
+      widths: ['*'],
+      body: [[{
+        columns: [
+          { width: 4, text: '', fillColor: color },
+          { width: '*', text: title, fontSize: 9.5, bold: true, color: C.texto, margin: [10, 5, 8, 5] as [number, number, number, number] },
+        ],
+      }]],
+    },
+    layout: {
+      hLineWidth: () => 0,
+      vLineWidth: () => 0,
+      fillColor: () => '#ECEFF1',
+      paddingLeft: () => 0,
+      paddingRight: () => 0,
+      paddingTop: () => 0,
+      paddingBottom: () => 0,
+    },
+    margin: [0, 10, 0, 0] as [number, number, number, number],
+  });
+
+  const card = (content: any) => ({
+    table: {
+      widths: ['*'],
+      body: [[{ stack: content, margin: [12, 8, 12, 8] }]],
+    },
+    layout: {
+      hLineWidth: () => 0,
+      vLineWidth: () => 0,
+      fillColor: () => C.branco,
+      paddingLeft: () => 0,
+      paddingRight: () => 0,
+      paddingTop: () => 0,
+      paddingBottom: () => 0,
+    },
+  });
+
+  const field = (label: string, value: string) => ({
+    columns: [
+      { text: label, width: 110, fontSize: 8.5, bold: true, color: C.muted },
+      { text: value || 'N/D', width: '*', fontSize: 9.5, color: C.texto },
+    ],
+    margin: [0, 2, 0, 2] as [number, number, number, number],
+  });
+
   return {
     pageSize: 'A4',
-    pageMargins: [34, 35, 34, 128],
+    pageMargins: [20, 20, 20, 85],
     background: watermarkBase64
       ? [
           {
             image: watermarkBase64,
-            width: 350,
-            opacity: 0.05,
-            absolutePosition: { x: 122, y: 235 },
+            width: 600,
+            opacity: 0.06,
+            absolutePosition: { x: 320, y: 50 },
           },
         ]
       : undefined,
     content: [
+      // ═══ CABEÇALHO: Logo esquerda + Tipo da ficha centro ═══
       {
         columns: [
           {
-            width: '*',
-            stack: [
-              {
-                text: 'FICHA CLÍNICA',
-                style: 'mainTitle',
-                margin: [0, 0, 0, 5],
-                color: PRIMARY,
-              },
-              {
-                text: `${TIPOEXAMENOME}: ${conclusao}`,
-                margin: [0, 0, 0, 0],
-              },
-              form.informacaoAguardarAvaliacao
-                ? {
-                    text: form.informacaoAguardarAvaliacao,
-                    margin: [0, 2, 0, 0],
-                    color: ATTENTION_COLOR,
-                  }
-                : { text: '' },
-              ...getRestricoesCompletas(form),
-            ].filter((item: any) => item && item.text !== ''),
-          },
-          {
-            width: 130,
+            width: 120,
             stack: [
               logoEmpresa
-                ? { image: logoEmpresa, width: 118, alignment: 'right' }
+                ? { image: logoEmpresa, fit: [110, 110], alignment: 'center' }
                 : { text: '' },
-              {
-                text: `${UNIDADEATENDIMENTO || ''}, ${new Intl.DateTimeFormat(
-                  'pt-BR',
-                  {
-                    timeZone: 'America/Sao_Paulo',
-                  },
-                ).format(new Date())}`,
-                alignment: 'right',
-                fontSize: 7,
-                color: LIGHT_TEXT,
-              },
             ],
           },
-        ],
-        margin: [0, 0, 0, 6],
-      },
-      {
-        columns: [
           {
             width: '*',
             stack: [
-              { text: NOME || 'N/D', bold: true, fontSize: 11 },
-              {
-                text: `CPF: ${formatCPF(CPFFUNCIONARIO)}   Nascimento: ${DATANASCIMENTO || 'N/D'}   Idade: ${idade} anos`,
-                fontSize: 10,
-                color: LIGHT_TEXT,
-              },
+              { text: 'FICHA CLÍNICA', fontSize: 22, bold: true, color: C.azulEscuro, alignment: 'center', characterSpacing: 3, margin: [0, 4, 0, 3] as [number, number, number, number] },
+              { text: TIPOEXAMENOME || 'Avaliação Clínica Ocupacional', fontSize: 9, color: C.muted, alignment: 'center', characterSpacing: 1, margin: [0, 0, 0, 0] as [number, number, number, number] },
+            ],
+            margin: [0, 8, 0, 0] as [number, number, number, number],
+          },
+          { width: 120, text: '' },
+        ],
+        margin: [0, 0, 0, 0] as [number, number, number, number],
+      },
+      // Linha separadora
+      {
+        canvas: [
+          { type: 'line' as const, x1: 0, y1: 0, x2: 553, y2: 0, lineWidth: 1.5, lineColor: C.ciano },
+        ],
+        margin: [0, 4, 0, 8] as [number, number, number, number],
+      },
+
+      // ═══ DADOS DO FUNCIONÁRIO + EMPRESA lado a lado ═══
+      {
+        columns: [
+          {
+            width: '50%',
+            stack: [
+              section('DADOS DO FUNCIONÁRIO', C.azulEscuro),
+              card([
+                field('Nome:', NOME),
+                field('CPF:', formatCPF(CPFFUNCIONARIO)),
+                field('Nascimento:', `${DATANASCIMENTO || 'N/D'} — ${idade} anos`),
+                field('Cargo:', NOMECARGO),
+                field('Setor:', NOMESETOR),
+              ]),
+            ],
+          },
+          {
+            width: '50%',
+            stack: [
+              section('DADOS DA EMPRESA', C.verde),
+              card([
+                field('Razão social:', NOMEEMPRESA),
+                field('CNPJ:', CNPJEMPRESA),
+                field('Unidade:', UNIDADEATENDIMENTO),
+                { text: '', margin: [0, 0, 0, 0] as [number, number, number, number] },
+                field('Data do exame:', new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo' }).format(new Date())),
+              ]),
             ],
           },
         ],
-        margin: [0, 0, 0, 8],
+        columnGap: 10,
+        margin: [0, 0, 0, 0] as [number, number, number, number],
       },
-      {
-        table: {
-          widths: ['*'],
-          body: [
-            [
-              {
-                stack: [
-                  { text: NOMEEMPRESA || 'N/D', bold: true },
-                  {
-                    text: `CNPJ: ${CNPJEMPRESA || 'N/D'}   Cargo: ${NOMECARGO || 'N/D'}   Setor: ${NOMESETOR || 'N/D'}`,
-                    fontSize: 10,
-                    color: LIGHT_TEXT,
-                  },
-                ],
-              },
-            ],
-          ],
-        },
-        layout: 'noBorders',
-        margin: [0, 0, 0, 10],
-      },
+
+      // ═══ ANAMNESE (se admissional) ═══
       ...(isAdmissional
         ? [
-            createGridSection(
-              'Anamnese e Histórico Familiar',
-              [
-                [
-                  'Doenças Familiares',
-                  form.doencasFamiliares?.join(', ') || 'N/D',
-                ],
-                ['Doenças Pessoais', form.doencasPessoais?.join(', ') || 'N/D'],
-                ['Observação médica', form.observacoesDoencasPessoais || '-'],
-                ['Afastamento > 15 dias', form.afastamento || 'N/D'],
-                ['Relato', form.observacaoAfastamento || '-'],
-              ],
-              { fontSize: 9 },
-            ),
-            createGridSection('Hábitos e Atividade', habitosGridAdmissional, {
-              fontSize: 9,
-            }),
+            section('ANAMNESE E HISTÓRICO FAMILIAR', C.azulEscuro),
+            card([
+              field('Doenças familiares:', form.doencasFamiliares?.join(', ')),
+              field('Doenças pessoais:', form.doencasPessoais?.join(', ')),
+              field('Observação médica:', form.observacoesDoencasPessoais),
+              field('Afastamento > 15 dias:', form.afastamento),
+              field('Relato:', form.observacaoAfastamento),
+            ]),
           ]
         : []),
+
+      // ═══ INFORMAÇÕES CLÍNICAS (se demissional com menstruação) ═══
       ...(isDemissional && hasMenstruacaoData
         ? [
-            createGridSection(
-              'Informações Clínicas',
-              menstruacaoGridDemissional,
-              {
-                fontSize: 9,
-              },
-            ),
+            section('INFORMAÇÕES CLÍNICAS', C.azulEscuro),
+            card([
+              field('Última Menstruação:', form.ultimaMenstruacao),
+            ]),
           ]
         : []),
-      createGridSection('Exame Físico', exameFisicoGrid, { fontSize: 9 }),
-      createGridSection('Dados Vitais e Antropometria', dadosVitaisGrid, {
-        fontSize: 9,
-      }),
+
+      // ═══ HÁBITOS + PRESSÃO ARTERIAL lado a lado ═══
       {
-        text: form.observacoesMedicas || '-',
-        alignment: 'justify',
-        italics: true,
-        fontSize: 10,
-        margin: [0, 0, 0, 10],
+        columns: [
+          {
+            width: '50%',
+            stack: [
+              section('HÁBITOS E ESTILO DE VIDA', C.verde),
+              card([
+                {
+                  table: {
+                    widths: ['50%', '50%'],
+                    body: [
+                      [
+                        { text: 'Tabagismo', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+                        { text: 'Etilismo', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+                      ],
+                      [
+                        { text: form.tabagismo || 'N/D', fontSize: 9, color: C.texto },
+                        { text: form.etilismo || 'N/D', fontSize: 9, color: C.texto },
+                      ],
+                      [
+                        { text: 'Ativ. Física', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 4, 0, 2] as [number, number, number, number] },
+                        { text: 'Acima do Peso', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 4, 0, 2] as [number, number, number, number] },
+                      ],
+                      [
+                        { text: form.atividadeFisica || 'N/D', fontSize: 9, color: C.texto },
+                        { text: form.acimaPeso || 'N/D', fontSize: 9, color: C.texto },
+                      ],
+                    ],
+                  },
+                  layout: {
+                    hLineWidth: (i: number) => (i === 1 || i === 3 ? 0.3 : 0),
+                    vLineWidth: () => 0,
+                    hLineColor: () => C.borda,
+                    paddingLeft: () => 4,
+                    paddingRight: () => 4,
+                    paddingTop: () => 2,
+                    paddingBottom: () => 2,
+                  },
+                },
+              ]),
+            ],
+          },
+          {
+            width: '50%',
+            stack: [
+              section('PRESSÃO ARTERIAL', C.ciano),
+              card([
+                ...form.pressaoArterial?.map((reg: RegistroPa) => ({
+                  columns: [
+                    { text: reg.valor || 'N/D', width: '50%', fontSize: 10, bold: true, color: C.texto },
+                    { text: reg.horario ? `${reg.horario}h` : 'N/D', width: '50%', fontSize: 9, color: C.muted, alignment: 'right' as const },
+                  ],
+                  margin: [0, 2, 0, 2] as [number, number, number, number],
+                })) || [
+                  { text: 'N/D', fontSize: 10, bold: true, color: C.texto, margin: [0, 2, 0, 2] as [number, number, number, number] },
+                ],
+              ]),
+            ],
+          },
+        ],
+        columnGap: 10,
+        margin: [0, 0, 0, 0] as [number, number, number, number],
       },
+
+      // ═══ EXAME FÍSICO ═══
+      section('EXAME FÍSICO', C.azulEscuro),
+      card([
+        {
+          table: {
+            widths: ['33%', '33%', '34%'],
+            body: [
+              [
+                { text: 'Cabeça e Pescoço', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+                { text: 'Tórax', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+                { text: 'Abdome', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+              ],
+              [
+                { text: form.cabecaPescoco || 'N/D', fontSize: 9, color: C.texto },
+                { text: form.torax || 'N/D', fontSize: 9, color: C.texto },
+                { text: form.abdome || 'N/D', fontSize: 9, color: C.texto },
+              ],
+              [
+                { text: 'Coluna', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 4, 0, 2] as [number, number, number, number] },
+                { text: 'Membros Sup.', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 4, 0, 2] as [number, number, number, number] },
+                { text: 'Membros Inf.', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 4, 0, 2] as [number, number, number, number] },
+              ],
+              [
+                { text: form.coluna || 'N/D', fontSize: 9, color: C.texto },
+                { text: form.membrosSuperiores || 'N/D', fontSize: 9, color: C.texto },
+                { text: form.membrosInferiores || 'N/D', fontSize: 9, color: C.texto },
+              ],
+            ],
+          },
+          layout: {
+            hLineWidth: (i: number) => (i === 1 || i === 3 ? 0.3 : 0),
+            vLineWidth: () => 0,
+            hLineColor: () => C.borda,
+            paddingLeft: () => 4,
+            paddingRight: () => 4,
+            paddingTop: () => 3,
+            paddingBottom: () => 3,
+          },
+        },
+      ]),
+
+      // ═══ DADOS VITAIS ═══
+      section('DADOS VITAIS E ANTROPOMETRIA', C.verde),
+      card([
+        {
+          table: {
+            widths: ['25%', '25%', '25%', '25%'],
+            body: [
+              [
+                { text: 'Peso', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+                { text: 'Altura', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+                { text: 'IMC', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+                { text: 'Resultado IMC', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+              ],
+              [
+                { text: form.peso || 'N/D', fontSize: 9, color: C.texto },
+                { text: form.altura || 'N/D', fontSize: 9, color: C.texto },
+                { text: form.imc || 'N/D', fontSize: 9, color: C.texto },
+                { text: form.resultadoImc || 'N/D', fontSize: 9, color: C.texto },
+              ],
+            ],
+          },
+          layout: {
+            hLineWidth: (i: number) => (i === 1 ? 0.3 : 0),
+            vLineWidth: () => 0,
+            hLineColor: () => C.borda,
+            paddingLeft: () => 4,
+            paddingRight: () => 4,
+            paddingTop: () => 3,
+            paddingBottom: () => 3,
+          },
+        },
+      ]),
+
+      // ═══ OBSERVAÇÕES MÉDICAS ═══
+      ...(form.observacoesMedicas
+        ? [
+            section('OBSERVAÇÕES MÉDICAS', C.ciano),
+            card([
+              { text: form.observacoesMedicas, fontSize: 9, color: C.texto, alignment: 'justify', lineHeight: 1.4 },
+            ]),
+          ]
+        : []),
+
+      // ═══ PARECER MÉDICO ═══
+      section('PARECER MÉDICO', C.verde),
       {
-        text: `Conclusão: ${conclusao}`,
-        alignment: 'left',
+        text: conclusao,
+        fontSize: 20,
         bold: true,
-        fontSize: 10,
-        color: conclusao.toLowerCase() === 'inapto' ? '#B71C1C' : PRIMARY,
-        margin: [0, 0, 0, 16],
+        color: conclusao.toLowerCase() === 'inapto' ? C.inapto : C.apto,
+        alignment: 'center',
+        margin: [0, 8, 0, 8] as [number, number, number, number],
       },
+
+      // ═══ INFORMAÇÃO AGUARDAR AVALIAÇÃO ═══
+      ...(form.informacaoAguardarAvaliacao
+        ? [
+            {
+              text: form.informacaoAguardarAvaliacao,
+              fontSize: 9,
+              color: C.attention,
+              alignment: 'center',
+              margin: [0, 4, 0, 8] as [number, number, number, number],
+            },
+          ]
+        : []),
+
+      // ═══ TESTES ARTICULARES (se houver, nova página) ═══
       ...(testesArticularesGrid.length > 0
         ? [
-            { text: '', pageBreak: 'before' },
+            { text: '', pageBreak: 'before' as const },
+            // Cabeçalho da página de testes
             {
               columns: [
                 {
-                  width: '*',
-                  stack: [
-                    {
-                      text: 'TESTES ARTICULARES',
-                      style: 'mainTitle',
-                      margin: [0, 0, 0, 5],
-                      color: PRIMARY,
-                    },
-                  ],
-                },
-                {
-                  width: 130,
+                  width: 120,
                   stack: [
                     logoEmpresa
-                      ? { image: logoEmpresa, width: 118, alignment: 'right' }
+                      ? { image: logoEmpresa, fit: [110, 110], alignment: 'center' }
                       : { text: '' },
-                    {
-                      text: `${UNIDADEATENDIMENTO || ''}, ${new Intl.DateTimeFormat(
-                        'pt-BR',
-                        {
-                          timeZone: 'America/Sao_Paulo',
-                        },
-                      ).format(new Date())}`,
-                      alignment: 'right',
-                      fontSize: 7,
-                      color: LIGHT_TEXT,
-                    },
                   ],
                 },
-              ],
-              margin: [0, 0, 0, 10],
-            },
-            {
-              columns: [
                 {
                   width: '*',
                   stack: [
-                    { text: NOME || 'N/D', bold: true, fontSize: 11 },
-                    {
-                      text: `CPF: ${formatCPF(CPFFUNCIONARIO)}   Nascimento: ${DATANASCIMENTO || 'N/D'}   Idade: ${idade} anos`,
-                      fontSize: 10,
-                      color: LIGHT_TEXT,
-                    },
+                    { text: 'TESTES ARTICULARES', fontSize: 22, bold: true, color: C.azulEscuro, alignment: 'center', characterSpacing: 3, margin: [0, 4, 0, 3] as [number, number, number, number] },
+                    { text: TIPOEXAMENOME || 'Avaliação Clínica Ocupacional', fontSize: 9, color: C.muted, alignment: 'center', characterSpacing: 1 },
                   ],
+                  margin: [0, 8, 0, 0] as [number, number, number, number],
                 },
+                { width: 120, text: '' },
               ],
-              margin: [0, 0, 0, 8],
+              margin: [0, 0, 0, 0] as [number, number, number, number],
             },
             {
-              table: {
-                widths: ['*'],
-                body: [
-                  [
-                    {
-                      stack: [
-                        { text: NOMEEMPRESA || 'N/D', bold: true },
-                        {
-                          text: `CNPJ: ${CNPJEMPRESA || 'N/D'}   Cargo: ${NOMECARGO || 'N/D'}   Setor: ${NOMESETOR || 'N/D'}`,
-                          fontSize: 10,
-                          color: LIGHT_TEXT,
-                        },
-                      ],
-                    },
-                  ],
-                ],
-              },
-              layout: 'noBorders',
-              margin: [0, 0, 0, 10],
+              canvas: [
+                { type: 'line' as const, x1: 0, y1: 0, x2: 553, y2: 0, lineWidth: 1.5, lineColor: C.ciano },
+              ],
+              margin: [0, 4, 0, 8] as [number, number, number, number],
             },
-            createGridSection('Testes Articulares', testesArticularesGrid, {
-              fontSize: 9,
-            }),
+            // Dados paciente resumido
+            {
+              columns: [
+                { text: NOME || 'N/D', width: '*', bold: true, fontSize: 10, color: C.texto },
+                { text: `CPF: ${formatCPF(CPFFUNCIONARIO)}`, width: 'auto', fontSize: 9, color: C.muted },
+              ],
+              margin: [0, 0, 0, 10] as [number, number, number, number],
+            },
+            // Grid testes
+            section('TESTES ARTICULARES', C.azulEscuro),
+            card([
+              {
+                table: {
+                  widths: ['25%', '25%', '25%', '25%'],
+                  body: testesArticularesGrid.map((row) => [
+                    { text: row[0], fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+                    { text: row[1], fontSize: 9, color: C.texto, margin: [0, 2, 0, 2] as [number, number, number, number] },
+                    { text: row[2], fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+                    { text: row[3], fontSize: 9, color: C.texto, margin: [0, 2, 0, 2] as [number, number, number, number] },
+                  ]),
+                },
+                layout: {
+                  hLineWidth: (i: number) => (i > 0 ? 0.3 : 0),
+                  vLineWidth: () => 0,
+                  hLineColor: () => C.borda,
+                  paddingLeft: () => 4,
+                  paddingRight: () => 4,
+                  paddingTop: () => 2,
+                  paddingBottom: () => 2,
+                },
+              },
+            ]),
           ]
         : []),
+
+      // ═══ LEGAL ═══
+      {
+        text: 'Documento assinado eletronicamente, conforme MP nº 2.200-2/2001 e Lei nº 14.063/2020.',
+        fontSize: 7,
+        color: C.muted,
+        alignment: 'center',
+        italics: true,
+        margin: [0, 10, 0, 0] as [number, number, number, number],
+      },
     ],
     footer: buildPdfFooter(
       profissional,
@@ -544,6 +755,6 @@ export async function gerarDocExameClinico(
         margin: [0, 3, 0, 4],
       },
     },
-    defaultStyle: { fontSize: 10, lineHeight: 1.15 },
+    defaultStyle: { fontSize: 10, lineHeight: 1.15, color: C.texto },
   };
 }

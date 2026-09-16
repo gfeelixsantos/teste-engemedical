@@ -16,7 +16,7 @@ interface Props {
 }
 
 const SkeletonCard = () => (
-  <div className="bg-white rounded-lg shadow p-4 animate-pulse">
+  <div className="bg-white rounded-lg shadow-md p-4 animate-pulse">
     <div className="flex items-center gap-2">
       <div className="p-2 rounded-lg bg-gray-200 w-9 h-9" />
       <div className="flex-1">
@@ -80,7 +80,7 @@ export function KpiCards({ kpis }: Props) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
       {cards.map((card) => (
-        <div key={card.label} className="bg-white rounded-lg shadow p-4">
+        <div key={card.label} className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center gap-2">
             <div className={`p-2 rounded-lg ${card.color}`}>
               <card.icon className="w-4 h-4 text-white" />

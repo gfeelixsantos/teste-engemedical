@@ -10,7 +10,7 @@ import { resolveRelatorioEvidenciasUrl } from '../autenticacao-evidencias-url.ut
 export async function gerarTemplateAsoWorker(
   data: WorkerAsoInput,
 ): Promise<TDocumentDefinitions> {
-  const PRIMARY = '#114E34';
+  const PRIMARY = '#0D47A1';
   const LIGHT_TEXT = '#333333';
   const MUTED = '#5B5B5B';
 
@@ -30,15 +30,14 @@ export async function gerarTemplateAsoWorker(
 
   const logoLocalPath = path.resolve(
     process.cwd(),
-    '..',
-    'engemedical-connect-frontend',
-    'public',
+    'src',
+    'assets',
     'images',
-    'cmso_logo.png',
+    'logo.png',
   );
   const logoCmso = fs.existsSync(logoLocalPath)
     ? `data:image/png;base64,${fs.readFileSync(logoLocalPath).toString('base64')}`
-    : await getImageBase64('https://cmsocupacional.com.br/images/logo.png');
+    : await getImageBase64('https://engemedical.com.br/images/logo.png');
 
   const biometriaImage = autenticacaoAtendimento.biometria?.imageBase64 || null;
 
@@ -535,7 +534,7 @@ export async function gerarTemplateAsoWorker(
         margin: [0, 2, 0, 2],
       },
       {
-        text: `CENTRO MÉDICO DE SAÚDE OCUPACIONAL - ${unidadeAtendimento || unidade.nome || 'Rio Claro'}`,
+        text: `ENGEMEDICAL - ${unidadeAtendimento || unidade.nome || 'Rio Claro'}`,
         fontSize: 8,
         bold: true,
         alignment: 'left',

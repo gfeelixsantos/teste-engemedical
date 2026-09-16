@@ -19,7 +19,7 @@ interface Props {
 
 function SkeletonChart() {
   return (
-    <div className="bg-white rounded-lg shadow p-6 animate-pulse">
+    <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
       <div className="h-5 bg-gray-200 rounded w-56 mb-4" />
       <div className="flex items-end gap-2 h-[300px]">
         {Array.from({ length: 8 }).map((_, i) => (
@@ -45,7 +45,7 @@ export function EvolucaoMensal({ data, isLoading }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         Evolução Mensal — Dias Perdidos vs Atestados
       </h3>

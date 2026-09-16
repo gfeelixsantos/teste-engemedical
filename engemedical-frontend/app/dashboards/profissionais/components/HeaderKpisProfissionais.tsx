@@ -16,17 +16,17 @@ export function HeaderKpisProfissionais({ kpis, isLoading }: Props) {
 
   if (isLoading) {
     return (
-      <div className="h-20 bg-white rounded-xl border border-gray-100 animate-pulse shadow-sm mb-4" />
+      <div className="h-20 bg-white rounded-xl border border-gray-100 animate-pulse shadow-md mb-4" />
     );
   }
 
   return (
-    <div className="space-y-4 mb-4">
-      <div className="flex flex-col xl:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+    <div className="mb-4 flex justify-center">
+      <div className="flex justify-center">
         {/* 4 Cards do Topo (Idênticos ao Power BI da Imagem 1) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full xl:w-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-4 justify-center gap-3">
           {/* Card 1 */}
-          <div className="bg-slate-100/80 rounded-xl px-6 py-2.5 text-center min-w-[120px]">
+          <div className="bg-white rounded-xl border border-gray-200 px-6 py-2.5 text-center shadow-md min-w-[120px]">
             <div className="text-xl font-extrabold text-teal-800 leading-none mb-1">
               <CountUp end={agendamentos} separator="." />
             </div>
@@ -36,7 +36,7 @@ export function HeaderKpisProfissionais({ kpis, isLoading }: Props) {
           </div>
 
           {/* Card 2 */}
-          <div className="bg-slate-100/80 rounded-xl px-6 py-2.5 text-center min-w-[120px]">
+          <div className="bg-white rounded-xl border border-gray-200 px-6 py-2.5 text-center shadow-md min-w-[120px]">
             <div className="text-xl font-extrabold text-teal-800 leading-none mb-1">
               <CountUp end={atendimentos} separator="." />
             </div>
@@ -46,7 +46,7 @@ export function HeaderKpisProfissionais({ kpis, isLoading }: Props) {
           </div>
 
           {/* Card 3 */}
-          <div className="bg-slate-100/80 rounded-xl px-6 py-2.5 text-center min-w-[140px]">
+          <div className="bg-white rounded-xl border border-gray-200 px-6 py-2.5 text-center shadow-md min-w-[140px]">
             <div className="text-xl font-extrabold text-teal-800 leading-none mb-1">
               <CountUp end={mediaExames} decimals={2} decimal="," />
             </div>
@@ -56,7 +56,7 @@ export function HeaderKpisProfissionais({ kpis, isLoading }: Props) {
           </div>
 
           {/* Card 4 */}
-          <div className="bg-slate-100/80 rounded-xl px-6 py-2.5 text-center min-w-[120px]">
+          <div className="bg-white rounded-xl border border-gray-200 px-6 py-2.5 text-center shadow-md min-w-[120px]">
             <div className="text-xl font-extrabold text-teal-800 leading-none mb-1">
               <CountUp end={funcionarios} separator="." />
             </div>

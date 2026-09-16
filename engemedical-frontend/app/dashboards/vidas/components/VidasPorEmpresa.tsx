@@ -23,7 +23,7 @@ export default function VidasPorEmpresa({ data }: Props) {
   }));
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
       <h3 className="text-sm font-semibold text-gray-700 mb-3">Vidas Ativas – Top Empresas</h3>
       {data ? (
         <ResponsiveContainer width="100%" height={350}>

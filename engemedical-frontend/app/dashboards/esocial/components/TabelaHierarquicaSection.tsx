@@ -9,7 +9,7 @@ interface TabelaHierarquicaProps {
 }
 
 export function TabelaHierarquicaSection({ matrix }: TabelaHierarquicaProps) {
-  const [expandedAnos, setExpandedAnos] = useState<Record<string, boolean>>({ '2025': true, '2026': true });
+  const [expandedAnos, setExpandedAnos] = useState<Record<string, boolean>>({});
   const [expandedMeses, setExpandedMeses] = useState<Record<string, boolean>>({ '2025-janeiro': true });
   const [expandedEventos, setExpandedEventos] = useState<Record<string, boolean>>({ '2025-janeiro-S2210': true });
 
@@ -167,14 +167,14 @@ export function TabelaHierarquicaSection({ matrix }: TabelaHierarquicaProps) {
       ];
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+    <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 mb-6">
       <h2 className="text-base font-bold text-gray-800 text-center uppercase tracking-wide mb-4">
         Status dos Registros por Período e Evento
       </h2>
 
       <div className="overflow-x-auto rounded-lg border border-gray-200">
         <table className="w-full text-xs text-left">
-          <thead className="bg-slate-50 text-gray-700 font-bold border-b border-gray-200">
+          <thead className="bg-brand-700 text-white font-bold border-b border-brand-800">
             <tr>
               <th className="py-3 px-4 w-[40%]">Ano / Mês / Evento / Empresa</th>
               <th className="py-3 px-3 text-right">Concluido</th>

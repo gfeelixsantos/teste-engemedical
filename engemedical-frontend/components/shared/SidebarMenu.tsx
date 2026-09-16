@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/utils";
 import {
   Activity, ChartNoAxesCombined, ChevronRight, FileCheck, FileText, Globe,
   HeartPulse, Home, LayoutGrid, Settings, Stethoscope, TrendingUp, UserX, Users,
-  CalendarDays, FolderOpen, ListChecks, Mail, ScanLine, Workflow, Server, UserMinus, FileArchive, WalletCards, Network,
+  CalendarDays, FolderOpen, ListChecks, Mail, ScanLine, Workflow, Server, UserMinus, FileArchive, Network,
 } from "lucide-react";
 
 type MenuItem = { title: string; icon: typeof Home; path: string };
@@ -31,7 +31,6 @@ export const SIDEBAR_GROUPS: readonly MenuGroup[] = [
     { title: "Convocação de exames", icon: Activity, path: "/dashboards/convocacao" },
     { title: "Documentos SST", icon: FileCheck, path: "/dashboards/documentos" },
     { title: "eSocial", icon: Globe, path: "/dashboards/esocial" },
-    { title: "Gestão Financeira", icon: WalletCards, path: "/dashboards/financeiro" },
     { title: "Gestão de vidas", icon: HeartPulse, path: "/dashboards/vidas" },
     { title: "Prestadores SOCNET", icon: Network, path: "/dashboards/prestadores-socnet" },
     { title: "Profissionais", icon: Users, path: "/dashboards/profissionais" },

@@ -1,52 +1,37 @@
-import {
-  BadGatewayException,
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
-import { SupabaseService } from '../supabase/supabase.service';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 
 export interface ClienteCompanyAccess {
   companyCode: string;
   companyName: string;
 }
 
+/** Empresas permitidas vêm do registrationCode do cliente, como no projeto C#. */
 @Injectable()
 export class ClienteCompanyAccessService {
-  constructor(private readonly supabaseService: SupabaseService) {}
-
   async assertCanAccess(
-    userId: string,
     companyCode: string,
+    registrationCode: string,
   ): Promise<ClienteCompanyAccess> {
-    const normalizedUserId = this.normalizeRequiredValue(userId, 'userId');
     const normalizedCompanyCode = this.normalizeRequiredValue(
       companyCode,
       'companyCode',
     );
+    const normalizedRegistrationCode = this.normalizeRequiredValue(
+      registrationCode,
+      'registrationCode',
+    );
+    const allowedCompanyCodes = normalizedRegistrationCode
+      .split('-')
+      .map((code) => code.trim())
+      .filter(Boolean);
 
-    const { data, error } = await this.supabaseService
-      .getClient()
-      .from('user_company_memberships')
-      .select('company_code, company_name')
-      .eq('user_id', normalizedUserId)
-      .eq('company_code', normalizedCompanyCode)
-      .eq('active', true)
-      .maybeSingle();
-
-    if (error) {
-      throw new BadGatewayException(
-        'Não foi possível consultar os vínculos de empresa do usuário.',
-      );
-    }
-
-    if (!data) {
+    if (!allowedCompanyCodes.includes(normalizedCompanyCode)) {
       throw new ForbiddenException('Usuário não possui acesso à empresa');
     }
 
     return {
-      companyCode: String(data.company_code).trim(),
-      companyName: String(data.company_name ?? '').trim(),
+      companyCode: normalizedCompanyCode,
+      companyName: '',
     };
   }
 

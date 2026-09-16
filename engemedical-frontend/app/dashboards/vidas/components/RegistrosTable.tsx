@@ -7,7 +7,7 @@ interface Props {
   data?: RegistroVida[];
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -17,7 +17,7 @@ export default function RegistrosTable({ data }: Props) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
         <h3 className="text-sm font-semibold text-gray-700 mb-3">Registros de Faturamento</h3>
         <div className="space-y-2">
           <div className="h-10 bg-gray-100 rounded animate-pulse" />
@@ -35,7 +35,7 @@ export default function RegistrosTable({ data }: Props) {
   const pageData = data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-700">
           Registros de Faturamento ({data.length} registros)
@@ -61,7 +61,7 @@ export default function RegistrosTable({ data }: Props) {
 
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
-          <thead>
+          <thead className="bg-brand-700 text-white">
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="px-3 py-2 text-left font-medium text-gray-600">Empresa</th>
               <th className="px-3 py-2 text-left font-medium text-gray-600">Unidade</th>

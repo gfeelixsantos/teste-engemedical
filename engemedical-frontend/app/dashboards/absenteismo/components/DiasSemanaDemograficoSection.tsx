@@ -76,12 +76,12 @@ export function DiasSemanaDemograficoSection({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6 h-[450px] animate-pulse" />
+      <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-6 h-[450px] animate-pulse" />
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-6">
       {/* 1: Barra de Dias Perdidos por Dias da Semana (Barra de Topo Segmentada) */}
       <div className="mb-8">
         <h2 className="text-sm font-bold text-gray-800 text-center uppercase tracking-wide mb-3">

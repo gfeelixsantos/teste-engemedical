@@ -17,7 +17,7 @@ interface Props {
 }
 
 const SkeletonChart = () => (
-  <div className="bg-white rounded-lg shadow p-6 animate-pulse">
+  <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
     <div className="h-5 bg-gray-200 rounded w-52 mx-auto mb-4" />
     <div className="space-y-2">
       {Array.from({ length: 6 }).map((_, i) => (
@@ -39,7 +39,7 @@ export function ComparativoEmpresas({ data }: Props) {
   }));
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
         Comparativo entre Empresas
       </h3>

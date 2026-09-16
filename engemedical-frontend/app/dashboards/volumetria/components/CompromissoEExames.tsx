@@ -13,7 +13,7 @@ export function CompromissoEExames({ porTipoCompromisso, porVolumeExame }: Compr
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Distribuição de Tipo de Compromisso por Situação */}
-      <div className="p-6 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-4">
+      <div className="p-6 shadow-md border border-gray-200 rounded-2xl bg-white space-y-4">
         <div className="border-b pb-3">
           <h3 className="text-base font-bold">Distribuição de Tipo de Compromisso por Situação</h3>
           <p className="text-xs text-gray-400">Admissional, Demissional, Periódico, etc. por status</p>
@@ -35,7 +35,7 @@ export function CompromissoEExames({ porTipoCompromisso, porVolumeExame }: Compr
       </div>
 
       {/* Volume de Exames Agendados */}
-      <div className="p-6 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-4">
+      <div className="p-6 shadow-md border border-gray-200 rounded-2xl bg-white space-y-4">
         <div className="border-b pb-3">
           <h3 className="text-base font-bold">Volume de Exames Agendados</h3>
           <p className="text-xs text-gray-400">Ranking dos exames mais solicitados</p>

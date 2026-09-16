@@ -11,7 +11,7 @@ interface Props {
 
 function SkeletonTable() {
   return (
-    <div className="bg-white rounded-lg shadow p-6 animate-pulse">
+    <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
       <div className="flex items-center justify-between mb-4">
         <div className="h-5 bg-gray-200 rounded w-56" />
         <div className="h-9 bg-gray-200 rounded w-40" />
@@ -32,7 +32,7 @@ function SkeletonTable() {
 export function DetalhesTable({ data, total, isLoading }: Props) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const perPage = 20;
+  const perPage = 10;
 
   if (isLoading || !data) return <SkeletonTable />;
 
@@ -51,7 +51,7 @@ export function DetalhesTable({ data, total, isLoading }: Props) {
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">
           Detalhes dos Atestados ({total || filtered.length} registros)
@@ -70,7 +70,7 @@ export function DetalhesTable({ data, total, isLoading }: Props) {
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-brand-700 text-white">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Empresa
@@ -92,17 +92,17 @@ export function DetalhesTable({ data, total, isLoading }: Props) {
           <tbody className="divide-y divide-gray-200">
             {paginated.map((row) => (
               <tr key={row.codigoSequencial} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm text-gray-900">
+                <td className="px-4 py-3 text-xs text-gray-900">
                   {row.empresaCodigo}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-900">
+                <td className="px-4 py-3 text-xs text-gray-900">
                   {row.codigoFuncionario}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-900">{row.cid}</td>
-                <td className="px-4 py-3 text-sm text-gray-900">
+                <td className="px-4 py-3 text-xs text-gray-900">{row.cid}</td>
+                <td className="px-4 py-3 text-xs text-gray-900">
                   {row.diasPerdidos}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-900">
+                <td className="px-4 py-3 text-xs text-gray-900">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',

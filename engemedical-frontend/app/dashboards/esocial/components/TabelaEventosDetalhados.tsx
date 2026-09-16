@@ -11,7 +11,7 @@ interface TabelaEventosProps {
 export function TabelaEventosDetalhados({ rows }: TabelaEventosProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
-  const PAGE_SIZE = 15;
+  const PAGE_SIZE = 10;
 
   // Fallbacks fiáveis de demonstração idênticos à imagem 5 do usuário
   const defaultRows: RegistroEsocial[] = [
@@ -114,7 +114,7 @@ export function TabelaEventosDetalhados({ rows }: TabelaEventosProps) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+    <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 mb-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         <h2 className="text-base font-bold text-gray-800 uppercase tracking-wide">
           Eventos eSocial
@@ -127,7 +127,10 @@ export function TabelaEventosDetalhados({ rows }: TabelaEventosProps) {
             type="text"
             placeholder="Buscar empresa, funcionário, layout..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(0);
+            }}
             className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
           />
         </div>
@@ -136,7 +139,7 @@ export function TabelaEventosDetalhados({ rows }: TabelaEventosProps) {
       {/* Tabela de Dados */}
       <div className="overflow-x-auto rounded-lg border border-gray-200">
         <table className="w-full text-xs text-left">
-          <thead className="bg-slate-50 text-gray-700 font-bold border-b border-gray-200">
+          <thead className="bg-brand-700 text-white font-bold border-b border-brand-800">
             <tr>
               <th className="py-3 px-3">SubGrupo</th>
               <th className="py-3 px-2">Cód. Empresa</th>

@@ -23,7 +23,7 @@ const COLORS = [
 
 function SkeletonChart() {
   return (
-    <div className="bg-white rounded-lg shadow p-6 animate-pulse">
+    <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
       <div className="h-5 bg-gray-200 rounded w-48 mb-4" />
       <div className="h-[300px] flex items-center justify-center">
         <div className="w-48 h-48 rounded-full bg-gray-200" />
@@ -45,7 +45,7 @@ export function CidsChart({ data, isLoading }: Props) {
   }));
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         Distribuição por CID
       </h3>

@@ -64,12 +64,12 @@ export function HorariosEDiasSection({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-4 h-[300px] animate-pulse" />
+      <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-4 h-[300px] animate-pulse" />
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-4">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-4">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* 1: Distribuição de Agendamentos por Horário */}
         <div>
@@ -114,7 +114,7 @@ export function HorariosEDiasSection({
           </h3>
           <div className="overflow-x-auto border border-gray-200 rounded-lg">
             <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 text-gray-700 font-bold border-b border-gray-200">
+              <thead className="bg-brand-700 text-white font-bold border-b border-brand-800">
                 <tr>
                   <th className="py-2 px-3">Dia da Semana</th>
                   <th className="py-2 px-2 text-center">07:00</th>

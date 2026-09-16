@@ -58,7 +58,7 @@ export function StatusXmlCards({ kpis, countsByStatus, totalRegistros }: StatusX
   ];
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+    <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 mb-6">
       <h2 className="text-base font-bold text-gray-800 text-center uppercase tracking-wide mb-6">
         Status dos Arquivos XML
       </h2>

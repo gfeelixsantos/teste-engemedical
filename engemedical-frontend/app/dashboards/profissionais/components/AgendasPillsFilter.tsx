@@ -28,7 +28,7 @@ export function AgendasPillsFilter({
   const lista = (agendas && agendas.length > 0) ? agendas : DEFAULT_AGENDAS;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm mb-4 space-y-3">
+    <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-md mb-4 space-y-3">
       <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">
         Agendas / Profissionais
       </div>

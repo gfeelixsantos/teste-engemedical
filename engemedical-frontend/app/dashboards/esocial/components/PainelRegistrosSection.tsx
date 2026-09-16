@@ -95,7 +95,7 @@ export function PainelRegistrosSection({ porLayout, porMes, porMesStatus }: Pain
       ];
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+    <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 mb-6">
       <h2 className="text-lg font-bold text-gray-800 text-center uppercase tracking-wide mb-6">
         Painel de Registros eSocial
       </h2>

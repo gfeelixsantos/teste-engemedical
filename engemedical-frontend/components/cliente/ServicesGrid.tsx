@@ -12,48 +12,48 @@ const SERVICES: Service[] = [
   {
     title: "PCMSO",
     description: "Programa de Controle Médico de Saúde Ocupacional conforme NR-7, monitorando a saúde dos trabalhadores de forma contínua.",
-    image: "/images/caroussel/engemedical1.png",
+    image: "/images/servicos/pcmso.png",
   },
   {
     title: "PGR",
     description: "Programa de Gerenciamento de Riscos com inventário de perigos e avaliação de riscos para prevenir doenças ocupacionais.",
-    image: "/images/caroussel/engemedical2.png",
+    image: "/images/servicos/pgr.png",
   },
   {
     title: "LTCAT",
     description: "Laudos Técnicos das Condições do Ambiente do Trabalho para emissão do PPP e atendimento ao INSS.",
-    image: "/images/caroussel/engemedical3.jpg",
+    image: "/images/servicos/ltcat.png",
   },
   {
     title: "ASO",
     description: "Atestado de Saúde Ocupacional com exames admissionais, periódicos, retorno ao trabalho, mudança e demissional.",
-    image: "/images/caroussel/engemedical1.png",
+    image: "/images/servicos/aso.png",
   },
   {
     title: "Treinamentos NR",
     description: "Capacitação em Normas Regulamentadoras: NR-10, NR-12, NR-18, NR-20, NR-33, NR-35 presencial e EAD.",
-    image: "/images/caroussel/engemedical2.png",
+    image: "/images/servicos/treinamentos.png",
   },
   {
     title: "eSocial SST",
     description: "Gestão completa de eventos de Saúde e Segurança do Trabalho com transmissão direta ao eSocial.",
-    image: "/images/caroussel/engemedical3.jpg",
+    image: "/images/servicos/esocial.png",
   },
   {
     title: "Engenharia",
     description: "Projetos e inspeções em instalações elétricas (NR-10), máquinas (NR-12), caldeiras (NR-13) e trabalho em altura.",
-    image: "/images/caroussel/engemedical1.png",
+    image: "/images/servicos/engenharia.png",
   },
   {
     title: "Perícias Trabalhistas",
     description: "Assessoria técnica especializada em perícias trabalhistas com laudos detalhados e consultoria assertiva.",
-    image: "/images/caroussel/engemedical2.png",
+    image: "/images/servicos/pericia.png",
   },
 ];
 
 function ServiceCard({ service }: { service: Service }) {
   return (
-    <div className="group relative h-[180px] w-[320px] shrink-0 overflow-hidden rounded-2xl border border-white/10 shadow-lg transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl hover:shadow-[#16804D]/15">
+    <div className="group relative h-[180px] w-[320px] shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-white/10 shadow-lg transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl hover:shadow-[#16804D]/15">
       <Image
         src={service.image}
         alt={service.title}

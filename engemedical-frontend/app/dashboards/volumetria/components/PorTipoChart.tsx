@@ -25,7 +25,7 @@ const SITUACAO_COLORS: Record<string, string> = {
 
 export function PorTipoChart({ data }: Props) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-md">
       <h3 className="text-sm font-semibold text-gray-700 mb-3">
         Compromissos por Tipo
       </h3>

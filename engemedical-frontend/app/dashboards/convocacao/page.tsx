@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDynamicNestUrl } from '@/config/constants';
-import { RefreshCw, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { ChevronLeft, ChevronRight, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { KpiCards } from './components/KpiCards';
 import { TemporalLineChart } from './components/TemporalLineChart';
@@ -16,16 +15,22 @@ import { UnidadesPendenciasBarChart } from './components/UnidadesPendenciasBarCh
 import { DrilldownTable } from './components/DrilldownTable';
 import { ConvocacaoFilters } from './components/ConvocacaoFilters';
 import AppLoading from '@/components/shared/AppLoading';
-import type { DashboardData } from './types';
+import { DashboardPageHeader } from '@/components/shared/DashboardPageHeader';
+import type { DashboardData, ConvocacaoExame } from './types';
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10;
 
 export default function ConvocacaoPage() {
-  const router = useRouter();
   const [page, setPage] = useState(1);
   const [filtroEmpresa, setFiltroEmpresa] = useState('');
   const [filtroSituacao, setFiltroSituacao] = useState('');
   const [filtroExame, setFiltroExame] = useState('');
+
+  // Estado da tabela filtrada (server-side)
+  const [detalhesFiltrados, setDetalhesFiltrados] = useState<ConvocacaoExame[]>([]);
+  const [totalFiltrados, setTotalFiltrados] = useState(0);
+  const [totalPaginasFiltradas, setTotalPaginasFiltradas] = useState(1);
+  const [loadingDetalhes, setLoadingDetalhes] = useState(false);
 
   const fetchDashboard = useCallback(async (): Promise<DashboardData> => {
     const res = await fetch(`${getDynamicNestUrl()}convocacao/dashboard`);
@@ -33,12 +38,45 @@ export default function ConvocacaoPage() {
     return res.json();
   }, []);
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ['convocacao-dashboard'],
     queryFn: fetchDashboard,
     staleTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
+  // Busca detalhes do servidor com filtragem real (full dataset — sem cap de 500)
+  const fetchDetalhes = useCallback(async (
+    empresa: string,
+    situacao: string,
+    exame: string,
+    pg: number,
+  ) => {
+    setLoadingDetalhes(true);
+    try {
+      const params = new URLSearchParams({ page: String(pg), limit: String(PAGE_SIZE) });
+      if (empresa) params.set('empresa', empresa);
+      if (situacao) params.set('situacao', situacao);
+      if (exame) params.set('exame', exame);
+
+      const res = await fetch(`${getDynamicNestUrl()}convocacao/detalhes?${params.toString()}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      setDetalhesFiltrados(json.data ?? []);
+      setTotalFiltrados(json.total ?? 0);
+      setTotalPaginasFiltradas(json.totalPages ?? 1);
+    } catch {
+      // silently fail
+    } finally {
+      setLoadingDetalhes(false);
+    }
+  }, []);
+
+  // Re-busca sempre que filtros ou página mudam
+  useEffect(() => {
+    if (!data) return;
+    fetchDetalhes(filtroEmpresa, filtroSituacao, filtroExame, page);
+  }, [data, filtroEmpresa, filtroSituacao, filtroExame, page, fetchDetalhes]);
 
   if (isLoading) {
     return (
@@ -63,53 +101,16 @@ export default function ConvocacaoPage() {
     );
   }
 
-  // Filtrar detalhes client-side
-  const detalhesFiltrados = data.detalhes.filter((d) => {
-    if (filtroEmpresa && d.nomeEmpresa !== filtroEmpresa) return false;
-    if (filtroSituacao && d.situacaoExame !== filtroSituacao) return false;
-    if (filtroExame && d.exame !== filtroExame) return false;
-    return true;
-  });
-
-  // Paginação client-side
-  const totalPaginas = Math.ceil(detalhesFiltrados.length / PAGE_SIZE) || 1;
-  const detalhesPagina = detalhesFiltrados.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  );
-
   return (
-    <div className="flex flex-col h-full bg-[#F8FAFC]">
+    <div className="dashboard-content flex flex-col h-full min-h-screen bg-slate-50/50">
       <div className="flex-1 overflow-auto p-4 md:p-6 space-y-6">
-        {/* Header Superior */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => router.push('/dashboards')}
-              className="rounded-lg p-2 transition-colors hover:bg-gray-200"
-              aria-label="Voltar para dashboards"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold text-[#0F172A]">
-                Controle de Convocações de Exames
-              </h1>
-              <p className="text-xs text-gray-400">
-                Contagem de Exames — Última atualização: {new Date(data.kpis.ultimaAtualizacao).toLocaleString('pt-BR')}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold bg-white border border-gray-200 text-gray-700 shadow-xs transition-colors hover:bg-gray-50"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            Atualizar
-          </button>
-        </div>
+        <DashboardPageHeader
+          icon={Activity}
+          title="Controle de Convocações de Exames"
+          subtitle={`Contagem de exames — Última atualização: ${new Date(data.kpis.ultimaAtualizacao).toLocaleString('pt-BR')}`}
+          onRefresh={refetch}
+          isRefreshing={isFetching}
+        />
 
         {/* ─── 4 Top KPI Cards ─── */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -121,7 +122,7 @@ export default function ConvocacaoPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs"
+          className="bg-white rounded-2xl border border-gray-200 p-5 shadow-md"
         >
           <div className="text-center mb-2">
             <h2 className="text-base font-bold text-gray-800">
@@ -141,7 +142,7 @@ export default function ConvocacaoPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs"
+            className="bg-white rounded-2xl border border-gray-200 p-5 shadow-md"
           >
             <h3 className="text-sm font-bold text-gray-800 mb-2 text-center">
               Volume de Exames — Situação
@@ -153,7 +154,7 @@ export default function ConvocacaoPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs"
+            className="bg-white rounded-2xl border border-gray-200 p-5 shadow-md"
           >
             <h3 className="text-sm font-bold text-gray-800 mb-2 text-center">
               Distribuição de Exames por Situação
@@ -167,7 +168,7 @@ export default function ConvocacaoPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs space-y-4"
+          className="bg-white rounded-2xl border border-gray-200 p-5 shadow-md space-y-4"
         >
           <div className="text-center">
             <h2 className="text-base font-bold text-gray-800">
@@ -228,14 +229,17 @@ export default function ConvocacaoPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs space-y-4"
+          className="bg-white rounded-2xl border border-gray-200 p-5 shadow-md space-y-4"
         >
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-gray-800">
               Dados Gerais de Convocações de Exames
             </h2>
             <span className="text-xs font-medium text-gray-500">
-              Total: {detalhesFiltrados.length.toLocaleString('pt-BR')} registros
+              Total: {totalFiltrados.toLocaleString('pt-BR')} registros
+              {(filtroEmpresa || filtroSituacao || filtroExame) && (
+                <span className="ml-1 text-brand-600">(filtrado)</span>
+              )}
             </span>
           </div>
 
@@ -245,7 +249,7 @@ export default function ConvocacaoPage() {
             filtroEmpresa={filtroEmpresa}
             filtroSituacao={filtroSituacao}
             filtroExame={filtroExame}
-            exames={Array.from(new Set(data.detalhes.map((d) => d.exame))).sort()}
+            exames={data.filtros.exames ?? Array.from(new Set(data.detalhes.map((d) => d.exame))).sort()}
             onEmpresaChange={(v) => { setFiltroEmpresa(v); setPage(1); }}
             onSituacaoChange={(v) => { setFiltroSituacao(v); setPage(1); }}
             onExameChange={(v) => { setFiltroExame(v); setPage(1); }}
@@ -257,12 +261,18 @@ export default function ConvocacaoPage() {
             }}
           />
 
-          <DrilldownTable data={detalhesPagina} />
+          {loadingDetalhes ? (
+            <div className="flex items-center justify-center py-10 text-xs text-gray-400">
+              Filtrando registros...
+            </div>
+          ) : (
+            <DrilldownTable data={detalhesFiltrados} />
+          )}
 
-          {totalPaginas > 1 && (
+          {totalPaginasFiltradas > 1 && (
             <div className="flex items-center justify-between border-t border-gray-100 pt-3">
               <span className="text-xs text-gray-500">
-                Página {page} de {totalPaginas}
+                Página {page} de {totalPaginasFiltradas}
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -275,8 +285,8 @@ export default function ConvocacaoPage() {
                 </button>
                 <button
                   type="button"
-                  disabled={page === totalPaginas}
-                  onClick={() => setPage((p) => Math.min(totalPaginas, p + 1))}
+                  disabled={page === totalPaginasFiltradas}
+                  onClick={() => setPage((p) => Math.min(totalPaginasFiltradas, p + 1))}
                   className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 disabled:opacity-40 hover:bg-gray-50"
                 >
                   Próxima <ChevronRight className="h-4 w-4 inline" />

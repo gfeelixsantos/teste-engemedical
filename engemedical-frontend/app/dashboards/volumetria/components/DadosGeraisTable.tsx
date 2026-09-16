@@ -22,7 +22,7 @@ export function DadosGeraisTable({ agendaFiltro, statusFiltro }: DadosGeraisTabl
     try {
       const query = new URLSearchParams({
         page: String(p),
-        limit: '15',
+        limit: '10',
         agenda: agendaFiltro,
         status: statusFiltro,
         empresa: emp,
@@ -53,7 +53,7 @@ export function DadosGeraisTable({ agendaFiltro, statusFiltro }: DadosGeraisTabl
   };
 
   return (
-    <div className="p-6 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-4">
+    <div className="p-6 shadow-md border border-gray-200 rounded-2xl bg-white space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-gray-800">Dados Gerais de Agendamentos</h2>
@@ -82,7 +82,7 @@ export function DadosGeraisTable({ agendaFiltro, statusFiltro }: DadosGeraisTabl
 
       <div className="rounded-xl border border-gray-200 overflow-x-auto">
         <table className="w-full text-xs text-left border-collapse">
-          <thead className="bg-gray-50 border-b border-gray-200 text-gray-700">
+        <thead className="bg-brand-700 border-b border-brand-800 text-white">
             <tr>
               <th className="py-2.5 px-3 font-bold">Empresa</th>
               <th className="py-2.5 px-3 font-bold">Nome</th>

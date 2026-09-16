@@ -81,7 +81,7 @@ export default function DashboardsPage() {
               <button
                 type="button"
                 onClick={() => router.push(dash.path)}
-                className="w-full text-left rounded-xl border border-brand-200 bg-white p-5 transition-all duration-200 hover:border-brand-400 hover:shadow-md cursor-pointer"
+                className="w-full text-left rounded-xl border border-brand-200 bg-white p-5 shadow-md transition-all duration-200 hover:border-brand-400 hover:shadow-lg cursor-pointer"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div

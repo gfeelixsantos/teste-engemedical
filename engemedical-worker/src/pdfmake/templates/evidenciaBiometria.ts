@@ -1,11 +1,13 @@
 import * as pdfMake from 'pdfmake/build/pdfmake';
+import * as fs from 'fs';
+import * as path from 'path';
 import { TermoConsentimentoInput, formatDataHora } from '../termo-consentimento.types';
 import { getImageBase64 } from 'src/utils/util';
 
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = pdfFonts.vfs;
 
-const PRIMARY = '#114E34';
+const PRIMARY = '#0D47A1';
 const LIGHT_TEXT = '#333333';
 const MUTED = '#666666';
 const BORDER = '#CCCCCC';
@@ -31,8 +33,16 @@ export async function gerarEvidenciaBiometria(
   input: TermoConsentimentoInput,
   documentHash: string,
 ): Promise<Buffer> {
-  const logoUrl = 'https://cmsocupacional.com.br/images/logo.png';
-  const logoBase64 = await getImageBase64(logoUrl);
+  const logoLocalPath = path.resolve(
+    process.cwd(),
+    'src',
+    'assets',
+    'images',
+    'logo.png',
+  );
+  const logoBase64 = fs.existsSync(logoLocalPath)
+    ? `data:image/png;base64,${fs.readFileSync(logoLocalPath).toString('base64')}`
+    : await getImageBase64('https://engemedical.com.br/images/logo.png');
   const operador =
     input.operador?.nome || input.operador?.codigo || 'N/D';
   const dataHora = formatDataHora(new Date().toISOString());

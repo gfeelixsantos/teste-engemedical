@@ -16,11 +16,11 @@ export function TabelasProdutosEmpresas({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Tabela Produtos */}
-      <div className="lg:col-span-8 p-5 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-4">
+      <div className="lg:col-span-8 p-5 shadow-md border border-gray-200 rounded-2xl bg-white space-y-4">
         <h3 className="text-base font-bold text-center text-gray-800 border-b pb-2">Produtos</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
-            <thead>
+            <thead className="bg-brand-700 text-white">
               <tr className="border-b bg-gray-50 text-gray-600 font-semibold">
                 <th className="py-2 px-2">Código</th>
                 <th className="py-2 px-2">Empresa</th>
@@ -49,11 +49,11 @@ export function TabelasProdutosEmpresas({
       </div>
 
       {/* Tabela Empresas */}
-      <div className="lg:col-span-4 p-5 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-4">
+      <div className="lg:col-span-4 p-5 shadow-md border border-gray-200 rounded-2xl bg-white space-y-4">
         <h3 className="text-base font-bold text-center text-gray-800 border-b pb-2">Empresas</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
-            <thead>
+            <thead className="bg-brand-700 text-white">
               <tr className="border-b bg-gray-50 text-gray-600 font-semibold">
                 <th className="py-2 px-2">Código</th>
                 <th className="py-2 px-2">Empresa</th>

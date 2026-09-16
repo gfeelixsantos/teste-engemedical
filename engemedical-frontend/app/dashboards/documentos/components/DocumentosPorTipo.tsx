@@ -19,7 +19,7 @@ interface Props {
 export default function DocumentosPorTipo({ data }: Props) {
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
         <h3 className="text-sm font-semibold text-gray-700 mb-3">Nº de Documentos</h3>
         <div className="h-[250px] bg-gray-100 rounded animate-pulse" />
       </div>
@@ -27,7 +27,7 @@ export default function DocumentosPorTipo({ data }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
       <h3 className="text-sm font-semibold text-gray-700 mb-3">Nº de Documentos por Tipo</h3>
       <ResponsiveContainer width="100%" height={250}>
         <BarChart data={data}>

@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useEmpresas } from "./EmpresaProvider";
-import { CadastroEmpresa } from "@/lib/soc/interfaces/CadastroEmpresa";
 import { ChevronDown, Building2, Check, AlertTriangle, MapPin, FileText } from "lucide-react";
 
 export function CompanySelector() {
@@ -21,7 +20,7 @@ export function CompanySelector() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (empresas.length === 0) {
+  if (!selectedEmpresa) {
     return null;
   }
 
@@ -32,23 +31,23 @@ export function CompanySelector() {
       <button
         type="button"
         onClick={() => hasMultiple && setIsOpen(!isOpen)}
-        className={`flex items-center gap-2.5 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-left transition-all hover:border-[#0d3224]/30 hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#0d3224]/20 ${hasMultiple ? "cursor-pointer" : "cursor-default"}`}
+        className={`flex items-center gap-3 rounded-2xl border border-gray-200/80 bg-white px-4 py-2.5 shadow-sm transition-all hover:border-[#16804D]/30 hover:shadow-md hover:shadow-[#16804D]/5 focus:outline-none focus:ring-2 focus:ring-[#16804D]/20 ${hasMultiple ? "cursor-pointer" : "cursor-default"}`}
       >
-        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#0d3224]/10">
-          <Building2 className="h-4 w-4 text-[#0d3224]" />
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#0d3224] to-[#16804D]">
+          <Building2 className="h-4 w-4 text-white" />
         </div>
-        <div className="min-w-0">
-          <p className="max-w-[180px] truncate text-sm font-semibold text-gray-900">
-            {selectedEmpresa?.NOMEABREVIADO || selectedEmpresa?.RAZAOSOCIAL || "Selecionar empresa"}
+        <div className="min-w-0 text-left">
+          <p className="max-w-[200px] truncate text-sm font-bold text-gray-900">
+            {selectedEmpresa.NOMEABREVIADO || selectedEmpresa.RAZAOSOCIAL}
           </p>
           <div className="flex items-center gap-2 text-[10px] text-gray-400">
-            {selectedEmpresa?.CIDADE && (
+            {selectedEmpresa.CIDADE && (
               <span className="flex items-center gap-0.5">
                 <MapPin className="h-2.5 w-2.5" />
                 {selectedEmpresa.CIDADE}
               </span>
             )}
-            {selectedEmpresa?.CNPJ && (
+            {selectedEmpresa.CNPJ && (
               <span className="flex items-center gap-0.5">
                 <FileText className="h-2.5 w-2.5" />
                 {selectedEmpresa.CNPJ}
@@ -62,7 +61,7 @@ export function CompanySelector() {
       </button>
 
       {isOpen && hasMultiple && (
-        <div className="absolute left-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
+        <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl">
           <div className="border-b border-gray-100 px-4 py-3">
             <h3 className="text-sm font-semibold text-gray-900">Trocar Empresa</h3>
             <p className="mt-0.5 text-xs text-gray-400">
@@ -86,7 +85,7 @@ export function CompanySelector() {
 
           <div className="max-h-[300px] overflow-y-auto p-2">
             {empresas.map((empresa) => {
-              const isSelected = selectedEmpresa?.CODIGO === empresa.CODIGO;
+              const isSelected = selectedEmpresa.CODIGO === empresa.CODIGO;
               return (
                 <button
                   key={empresa.CODIGO}
@@ -97,15 +96,15 @@ export function CompanySelector() {
                   }}
                   className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-all ${
                     isSelected
-                      ? "border border-[#0d3224]/30 bg-[#0d3224]/5"
+                      ? "border border-[#16804D]/20 bg-[#16804D]/5"
                       : "border border-transparent hover:border-gray-200 hover:bg-gray-50"
                   }`}
                 >
-                  <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${isSelected ? "bg-[#0d3224]/10" : "bg-gray-100"}`}>
-                    <Building2 className={`h-4 w-4 ${isSelected ? "text-[#0d3224]" : "text-gray-400"}`} />
+                  <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${isSelected ? "bg-[#16804D]/10" : "bg-gray-100"}`}>
+                    <Building2 className={`h-4 w-4 ${isSelected ? "text-[#16804D]" : "text-gray-400"}`} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className={`truncate text-sm font-medium ${isSelected ? "text-[#0d3224]" : "text-gray-900"}`}>
+                    <p className={`truncate text-sm font-medium ${isSelected ? "text-[#16804D]" : "text-gray-900"}`}>
                       {empresa.NOMEABREVIADO || empresa.RAZAOSOCIAL}
                     </p>
                     <p className="mt-0.5 truncate text-xs text-gray-400">
@@ -113,7 +112,7 @@ export function CompanySelector() {
                     </p>
                   </div>
                   {isSelected && (
-                    <Check className="h-4 w-4 shrink-0 text-[#0d3224]" />
+                    <Check className="h-4 w-4 shrink-0 text-[#16804D]" />
                   )}
                 </button>
               );

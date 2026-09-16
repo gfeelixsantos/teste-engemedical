@@ -14,11 +14,11 @@ export function HeaderKpisEsocial({
   totalRegistrosXml = 85901,
 }: HeaderKpisProps) {
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
+    <div className="mb-4 flex justify-center">
       {/* Top 3 KPI Cards */}
-      <div className="grid grid-cols-3 gap-3 w-full md:w-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-3 justify-center gap-3">
         {/* KPI 1 */}
-        <div className="bg-slate-100/80 rounded-xl px-5 py-2.5 text-center min-w-[140px]">
+        <div className="bg-white rounded-xl border border-gray-200 px-5 py-2.5 text-center shadow-md min-w-[140px]">
           <div className="text-xl font-extrabold text-teal-700 leading-none mb-1">
             <CountUp end={totalEmpresas} separator="." />
           </div>
@@ -28,7 +28,7 @@ export function HeaderKpisEsocial({
         </div>
 
         {/* KPI 2 */}
-        <div className="bg-slate-100/80 rounded-xl px-5 py-2.5 text-center min-w-[160px]">
+        <div className="bg-white rounded-xl border border-gray-200 px-5 py-2.5 text-center shadow-md min-w-[160px]">
           <div className="text-xl font-extrabold text-teal-700 leading-none mb-1">
             <CountUp end={pctInconsistentes} suffix="%" />
           </div>
@@ -38,7 +38,7 @@ export function HeaderKpisEsocial({
         </div>
 
         {/* KPI 3 */}
-        <div className="bg-slate-100/80 rounded-xl px-5 py-2.5 text-center min-w-[150px]">
+        <div className="bg-white rounded-xl border border-gray-200 px-5 py-2.5 text-center shadow-md min-w-[150px]">
           <div className="text-xl font-extrabold text-teal-700 leading-none mb-1">
             <CountUp end={totalRegistrosXml} separator="." />
           </div>

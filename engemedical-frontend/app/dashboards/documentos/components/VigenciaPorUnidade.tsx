@@ -20,7 +20,7 @@ interface Props {
 export default function VigenciaPorUnidade({ data, title }: Props) {
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
         <h3 className="text-sm font-semibold text-gray-700 mb-3">{title || 'Vigência por Unidade'}</h3>
         <div className="h-[350px] bg-gray-100 rounded animate-pulse" />
       </div>
@@ -35,7 +35,7 @@ export default function VigenciaPorUnidade({ data, title }: Props) {
   }));
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
       <h3 className="text-sm font-semibold text-gray-700 mb-3">{title || 'Vigência por Unidade'}</h3>
       <ResponsiveContainer width="100%" height={Math.max(300, data.length * 40)}>
         <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 30 }}>

@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { RegistroDocumento } from '../types';
+import {
+  getContractValidityRowHoverClass,
+  getContractValidityTextClass,
+} from '../../../../components/shared/dashboardStatusColors';
 
 interface DetalhamentoTableProps {
   data?: RegistroDocumento[];
@@ -83,22 +87,16 @@ const FALLBACK_DATA: RegistroDocumento[] = [
   },
 ];
 
-const STATUS_BADGE: Record<string, string> = {
-  Vigente: 'text-green-700 bg-green-50 border-green-200',
-  AVencer: 'text-amber-700 bg-amber-50 border-amber-200',
-  Vencido: 'text-red-700 bg-red-50 border-red-200',
-};
-
 const DOC_BADGE: Record<string, string> = {
-  PGR: 'text-blue-700 bg-blue-50 border-blue-200',
-  PCMSO: 'text-purple-700 bg-purple-50 border-purple-200',
-  Outro: 'text-gray-700 bg-gray-50 border-gray-200',
+  PGR: 'text-brand-700',
+  PCMSO: 'text-violet-700',
+  Outro: 'text-gray-700',
 };
 
 export default function DetalhamentoDocumentosTable({ data }: DetalhamentoTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = 10;
 
   const rows = (data && data.length > 0) ? data : FALLBACK_DATA;
 
@@ -117,7 +115,7 @@ export default function DetalhamentoDocumentosTable({ data }: DetalhamentoTableP
   const visible = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-md p-5 mb-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <h2 className="text-base font-bold text-gray-800 uppercase tracking-wide">
           Detalhamento dos Documentos
@@ -136,7 +134,7 @@ export default function DetalhamentoDocumentosTable({ data }: DetalhamentoTableP
 
       <div className="overflow-x-auto rounded-lg border border-gray-200">
         <table className="w-full text-xs text-left">
-          <thead className="bg-slate-50 text-gray-700 font-bold border-b border-gray-200">
+          <thead className="bg-brand-700 text-white font-bold border-b border-brand-800">
             <tr>
               <th className="py-3 px-3">Contratante</th>
               <th className="py-3 px-3">Unidade</th>
@@ -151,21 +149,24 @@ export default function DetalhamentoDocumentosTable({ data }: DetalhamentoTableP
           </thead>
           <tbody className="divide-y divide-gray-100 text-gray-700">
             {visible.map((r, i) => (
-              <tr key={i} className="hover:bg-slate-50/70 transition-colors">
+              <tr
+                key={i}
+                className={`cursor-pointer transition-colors ${getContractValidityRowHoverClass(r.vigenciaContrato)}`}
+              >
                 <td className="py-2.5 px-3 font-medium text-gray-900 max-w-[180px] truncate">{r.empresa}</td>
                 <td className="py-2.5 px-3 max-w-[180px] truncate text-gray-600">{r.unidade}</td>
                 <td className="py-2.5 px-2">
-                  <span className={`inline-block px-2 py-0.5 rounded border text-[10px] font-bold ${DOC_BADGE[r.tipoDocumento] || DOC_BADGE.Outro}`}>
+                  <span className={`font-semibold ${DOC_BADGE[r.tipoDocumento] || DOC_BADGE.Outro}`}>
                     {r.produto || r.tipoDocumento}
                   </span>
                 </td>
                 <td className="py-2.5 px-2">
-                  <span className="inline-block px-2 py-0.5 rounded border text-[10px] font-semibold bg-teal-50 text-teal-700 border-teal-200">
+                  <span className="font-semibold text-teal-700">
                     {r.situacao || 'Ativo'}
                   </span>
                 </td>
                 <td className="py-2.5 px-2">
-                  <span className={`inline-block px-2 py-0.5 rounded border text-[10px] font-semibold ${STATUS_BADGE[r.vigenciaContrato] || 'text-gray-700 bg-gray-50 border-gray-200'}`}>
+                  <span className={`font-semibold ${getContractValidityTextClass(r.vigenciaContrato)}`}>
                     {r.vigenciaContrato === 'AVencer' ? 'À Vencer' : r.vigenciaContrato || 'Vigente'}
                   </span>
                 </td>

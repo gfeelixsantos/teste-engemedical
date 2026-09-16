@@ -40,12 +40,12 @@ export function GrupoPatologicoCidSection({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6 h-[320px] animate-pulse" />
+      <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-6 h-[320px] animate-pulse" />
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-6">
       <h2 className="text-base font-bold text-gray-800 text-center uppercase tracking-wide mb-6">
         Análise de Absenteísmo por Grupo Patológico
       </h2>

@@ -3,6 +3,8 @@ import { ASSINATURAS_URL } from 'src/soc/assinaturas';
 import { getExamesList } from 'src/exames/exames.provider';
 import { createGridSection, formatCPF, getImageBase64 } from 'src/utils/util';
 import { buildPdfFooter } from '../pdfFooterHelper';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface AcuidadeVisualData {
   // Dados do exame
@@ -69,7 +71,7 @@ export async function gerarDocAcuidadeVisual(
   profissional: any,
   assinaturaDigitalObrigatoria: boolean = false,
 ): Promise<TDocumentDefinitions> {
-  const PRIMARY = '#114E34';
+  const PRIMARY = '#0D47A1';
   const LIGHT_TEXT = '#333333';
   const ATTENTION_COLOR = '#F57C00';
 
@@ -128,19 +130,35 @@ export async function gerarDocAcuidadeVisual(
       )
     : 'N/D';
 
-  const logoEmpresa = await getImageBase64(
-    'https://cmsocupacional.com.br/images/logo.png',
+  // ═══ LOGOS LOCAIS ═══
+  const logoLocalPath = path.resolve(
+    process.cwd(),
+    'src',
+    'assets',
+    'images',
+    'logo.png',
   );
-  const watermarkBase64 = await getImageBase64(
-    'https://centromedicodesaudeocupacional.formaedu.com.br/wp-content/uploads/sites/6/2024/11/LOGO-220x221.png',
-  );
-  let assinaturaProfissional = await getImageBase64(ASSINATURAS_URL[codigo]);
+  const logoEmpresa = fs.existsSync(logoLocalPath)
+    ? `data:image/png;base64,${fs.readFileSync(logoLocalPath).toString('base64')}`
+    : await getImageBase64('https://engemedical.com.br/images/logo.png');
 
-  // fallback caso não tenha assinatura
-  if (!assinaturaProfissional)
+  const iconeLocalPath = path.resolve(
+    process.cwd(),
+    'src',
+    'assets',
+    'images',
+    'icone.png',
+  );
+  const watermarkBase64 = fs.existsSync(iconeLocalPath)
+    ? `data:image/png;base64,${fs.readFileSync(iconeLocalPath).toString('base64')}`
+    : await getImageBase64('https://engemedical.com.br/images/icone.png');
+
+  let assinaturaProfissional = await getImageBase64(ASSINATURAS_URL[codigo]);
+  if (!assinaturaProfissional) {
     assinaturaProfissional = await getImageBase64(
-      'https://cmsocupacional.com.br/images/logo.png',
+      'https://engemedical.com.br/images/logo.png',
     );
+  }
 
   // ======= FUNÇÃO PARA CRIAR SETAS COM SVG =======
   const createArrowSVG = (direction: 'up' | 'down' | 'left' | 'right'): any => {
@@ -158,7 +176,7 @@ export async function gerarDocAcuidadeVisual(
     return {
       svg: `<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <g transform="rotate(${rotations[direction]} 12 12)">
-                <path d="${arrowPath}" fill="#114E34"/>
+                <path d="${arrowPath}" fill="#0D47A1"/>
               </g>
             </svg>`,
       width: 12,

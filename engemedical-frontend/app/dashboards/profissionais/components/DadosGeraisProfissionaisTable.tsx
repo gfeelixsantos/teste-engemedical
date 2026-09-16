@@ -153,7 +153,7 @@ export function DadosGeraisProfissionaisTable({ data, isLoading }: Props) {
   const [filtroStatus, setFiltroStatus] = useState('Todos');
   const [filtroDivergente, setFiltroDivergente] = useState('Todos');
   const [filtroDuplicidade, setFiltroDuplicidade] = useState('Todos');
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = 10;
 
   const rows = (data && data.length > 0) ? data : FALLBACK_REGISTROS;
 
@@ -177,12 +177,12 @@ export function DadosGeraisProfissionaisTable({ data, isLoading }: Props) {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-4 h-[350px] animate-pulse" />
+      <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-4 h-[350px] animate-pulse" />
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-4">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-4">
       <h2 className="text-base font-bold text-gray-800 uppercase tracking-wide text-center mb-6">
         Dados Gerais de Agendamentos
       </h2>
@@ -247,7 +247,7 @@ export function DadosGeraisProfissionaisTable({ data, isLoading }: Props) {
       {/* Tabela de Dados Gerais */}
       <div className="overflow-x-auto rounded-lg border border-gray-200">
         <table className="w-full text-xs text-left">
-          <thead className="bg-slate-50 text-gray-700 font-bold border-b border-gray-200">
+          <thead className="bg-brand-700 text-white font-bold border-b border-brand-800">
             <tr>
               <th className="py-2.5 px-3">Empresa</th>
               <th className="py-2.5 px-2">Sequencial com Situação Divergente</th>

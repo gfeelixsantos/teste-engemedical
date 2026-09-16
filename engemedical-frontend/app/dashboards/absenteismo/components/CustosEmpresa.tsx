@@ -18,7 +18,7 @@ interface Props {
 
 function SkeletonChart() {
   return (
-    <div className="bg-white rounded-lg shadow p-6 animate-pulse">
+    <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
       <div className="h-5 bg-gray-200 rounded w-52 mb-4" />
       <div className="space-y-3 h-[300px] flex flex-col justify-center">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -47,7 +47,7 @@ export function CustosEmpresa({ data, isLoading }: Props) {
     }).format(value);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         Custo por Empresa
       </h3>

@@ -84,7 +84,7 @@ export function DocumentosGraficosGerais({
   const STATUS_COLORS = ['#0e7490', '#15803d', '#eab308', '#dc2626', '#4b5563'];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-md p-5 mb-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* 1: Vigência dos Documentos - PGR e PCMSO (Donut) */}
         <div className="flex flex-col items-center">

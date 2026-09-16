@@ -37,6 +37,12 @@ export interface SocExameRealizado {
   NOMEPRESTADOR: string;
   UF: string;
   CIDADEPRESTADOR: string;
+  CODFUNCIONARIO?: string;
+  NOMEFUNCIONARIO?: string;
+  CARGO?: string;
+  UNIDADE?: string;
+  SETOR?: string;
+  CODIGOSEQUENCIALFICHA?: string;
 }
 
 // Raw type from SOC "Cadastro Unidades" (codigo 160694)
@@ -175,6 +181,7 @@ export interface DashboardData {
   filtros: {
     empresas: string[];
     unidades: string[];
+    exames: string[];
     situacoes: SituacaoExame[];
   };
 }

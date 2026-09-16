@@ -3,24 +3,28 @@
 import { useQuery } from '@tanstack/react-query';
 import { getDynamicNestUrl } from '@/config/constants';
 import { useState } from 'react';
+import { FileCheck } from 'lucide-react';
+import { DashboardPageHeader } from '@/components/shared/DashboardPageHeader';
 import { HeaderKpisDocumentos } from './components/HeaderKpisDocumentos';
 import { VigenciaUnidadeCardsSection } from './components/VigenciaUnidadeCardsSection';
 import { DocumentosGraficosGerais } from './components/DocumentosGraficosGerais';
 import DetalhamentoDocumentosTable from './components/DetalhamentoDocumentosTable';
+import { AcoesPgrSection } from './components/AcoesPgrSection';
+import { AcoesPgrTable } from './components/AcoesPgrTable';
 import type { DocumentosDashboardData } from './types';
 
 function DashboardSkeleton() {
   return (
     <div className="space-y-6">
       {/* KPI skeleton */}
-      <div className="h-20 bg-white rounded-xl border border-gray-200 animate-pulse shadow-sm" />
+      <div className="h-20 bg-white rounded-xl border border-gray-200 animate-pulse shadow-md" />
       {/* Charts skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
           <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mb-3" />
           <div className="h-[280px] bg-gray-100 rounded animate-pulse" />
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
           <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mb-3" />
           <div className="h-[280px] bg-gray-100 rounded animate-pulse" />
         </div>
@@ -28,14 +32,14 @@ function DashboardSkeleton() {
       {/* Donut row skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
             <div className="h-4 w-36 bg-gray-200 rounded animate-pulse mb-3 mx-auto" />
             <div className="h-52 bg-gray-100 rounded animate-pulse" />
           </div>
         ))}
       </div>
       {/* Table skeleton */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
         <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mb-3" />
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -48,9 +52,9 @@ function DashboardSkeleton() {
 }
 
 export default function DocumentosPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [DetalhamentoTab, setDetalhamentoTab] = useState<'documentos' | 'acoes'>('documentos');
 
-  const { data, isLoading, error } = useQuery<DocumentosDashboardData>({
+  const { data, isLoading, isFetching, error, refetch } = useQuery<DocumentosDashboardData>({
     queryKey: ['documentos-dashboard'],
     queryFn: async () => {
       const res = await fetch(`${getDynamicNestUrl()}documentos/dashboard`);
@@ -61,8 +65,15 @@ export default function DocumentosPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="dashboard-content min-h-screen bg-slate-50/50">
       <main className="max-w-[1400px] mx-auto px-4 py-6 space-y-6">
+        <DashboardPageHeader
+          icon={FileCheck}
+          title="Documentos SST"
+          subtitle="Controle de vencimento de PGR, PCMSO e planos de ação de SST."
+          onRefresh={refetch}
+          isRefreshing={isFetching}
+        />
 
         {/* Loading skeleton */}
         {isLoading && <DashboardSkeleton />}
@@ -104,22 +115,30 @@ export default function DocumentosPage() {
               }
             />
 
-            {/* Row 3: Donut Vigência + Bar Nº Docs + Donut Status */}
+            {/* Row 3: Planos de ação do PGR - Exporta Dados 218764 */}
+            <AcoesPgrSection data={data?.acoesPgr} />
+
+            {/* Row 4: Donut Vigência + Bar Nº Docs + Donut Status */}
             <DocumentosGraficosGerais
               vigenciaGeral={data?.vigenciaGeral}
               vigenciaPorTipo={data?.vigenciaPorTipo}
               statusDocumentos={data?.statusDocumentos}
             />
 
-            {/* Row 4: Detalhamento dos documentos - tabela completa */}
-            <DetalhamentoDocumentosTable data={data?.registros} />
-
-            {/* Footer */}
-            {data?.meta && (
-              <div className="text-xs text-gray-400 text-right">
-                Fonte: {data.meta.fonte} | Base: {new Date(data.meta.dataBase).toLocaleString('pt-BR')}
+            {/* Row 5: Detalhamento alternável entre documentos SST e ações PGR */}
+            <section className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-md">
+                <span className="mr-2 text-sm font-bold text-slate-700">Detalhamento</span>
+                <button type="button" onClick={() => setDetalhamentoTab('documentos')} className={`rounded-lg px-4 py-2 text-xs font-bold transition-colors ${DetalhamentoTab === 'documentos' ? 'bg-cyan-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                  Documentos SST
+                </button>
+                <button type="button" onClick={() => setDetalhamentoTab('acoes')} className={`rounded-lg px-4 py-2 text-xs font-bold transition-colors ${DetalhamentoTab === 'acoes' ? 'bg-cyan-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                  Ações do PGR
+                </button>
               </div>
-            )}
+              {DetalhamentoTab === 'documentos' ? <DetalhamentoDocumentosTable data={data?.registros} /> : <AcoesPgrTable data={data?.acoesPgr} />}
+            </section>
+
           </>
         )}
       </main>

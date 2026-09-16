@@ -65,10 +65,10 @@ export function TipoExameBarChart({ data }: { data: PorTipoExame[] }) {
           <YAxis stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#1E293B',
+              backgroundColor: '#FFFFFF',
               borderRadius: '8px',
-              border: 'none',
-              color: '#FFF',
+              border: '1px solid #E2E8F0',
+              color: '#334155',
               fontSize: '11px',
             }}
           />

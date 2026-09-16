@@ -27,6 +27,11 @@ interface SocEmpresa {
   tipoCobranca?: string;
 }
 
+function waitRandomSocDelay(): Promise<void> {
+  const delayMs = Math.floor(Math.random() * 1201) + 300;
+  return new Promise((resolve) => setTimeout(resolve, delayMs));
+}
+
 @Injectable()
 export class EsocialService {
   private cache: { rows: RegistroEsocial[]; expires: number } | null = null;
@@ -152,6 +157,7 @@ export class EsocialService {
     const url = buildSocExportDataUrl(params, this.configService);
 
     try {
+      await waitRandomSocDelay();
       const response = await fetch(url, { signal: AbortSignal.timeout(60000) });
       if (!response.ok) {
         return [];
@@ -171,6 +177,50 @@ export class EsocialService {
     }
   }
 
+  private async fetchEventosEsocialEmJanelas(
+    dataInicio: string,
+    dataFim: string,
+    empresa: SocEmpresa,
+    status?: string,
+    layout?: string,
+  ): Promise<RegistroEsocial[]> {
+    const parseDate = (value: string) => {
+      const [day, month, year] = value.split('/').map(Number);
+      return new Date(year, month - 1, day);
+    };
+    const formatDate = (value: Date) =>
+      `${String(value.getDate()).padStart(2, '0')}/${String(value.getMonth() + 1).padStart(2, '0')}/${value.getFullYear()}`;
+
+    const inicio = parseDate(dataInicio);
+    const fim = parseDate(dataFim);
+    const rows: RegistroEsocial[] = [];
+    let janelaInicio = new Date(inicio);
+
+    while (janelaInicio <= fim) {
+      const janelaFim = new Date(janelaInicio);
+      janelaFim.setDate(janelaFim.getDate() + 364);
+      if (janelaFim > fim) janelaFim.setTime(fim.getTime());
+
+      this.logger.debug(
+        `[Esocial][186601] empresa=${empresa.CODIGO} janela=${formatDate(janelaInicio)}-${formatDate(janelaFim)}`,
+      );
+      rows.push(
+        ...(await this.fetchEventosEsocial(
+          formatDate(janelaInicio),
+          formatDate(janelaFim),
+          empresa,
+          status,
+          layout,
+        )),
+      );
+
+      janelaInicio = new Date(janelaFim);
+      janelaInicio.setDate(janelaInicio.getDate() + 1);
+    }
+
+    return rows;
+  }
+
   /**
    * Busca eventos eSocial para todas as empresas ativas com controle de concorrência (lotes de 3 para não exceder o limite SOC de 5)
    */
@@ -185,15 +235,15 @@ export class EsocialService {
       return [];
     }
 
-    this.logger.debug(`Iniciando busca de eventos eSocial para ${empresas.length} empresas em lotes de 3...`);
+    this.logger.debug(`Iniciando busca de eventos eSocial para ${empresas.length} empresas em modo sequencial...`);
 
     const allRows: RegistroEsocial[] = [];
-    const BATCH_SIZE = 3;
+    const BATCH_SIZE = 1;
 
     for (let i = 0; i < empresas.length; i += BATCH_SIZE) {
       const batch = empresas.slice(i, i + BATCH_SIZE);
       const results = await Promise.all(
-        batch.map((emp) => this.fetchEventosEsocial(dataInicio, dataFim, emp)),
+        batch.map((emp) => this.fetchEventosEsocialEmJanelas(dataInicio, dataFim, emp)),
       );
       for (const rows of results) {
         allRows.push(...rows);
@@ -203,8 +253,8 @@ export class EsocialService {
         this.logger.debug(`Progresso eSocial: ${Math.min(i + BATCH_SIZE, empresas.length)} / ${empresas.length} empresas processadas, acumulado: ${allRows.length} eventos`);
       }
 
-      // Pequena pausa entre lotes para respeitar o limite de conexões simultâneas do SOC
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      // Pausa adicional entre empresas para respeitar o limite de invocações do SOC.
+      await waitRandomSocDelay();
     }
 
     this.logger.debug(`Total final: ${allRows.length} registros eSocial obtidos de ${empresas.length} empresas`);
@@ -432,7 +482,8 @@ export class EsocialService {
         totais: totaisMatrix,
         anos: anosArray,
       },
-      rows: rows.slice(0, 1000),
+      // A tabela possui paginação no frontend; não truncar os eventos aqui.
+      rows,
       meta: {
         periodo: { dataInicio, dataFim },
         dataBase: new Date().toISOString(),

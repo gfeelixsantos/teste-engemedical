@@ -54,10 +54,10 @@ export function TemporalLineChart({ data, kpis }: TemporalLineChartProps) {
             <YAxis stroke="#64748B" fontSize={11} tickLine={false} axisLine={false} />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#1E293B',
+                backgroundColor: '#FFFFFF',
                 borderRadius: '8px',
-                border: 'none',
-                color: '#FFF',
+                border: '1px solid #E2E8F0',
+                color: '#334155',
                 fontSize: '12px',
               }}
               labelFormatter={(ano: number) => formatXAxis(ano)}

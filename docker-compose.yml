@@ -13,16 +13,22 @@ services:
       - frontend_modules:/app/node_modules
     environment:
       - NODE_ENV=development
-      # Client-side: navegador precisa de localhost (não hostname Docker)
-      - NEXT_PUBLIC_NEST_URL_DEVELOP=http://localhost:3333
       - PORT=3000
       - HOSTNAME=0.0.0.0
     env_file:
       - ./engemedical-frontend/.env
     depends_on:
       backend:
-        condition: service_started
+        condition: service_healthy
+    networks:
+      - engemedical
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # ============================================================
   # Backend — NestJS Dev Server (:3333)
@@ -45,8 +51,16 @@ services:
       - ./engemedical-backend/.env
     depends_on:
       worker:
-        condition: service_started
+        condition: service_healthy
+    networks:
+      - engemedical
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3333"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   # ============================================================
   # Worker — NestJS Dev Server (:3334)
@@ -66,7 +80,19 @@ services:
       - TZ=America/Sao_Paulo
     env_file:
       - ./engemedical-worker/.env
+    networks:
+      - engemedical
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3334"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  engemedical:
+    driver: bridge
 
 volumes:
   frontend_modules:

@@ -17,6 +17,13 @@ import type {
   TipoDocumento,
   StatusVigencia,
 } from './documentos.types';
+import {
+  buildAcoesPgrSection,
+  getDefaultPgrPeriod,
+  getPgrCompanyCodes,
+  mapAcoesPgr,
+  type SocAcaoPgr,
+} from './acoes-pgr';
 
 @Injectable()
 export class DocumentosService {
@@ -68,6 +75,40 @@ export class DocumentosService {
       return raw;
     } catch (error) {
       this.logger.error('Erro ao buscar documentos:', error);
+      return [];
+    }
+  }
+
+  private async fetchAcoesPgr(
+    codigoEmpresa: string,
+    dataInicio?: string,
+    dataFim?: string,
+  ): Promise<SocAcaoPgr[]> {
+    try {
+      const credentials = getSocExportCredentials('SOC_ED_PLANOS_ACAO_PGR', this.configService);
+      const defaultPeriod = getDefaultPgrPeriod();
+      const params: Record<string, string> = {
+        ...credentials,
+        tipoSaida: 'json',
+        codigoEmpresa,
+        dataInicio: dataInicio || defaultPeriod.dataInicio,
+        dataFim: dataFim || defaultPeriod.dataFim,
+      };
+      this.logger.debug(`Período planos de ação PGR: ${params.dataInicio} até ${params.dataFim}`);
+      const url = buildSocExportDataUrl(params, this.configService);
+      this.logger.debug(`Buscando planos de ação PGR SOC 218764 para empresa ${codigoEmpresa}`);
+      const response = await fetch(url, { signal: AbortSignal.timeout(120000) });
+      if (!response.ok) {
+        this.logger.error(`Falha ao buscar planos de ação PGR: ${response.status}`);
+        return [];
+      }
+      const buffer = await response.arrayBuffer();
+      const decoded = new TextDecoder('iso-8859-1').decode(buffer);
+      const raw = safeParseSocJson<SocAcaoPgr>(decoded, 'planos de ação PGR', this.logger);
+      this.logger.debug(`Retornados ${raw.length} planos de ação PGR`);
+      return raw;
+    } catch (error) {
+      this.logger.error('Erro ao buscar planos de ação PGR:', error);
       return [];
     }
   }
@@ -234,94 +275,6 @@ export class DocumentosService {
     const unidades = [...new Set(registros.map((r) => r.unidade))].sort();
     const tipos = [...new Set(registros.map((r) => r.tipoDocumento))].sort();
 
-    // Mock/Estrutura fiel para Gestão de Ações do PGR
-    const acoesPgrLista = [
-      {
-        empresa: 'BMS GESTAO DE NEGOCIOS E CONSULTORIA LTDA',
-        unidade: '001 - MATRIZ CE',
-        acao: 'Treinamento de Segurança do Trabalho.',
-        descricao: 'Grupo Homogêneo: Todos os GHE\'s\nComo será realizado: A empresa irá contratar profissionais especializados para ministrar o treinamento/Palestra.\nMeta: Treinar todos os colaboradores.\nEvidência: Certificados dos colaboradores + Lista de Frequência.',
-        anexos: 'Não',
-        situacao: 'Em Andamento',
-        categoria: 'Implementação',
-        prioridade: 'Alta',
-        periodo: '01/01/2026 - 30/01/2026',
-        responsavel: 'Diretoria/Gerencia',
-        perigosRiscos: '-',
-      },
-      {
-        empresa: 'BMS GESTAO DE NEGOCIOS E CONSULTORIA LTDA',
-        unidade: '001 - MATRIZ CE',
-        acao: 'Palestra Ergonômica',
-        descricao: 'Grupo Homogêneo: Todos os GHE\'s\nComo será realizado: A empresa irá contratar profissionais especializados para ministrar o treinamento/Palestra.\nMeta: Treinar todos os colaboradores expostos ao risco ergonômico.\nEvidência: Certificados dos colaboradores + Lista de Frequência.',
-        anexos: 'Não',
-        situacao: 'Em Andamento',
-        categoria: 'Implementação',
-        prioridade: 'Alta',
-        periodo: '01/01/2026 - 30/01/2026',
-        responsavel: 'Diretoria/Gerencia',
-        perigosRiscos: '-',
-      },
-      {
-        empresa: 'BMS GESTAO DE NEGOCIOS E CONSULTORIA LTDA',
-        unidade: '001 - MATRIZ CE',
-        acao: 'Elaboração do PAE conforme NR-01.',
-        descricao: 'Grupo Homogêneo: Todos os GHE\'s\nComo será realizado: A empresa irá contratar profissionais especializados para elaboração do plano.\nMeta: Elaborar e implementar o referido plano.',
-        anexos: 'Não',
-        situacao: 'Em Andamento',
-        categoria: 'Implementação',
-        prioridade: 'Imediata',
-        periodo: '08/12/2025 - 31/12/2025',
-        responsavel: 'Diretoria/Gerencia',
-        perigosRiscos: '-',
-      },
-      {
-        empresa: 'BMS GESTAO DE NEGOCIOS E CONSULTORIA LTDA',
-        unidade: '001 - MATRIZ CE',
-        acao: 'Divulgar o PGR para os colaboradores.',
-        descricao: 'Grupo Homogêneo: Todos os GHE\'s\nComo será realizado: Reunião interna para apresentação do plano.',
-        anexos: 'Não',
-        situacao: 'Em Andamento',
-        categoria: 'Implementação',
-        prioridade: 'Imediata',
-        periodo: '01/01/2026 - 15/01/2026',
-        responsavel: 'Diretoria/Gerencia',
-        perigosRiscos: '-',
-      },
-    ];
-
-    const acoesPgr = {
-      totalAcoes: acoesPgrLista.length,
-      porSituacao: [
-        { situacao: 'Em Andamento', qtd: 4 },
-      ],
-      porNomeAcao: [
-        { acao: 'Divulgar o PGR para os colaboradores.', qtd: 1 },
-        { acao: 'Elaboração do PAE conforme NR-01.', qtd: 1 },
-        { acao: 'Palestra Ergonômica', qtd: 1 },
-        { acao: 'Treinamento de Segurança do Trabalho.', qtd: 1 },
-      ],
-      prioridades: {
-        imediata: 2,
-        alta: 2,
-        media: 0,
-        baixa: 0,
-      },
-      porCategoria: [
-        { categoria: 'Implementação', qtd: 4 },
-      ],
-      porResponsavel: [
-        { responsavel: 'Diretoria/Gerencia', qtd: 4 },
-      ],
-      porEmpresa: [
-        { empresa: 'BMS GESTAO DE NEGOCIOS E CONSULTORIA LTDA', qtd: 4 },
-      ],
-      porUnidade: [
-        { unidade: '001 - MATRIZ CE', qtd: 4 },
-      ],
-      lista: acoesPgrLista,
-    };
-
     return {
       success: true,
       kpis,
@@ -333,10 +286,10 @@ export class DocumentosService {
       vigenciaPorUnidadePCMSO,
       statusDocumentos,
       registros: registros.slice(0, 1000),
-      acoesPgr,
+      acoesPgr: buildAcoesPgrSection([]),
       meta: {
         dataBase: new Date().toISOString(),
-        fonte: 'SOC Exporta Dados 217483 (Controle Vencimentos Documentos)',
+        fonte: 'SOC Exporta Dados 217483 (Documentos) + 218764 (Planos de Ação PGR)',
       },
       filtros: { empresas, unidades, tipos },
     };
@@ -353,7 +306,12 @@ export class DocumentosService {
 
     const raw = await this.fetchDocumentos(dataInicio, dataFim);
     const registros = this.mapDocumentos(raw);
+    const companyCodes = getPgrCompanyCodes(registros);
+    const rawAcoes = (await Promise.all(
+      companyCodes.map((codigoEmpresa) => this.fetchAcoesPgr(codigoEmpresa, dataInicio, dataFim)),
+    )).flat();
     const dashboard = this.buildDashboard(registros);
+    dashboard.acoesPgr = buildAcoesPgrSection(mapAcoesPgr(rawAcoes));
 
     this.cache = { data: dashboard, expires: Date.now() + this.CACHE_TTL_MS };
     return dashboard;

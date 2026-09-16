@@ -39,6 +39,13 @@ body {
   color: var(--app-text);
 }
 
+/* Conteúdo dos dashboards: Inter para leitura operacional e dados. */
+.dashboard-content {
+  font-family: var(--font-sans), sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-variant-numeric: tabular-nums;
+}
+
 /* Permite rolagem sem exibir a barra lateral visualmente. */
 .scrollbar-hidden {
   -ms-overflow-style: none;

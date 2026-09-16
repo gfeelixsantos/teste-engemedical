@@ -46,7 +46,7 @@ export function KpiCards({ kpis, loading }: KpiCardsProps) {
       {cards.map((card, idx) => {
         const Icon = card.icon;
         return (
-          <div key={idx} className="p-5 flex items-center justify-between shadow-xs border border-gray-200 rounded-2xl bg-white hover:shadow-sm transition-shadow">
+          <div key={idx} className="p-5 flex items-center justify-between shadow-md border border-gray-200 rounded-2xl bg-white hover:shadow-lg transition-shadow">
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{card.title}</p>
               <h3 className="text-2xl font-bold mt-1 text-gray-800">

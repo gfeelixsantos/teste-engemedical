@@ -16,7 +16,7 @@ const STATUS_COLORS: Record<string, string> = {
 export default function StatusDonut({ data }: Props) {
   if (!data || data.length === 0 || data.every((d) => d.quantidade === 0)) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
         <h3 className="text-sm font-semibold text-gray-700 mb-3">Status dos Documentos</h3>
         <div className="h-[250px] bg-gray-100 rounded animate-pulse" />
       </div>
@@ -32,7 +32,7 @@ export default function StatusDonut({ data }: Props) {
   }));
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-700">Status dos Documentos</h3>
         {data.length === 1 && data[0].status === 'Ativo' && (

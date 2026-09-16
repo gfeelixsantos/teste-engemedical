@@ -11,7 +11,7 @@ interface Props {
 
 export function AbsenteismoFilters({ empresas, dataInicio, dataFim, onDateChange }: Props) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center gap-2 mb-4">
         <Filter className="w-5 h-5 text-gray-500" />
         <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>

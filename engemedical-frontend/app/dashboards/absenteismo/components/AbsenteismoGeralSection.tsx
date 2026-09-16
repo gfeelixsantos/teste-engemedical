@@ -44,12 +44,12 @@ export function AbsenteismoGeralSection({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6 h-[350px] animate-pulse" />
+      <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-6 h-[350px] animate-pulse" />
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 mb-6 relative overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-md p-6 mb-6 relative overflow-hidden">
       <ChartGradients />
       <h2 className="text-base font-bold text-gray-800 text-center uppercase tracking-wide mb-6">
         Análise de Absenteísmo Geral
@@ -119,4 +119,3 @@ export function AbsenteismoGeralSection({
     </div>
   );
 }
-

@@ -4,6 +4,8 @@ import { getExamesList } from 'src/exames/exames.provider';
 import { createGridSection, formatCPF, getImageBase64 } from 'src/utils/util';
 import { getRestricoesCompletas } from '../ClinicoRestricoes';
 import { buildPdfFooter } from '../pdfFooterHelper';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface RegistroPa {
   valor: string;
@@ -82,7 +84,7 @@ export async function gerarDocTriagem(
   profissional: any,
   assinaturaDigitalObrigatoria: boolean = false,
 ): Promise<TDocumentDefinitions> {
-  const PRIMARY = '#114E34';
+  const PRIMARY = '#0D47A1';
   const LIGHT_TEXT = '#333333';
   const ATTENTION_COLOR = '#F57C00';
 
@@ -113,18 +115,32 @@ export async function gerarDocTriagem(
       )
     : 'N/D';
 
-  const logoEmpresa = await getImageBase64(
-    'https://cmsocupacional.com.br/images/logo.png',
+  const logoLocalPath = path.resolve(
+    process.cwd(),
+    'src',
+    'assets',
+    'images',
+    'logo.png',
   );
-  const watermarkBase64 = await getImageBase64(
-    'https://centromedicodesaudeocupacional.formaedu.com.br/wp-content/uploads/sites/6/2024/11/LOGO-220x221.png',
+  const logoEmpresa = fs.existsSync(logoLocalPath)
+    ? `data:image/png;base64,${fs.readFileSync(logoLocalPath).toString('base64')}`
+    : await getImageBase64('https://engemedical.com.br/images/logo.png');
+  const iconeLocalPath = path.resolve(
+    process.cwd(),
+    'src',
+    'assets',
+    'images',
+    'icone.png',
   );
+  const watermarkBase64 = fs.existsSync(iconeLocalPath)
+    ? `data:image/png;base64,${fs.readFileSync(iconeLocalPath).toString('base64')}`
+    : await getImageBase64('https://engemedical.com.br/images/icone.png');
   let assinaturaMedico = await getImageBase64(ASSINATURAS_URL[codigo]);
 
   // fallback caso não tenha assinatura
   if (!assinaturaMedico)
     assinaturaMedico = await getImageBase64(
-      'https://cmsocupacional.com.br/images/logo.png',
+      'https://engemedical.com.br/images/logo.png',
     );
 
   // ======= GRID DADOS VITAIS =======

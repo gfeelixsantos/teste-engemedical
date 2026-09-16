@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Calendar } from 'lucide-react';
+import { HeartPulse } from 'lucide-react';
 import { getDynamicNestUrl } from '@/config/constants';
+import { DashboardPageHeader } from '@/components/shared/DashboardPageHeader';
 import { VidasDashboardResponse } from './types';
 import { KpiCardsVidas } from './components/KpiCardsVidas';
 import { ConsistenciaCadastralSection } from './components/ConsistenciaCadastralSection';
@@ -56,39 +57,14 @@ export default function VidasDashboardPage() {
   };
 
   return (
-    <div className="p-6 space-y-8 bg-background min-h-screen">
-      {/* Header Superior */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black tracking-tight text-foreground">Gestão de Vidas</h1>
-            <span className="bg-emerald-500/10 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-              Auditoria SOC & Power BI
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Monitoramento de consistência cadastral, custos por vida e perfil demográfico
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {data?.kpis?.ultimaAtualizacao && (
-            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" />
-              Atualizado: {new Date(data.kpis.ultimaAtualizacao).toLocaleTimeString('pt-BR')}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={handleRefresh}
-            disabled={refreshing || loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-gray-200 text-gray-700 rounded-lg shadow-xs hover:bg-gray-50 disabled:opacity-50 transition-colors"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Atualizando...' : 'Atualizar Dados'}
-          </button>
-        </div>
-      </div>
+    <div className="dashboard-content p-6 space-y-8 bg-slate-50/50 min-h-screen">
+      <DashboardPageHeader
+        icon={HeartPulse}
+        title="Gestão de Vidas"
+        subtitle={`Monitoramento de consistência cadastral, custos por vida e perfil demográfico${data?.kpis?.ultimaAtualizacao ? ` — Atualizado às ${new Date(data.kpis.ultimaAtualizacao).toLocaleTimeString('pt-BR')}` : '.'}`}
+        onRefresh={handleRefresh}
+        isRefreshing={refreshing || loading}
+      />
 
       {/* Cartões de KPI */}
       <KpiCardsVidas

@@ -92,5 +92,5 @@ export interface DashboardData {
   porTipoExame: PorTipoExame[];
   detalhes: ConvocacaoExame[];
   totalDetalhes: number;
-  filtros: { empresas: string[]; unidades: string[]; situacoes: SituacaoExame[] };
+  filtros: { empresas: string[]; unidades: string[]; exames: string[]; situacoes: SituacaoExame[] };
 }

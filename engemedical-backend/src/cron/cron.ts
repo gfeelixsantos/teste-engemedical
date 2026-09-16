@@ -38,7 +38,7 @@ export class CronJobs implements OnModuleInit {
 
   onModuleInit() {
     this.logger.log(
-      'CronJobs inicializado: 00:01 (janela orquestrada) e 12:45 (BRT)',
+      'CronJobs inicializado: 00:01 (manutenção), 01:00 (teste SFTP+Inativação), 03:00 (GED), 22:00 dia 23 (inativação)',
     );
   }
 
@@ -203,18 +203,6 @@ export class CronJobs implements OnModuleInit {
     }
   }
 
-  @Cron('45 12 * * *', { timeZone: 'America/Sao_Paulo' })
-  async middayJob() {
-    this.logger.log('Iniciando rotinas das 12:45...');
-
-    try {
-      await this.ticketsService.deleteOldTickets();
-      this.logger.log('Rotina das 12:45 finalizada.');
-    } catch (error) {
-      this.logger.error('Erro na rotina das 12:45:', error);
-    }
-  }
-
   @Cron('*/5 * * * *', { timeZone: 'America/Sao_Paulo' })
   async reconcileActiveTickets() {
     try {
@@ -254,6 +242,53 @@ export class CronJobs implements OnModuleInit {
       });
     } catch (error) {
       this.logger.error('Erro na rotina de inativação em massa:', error);
+    }
+  }
+
+  /**
+   * [TESTE] Executa todo dia às 01:00 — SFTP Grupo Tora + Inativação em massa.
+   * Cron temporário para validação em ambiente de deploy.
+   * O oficial continua sendo: SFTP 18:30 (Seg-Sex) e Inativação 22:00 (dia 23).
+   */
+  @Cron('0 1 * * *', { timeZone: 'America/Sao_Paulo' })
+  async testGrupoToraAndInactivation() {
+    this.logger.log('[CRON][TESTE] Iniciando sequência de teste: SFTP Grupo Tora → Inativação em massa...');
+
+    try {
+      // ── FASE 1: SFTP Grupo Tora ──
+      this.logger.log('[CRON][TESTE] FASE 1 — Pull e processamento SOC Grupo Tora...');
+      const pull = await this.sftpIntegratorService.pullLatest('grupo-tora');
+      const fileId = String((pull as any)?.file?._id || '');
+      const fileName = String((pull as any)?.file?.remoteName || 'desconhecido');
+
+      if (!fileId) {
+        throw new Error('Pull SFTP concluído sem identificador de arquivo');
+      }
+
+      this.logger.log(`[CRON][TESTE] Arquivo recebido: ${fileName}`);
+
+      if (String(process.env.SFTP_INTEGRATOR_GRUPO_TORA_SOC_ENABLED || '').toLowerCase() === 'true') {
+        const socResult = await this.sftpIntegratorService.processSocLimited('grupo-tora', fileId);
+        const summary = (socResult as any)?.summary || {};
+        this.logger.log(`[CRON][TESTE] SFTP SOC concluído: sucesso=${summary.success || 0}, falhas=${summary.failed || 0}`);
+      } else {
+        this.logger.log('[CRON][TESTE] Processamento SOC desabilitado — pull concluído apenas.');
+      }
+
+      // ── FASE 2: Inativação em massa ──
+      this.logger.log('[CRON][TESTE] FASE 2 — Inativação em massa...');
+      const inactivationResult = await this.socService.inactivateEmployeesFlow({ trigger: 'cron' });
+      this.logger.log({
+        event: 'TEST_SOC_INACTIVATION_FINISH',
+        success: inactivationResult.success,
+        message: inactivationResult.message,
+        totalEmpresas: inactivationResult.totalEmpresas,
+        totalInativados: inactivationResult.totalInativados,
+      });
+
+      this.logger.log('[CRON][TESTE] Sequência de teste concluída com sucesso.');
+    } catch (error) {
+      this.logger.error('[CRON][TESTE] Erro na sequência de teste:', error);
     }
   }
 

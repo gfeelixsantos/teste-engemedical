@@ -8,9 +8,9 @@ type FormattedProfessional = {
   uf: string;
 };
 
-const PRIMARY = '#114E34';
-const MUTED = '#5B5B5B';
-const LEGAL = '#111111';
+const PRIMARY = '#0D47A1';
+const MUTED = '#757575';
+const LEGAL = '#212121';
 const SIGNATURE_MAX_WIDTH = 108;
 const SIGNATURE_MAX_HEIGHT = 36;
 

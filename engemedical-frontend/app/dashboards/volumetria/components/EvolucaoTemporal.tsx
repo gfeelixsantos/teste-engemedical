@@ -10,7 +10,7 @@ interface EvolucaoTemporalProps {
 
 export function EvolucaoTemporal({ porPeriodo }: EvolucaoTemporalProps) {
   return (
-    <div className="p-6 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-4">
+    <div className="p-6 shadow-md border border-gray-200 rounded-2xl bg-white space-y-4">
       <div className="flex items-center justify-between border-b pb-3">
         <div>
           <h3 className="text-lg font-bold">Agendamentos por Período</h3>

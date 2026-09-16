@@ -16,6 +16,7 @@ import {
   buildSocExportDataUrl,
   getSocExportCredentials,
   getSocExportLayoutCredentials,
+  safeParseSocJson,
 } from '../utils/soc-export-data-url';
 
 type CodigoEmpresa = string;
@@ -662,19 +663,39 @@ export class SocExportService {
       ferias?: string;
     },
   ): Promise<CadastroFuncionarioPorSituacao[]> {
+    // O C# usa CadastroFuncionarios. Enquanto esse layout não estiver
+    // configurado no ambiente atual, usamos o layout Situação já existente.
+    const genericCodigo =
+      this.configService.get<string>('SOC_ED_CADASTRO_FUNCIONARIOS_CODIGO')?.trim() ||
+      process.env.SOC_ED_CADASTRO_FUNCIONARIOS_CODIGO?.trim();
+    const layoutPrefix = genericCodigo
+      ? 'SOC_ED_CADASTRO_FUNCIONARIOS'
+      : 'SOC_ED_CADASTRO_FUNCIONARIOS_SITUACAO';
     const credentials = getSocExportLayoutCredentials(
-      'SOC_ED_CADASTRO_FUNCIONARIOS_SITUACAO',
+      layoutPrefix,
       this.configService,
     );
     const payload = {
       empresa: empresaSolicitada,
       ...credentials,
       tipoSaida: 'json',
-      ativo: params?.ativo || 'Sim',
-      inativo: params?.inativo || 'Sim',
-      afastado: params?.afastado || 'Sim',
-      pendente: params?.pendente || 'Sim',
-      ferias: params?.ferias || 'Sim',
+      // Obrigatório no contrato usado pelo projeto C# para restringir a
+      // exportação à empresa selecionada.
+      empresaTrabalho: empresaSolicitada,
+      ...(layoutPrefix === 'SOC_ED_CADASTRO_FUNCIONARIOS'
+        ? {
+            cpf: '',
+            parametroData: '',
+            dataInicio: '',
+            dataFim: '',
+          }
+        : {
+            ativo: params?.ativo || 'Sim',
+            inativo: params?.inativo || 'Sim',
+            afastado: params?.afastado || 'Sim',
+            pendente: params?.pendente || 'Sim',
+            ferias: params?.ferias || 'Sim',
+          }),
     };
 
     const url = buildSocExportDataUrl(payload, this.configService);
@@ -684,20 +705,29 @@ export class SocExportService {
         signal: AbortSignal.timeout(10000),
       });
 
-      if (!response.ok) {
-        this.logger.error(`Erro SOC ExportaFuncionarios: ${response.status}`);
-        return [];
-      }
-
       const responseBuff = await response.arrayBuffer();
       const responseDecode = new TextDecoder('iso-8859-1').decode(responseBuff);
-      const data: CadastroFuncionarioPorSituacao[] = JSON.parse(responseDecode);
+      if (!response.ok) {
+        this.logger.error(
+          `Erro SOC ExportaFuncionarios (${layoutPrefix}): ${response.status} ${responseDecode.slice(0, 180)}`,
+        );
+        throw new Error(`SOC Exporta Funcionários retornou HTTP ${response.status}`);
+      }
+
+      const data = safeParseSocJson<CadastroFuncionarioPorSituacao>(
+        responseDecode,
+        `funcionários da empresa ${empresaSolicitada}`,
+        this.logger,
+      );
 
       if (!Array.isArray(data)) {
         this.logger.warn('SOC: Resposta de funcionários não é um array');
         return [];
       }
 
+      this.logger.log(
+        `[SOC] ${layoutPrefix}: empresa=${empresaSolicitada} funcionários=${data.length}`,
+      );
       return data;
     } catch (error) {
       this.logger.error('Erro ao buscar funcionários por situação:', error);

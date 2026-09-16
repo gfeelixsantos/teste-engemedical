@@ -10,7 +10,7 @@ interface PerfilDemograficoSectionProps {
 
 export function PerfilDemograficoSection({ perfil }: PerfilDemograficoSectionProps) {
   return (
-    <div className="p-6 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-6">
+    <div className="p-6 shadow-md border border-gray-200 rounded-2xl bg-white space-y-6">
       <div className="border-b pb-3 text-center">
         <h2 className="text-xl font-bold tracking-tight text-gray-800">Perfil Demográfico dos Cadastros Ativos no SOC</h2>
       </div>

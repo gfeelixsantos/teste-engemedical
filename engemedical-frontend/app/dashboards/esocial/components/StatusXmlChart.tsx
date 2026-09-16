@@ -29,7 +29,7 @@ const COLORS: Record<string, string> = {
 };
 
 const SkeletonChart = () => (
-  <div className="bg-white rounded-lg shadow p-6 animate-pulse">
+  <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
     <div className="h-5 bg-gray-200 rounded w-48 mx-auto mb-4" />
     <div className="space-y-3">
       {Array.from({ length: 5 }).map((_, i) => (
@@ -48,7 +48,7 @@ export function StatusXmlChart({ data }: Props) {
   const total = data.reduce((sum, d) => sum + d.qtd, 0);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
         Status do XML
       </h3>

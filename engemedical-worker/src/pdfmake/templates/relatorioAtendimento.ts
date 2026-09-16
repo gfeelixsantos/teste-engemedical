@@ -7,7 +7,7 @@ import { WorkerAsoInput } from '../aso-worker.types';
 export async function gerarTemplateRelatorioAtendimento(
   data: WorkerAsoInput,
 ): Promise<TDocumentDefinitions> {
-  const PRIMARY = '#1f5f46';
+  const PRIMARY = '#0D47A1';
   const LIGHT_TEXT = '#111827';
   const MUTED = '#6b7280';
   const BORDER_COLOR = '#e5e7eb';
@@ -24,15 +24,14 @@ export async function gerarTemplateRelatorioAtendimento(
 
   const logoLocalPath = path.resolve(
     process.cwd(),
-    '..',
-    'engemedical-connect-frontend',
-    'public',
+    'src',
+    'assets',
     'images',
-    'cmso_logo.png',
+    'logo.png',
   );
   const logoCmso = fs.existsSync(logoLocalPath)
     ? `data:image/png;base64,${fs.readFileSync(logoLocalPath).toString('base64')}`
-    : await getImageBase64('https://cmsocupacional.com.br/images/logo.png');
+    : await getImageBase64('https://engemedical.com.br/images/logo.png');
 
   // Formatação de data/hora
   const formatDateTime = (value?: string | null): string => {

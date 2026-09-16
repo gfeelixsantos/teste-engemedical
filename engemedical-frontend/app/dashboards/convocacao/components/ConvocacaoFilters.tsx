@@ -31,8 +31,7 @@ export function ConvocacaoFilters({
   const hasFilter = filtroEmpresa || filtroSituacao || filtroExame;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
-      <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3">
         <span className="text-sm font-medium text-gray-600">Filtros:</span>
 
         <select
@@ -78,7 +77,6 @@ export function ConvocacaoFilters({
             Limpar filtros
           </button>
         )}
-      </div>
     </div>
   );
 }

@@ -8,7 +8,7 @@ interface Props {
   data: PorEmpresaRow[];
 }
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export function DrilldownTable({ data }: Props) {
   const [page, setPage] = useState(1);
@@ -18,7 +18,7 @@ export function DrilldownTable({ data }: Props) {
   const pageData = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md">
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center gap-2">
           <Building2 className="h-4 w-4 text-[#28B1CF]" />
@@ -53,7 +53,7 @@ export function DrilldownTable({ data }: Props) {
 
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
-          <thead>
+          <thead className="bg-brand-700 text-white">
             <tr className="border-b border-gray-200 bg-gray-50">
               {['#', 'Empresa', 'Agendamentos', 'Funcionários', 'Exames'].map((h) => (
                 <th key={h} className="px-3 py-2 text-left font-semibold text-gray-600">

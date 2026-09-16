@@ -1,9 +1,11 @@
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
+import * as fs from 'fs';
+import * as path from 'path';
 import { TermoConsentimentoInput } from '../termo-consentimento.types';
 import { formatDataHora } from '../termo-consentimento.types';
 import { getImageBase64 } from 'src/utils/util';
 
-const PRIMARY = '#114E34';
+const PRIMARY = '#0D47A1';
 const LIGHT_TEXT = '#333333';
 const MUTED = '#666666';
 const SECTION = '#0D6B3E';
@@ -68,8 +70,16 @@ export async function gerarTermoConsentimento(
 ): Promise<TDocumentDefinitions> {
   const dataCiencia = formatDataHora(input.lgpd.cienciaRegistradaEm);
   const dataValidade = formatDataHora(input.validadeAte);
-  const logoUrl = 'https://cmsocupacional.com.br/images/logo.png';
-  const logoBase64 = await getImageBase64(logoUrl);
+  const logoLocalPath = path.resolve(
+    process.cwd(),
+    'src',
+    'assets',
+    'images',
+    'logo.png',
+  );
+  const logoBase64 = fs.existsSync(logoLocalPath)
+    ? `data:image/png;base64,${fs.readFileSync(logoLocalPath).toString('base64')}`
+    : await getImageBase64('https://engemedical.com.br/images/logo.png');
   const operador =
     input.operador?.nome || input.operador?.codigo || 'N/D';
   const contatoDpo = input.clinica.contatoDpo || 'Canal interno de privacidade';

@@ -9,7 +9,7 @@ interface Props {
 export default function VigenciaGeralDonut({ data }: Props) {
   if (!data || data.every((d) => d.value === 0)) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
         <h3 className="text-sm font-semibold text-gray-700 mb-3">Vigência dos Contratos</h3>
         <div className="h-[250px] bg-gray-100 rounded animate-pulse" />
       </div>
@@ -19,7 +19,7 @@ export default function VigenciaGeralDonut({ data }: Props) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+    <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-md">
       <h3 className="text-sm font-semibold text-gray-700 mb-3">Vigência dos Contratos</h3>
       <ResponsiveContainer width="100%" height={250}>
         <PieChart>

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getDynamicNestUrl } from '@/config/constants';
+import { DashboardPageHeader } from '@/components/shared/DashboardPageHeader';
 import { HeaderKpisProfissionais } from './components/HeaderKpisProfissionais';
 import { AgendasPillsFilter } from './components/AgendasPillsFilter';
 import { ControleGeralSection } from './components/ControleGeralSection';
@@ -15,7 +17,7 @@ export default function ProfissionaisPage() {
   const [selectedAgenda, setSelectedAgenda] = useState('');
   const [statusFilter, setStatusFilter] = useState('Todos');
 
-  const { data, isLoading, error } = useQuery<ProfissionaisDashboardResponse>({
+  const { data, isLoading, isFetching, error, refetch } = useQuery<ProfissionaisDashboardResponse>({
     queryKey: ['profissionais', selectedAgenda, statusFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -29,8 +31,16 @@ export default function ProfissionaisPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-6 px-4 md:px-8">
+    <div className="dashboard-content min-h-screen bg-slate-50/50 py-6 px-4 md:px-8">
       <div className="max-w-7xl mx-auto space-y-4">
+        <DashboardPageHeader
+          icon={Users}
+          title="Profissionais"
+          subtitle="Controle geral de agendamentos, agendas, status e detalhes por profissional."
+          onRefresh={refetch}
+          isRefreshing={isFetching}
+        />
+
         {/* Error Notification */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">

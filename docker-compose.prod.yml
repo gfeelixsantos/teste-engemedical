@@ -1,0 +1,78 @@
+services:
+  # ============================================================
+  # Frontend — Next.js Production (standalone)
+  # ============================================================
+  frontend:
+    build:
+      context: ./engemedical-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    env_file:
+      - ./engemedical-frontend/.env.production
+    networks:
+      - engemedical
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================================
+  # Backend — NestJS Production
+  # ============================================================
+  backend:
+    build:
+      context: ./engemedical-backend
+      dockerfile: Dockerfile
+    ports:
+      - "3333:3333"
+    environment:
+      - NODE_ENV=production
+      - PORT=3333
+      - TZ=America/Sao_Paulo
+      - WORKER_INTERNAL_BASE_URL=http://worker:3334
+    env_file:
+      - ./engemedical-backend/.env.production
+    networks:
+      - engemedical
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3333"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ============================================================
+  # Worker — NestJS Production
+  # ============================================================
+  worker:
+    build:
+      context: ./engemedical-worker
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - PORT=3334
+      - TZ=America/Sao_Paulo
+    env_file:
+      - ./engemedical-worker/.env.production
+    networks:
+      - engemedical
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3334"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  engemedical:
+    driver: bridge

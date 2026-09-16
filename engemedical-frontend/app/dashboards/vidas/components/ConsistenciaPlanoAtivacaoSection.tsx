@@ -16,7 +16,7 @@ export function ConsistenciaPlanoAtivacaoSection({
   conformidadeAtivacao,
 }: ConsistenciaPlanoAtivacaoSectionProps) {
   return (
-    <div className="p-6 shadow-xs border border-gray-200 rounded-2xl bg-white space-y-6">
+    <div className="p-6 shadow-md border border-gray-200 rounded-2xl bg-white space-y-6">
       <div className="border-b pb-3">
         <h2 className="text-xl font-bold tracking-tight text-gray-800">Monitoramento da Consistência Plano x Ativação</h2>
         <p className="text-xs text-gray-400 mt-0.5">

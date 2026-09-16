@@ -98,7 +98,7 @@ export class ClienteFuncionariosService {
 
   async list(
     query: ClienteFuncionariosQuery,
-    userId: string,
+    registrationCode: string,
   ): Promise<ClienteFuncionariosResponse> {
     const companyCode = String(query.companyCode ?? '').trim();
     const page = this.toPage(query.page);
@@ -106,7 +106,10 @@ export class ClienteFuncionariosService {
     const search = normalizeSearch(query.q);
     const requestedStatus = normalizeStatus(query.status);
 
-    const company = await this.accessService.assertCanAccess(userId, companyCode);
+    const company = this.accessService.assertCanAccess(
+      companyCode,
+      registrationCode,
+    );
     const employees = await this.socExportService.EdCadastroFuncionariosPorSituacao(
       companyCode,
       {

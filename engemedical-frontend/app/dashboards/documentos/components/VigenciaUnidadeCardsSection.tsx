@@ -65,7 +65,7 @@ function VigenciaUnitChart({
   }));
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+    <div className="block w-full min-w-0">
       {/* Legend row */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-gray-800">{title}</h3>
@@ -85,9 +85,9 @@ function VigenciaUnitChart({
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_90px] gap-4">
         {/* Column chart */}
-        <div className="flex-1">
+        <div className="min-w-0">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 30 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -115,20 +115,20 @@ function VigenciaUnitChart({
         </div>
 
         {/* Mini-cards laterais */}
-        <div className="flex flex-col justify-center gap-3 min-w-[90px]">
-          <div className="rounded-lg bg-white border border-gray-100 shadow-sm p-3 text-center">
+        <div className="grid content-center gap-3 min-w-[90px]">
+          <div className="rounded-lg bg-white border border-gray-100 shadow-md p-3 text-center">
             <div className="text-[10px] font-bold text-amber-600 uppercase mb-1">À Vencer</div>
             <div className="text-xl font-extrabold text-amber-600">
               <CountUp end={kpis.aVencer} />
             </div>
           </div>
-          <div className="rounded-lg bg-white border border-gray-100 shadow-sm p-3 text-center">
+          <div className="rounded-lg bg-white border border-gray-100 shadow-md p-3 text-center">
             <div className="text-[10px] font-bold text-red-600 uppercase mb-1">Vencidos</div>
             <div className="text-xl font-extrabold text-red-600">
               <CountUp end={kpis.vencidos} />
             </div>
           </div>
-          <div className="rounded-lg bg-white border border-gray-100 shadow-sm p-3 text-center">
+          <div className="rounded-lg bg-white border border-gray-100 shadow-md p-3 text-center">
             <div className="text-[10px] font-bold text-green-700 uppercase mb-1">Vigentes</div>
             <div className="text-xl font-extrabold text-green-700">
               <CountUp end={kpis.vigentes} />
@@ -162,7 +162,7 @@ export function VigenciaUnidadeCardsSection({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-md p-5 mb-6">
       <h2 className="text-base font-bold text-gray-800 text-center uppercase tracking-wide mb-6">
         Vigência de Documentos - PGR e PCMSO
       </h2>

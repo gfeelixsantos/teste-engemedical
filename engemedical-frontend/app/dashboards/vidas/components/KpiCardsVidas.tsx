@@ -67,7 +67,7 @@ export function KpiCardsVidas({ kpis, loading }: KpiCardsVidasProps) {
       {cards.map((card, idx) => {
         const Icon = card.icon;
         return (
-          <div key={idx} className="p-4 flex flex-col justify-between shadow-xs border border-gray-200 rounded-xl bg-white hover:shadow-sm transition-shadow text-center">
+          <div key={idx} className="p-4 flex flex-col justify-between shadow-md border border-gray-200 rounded-xl bg-white hover:shadow-lg transition-shadow text-center">
             <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block truncate">{card.title}</span>
             <h3 className="text-xl font-extrabold mt-1 text-gray-800">
               {loading ? '...' : card.value}

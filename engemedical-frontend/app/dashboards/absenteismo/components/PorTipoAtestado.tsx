@@ -18,7 +18,7 @@ interface Props {
 
 function SkeletonChart() {
   return (
-    <div className="bg-white rounded-lg shadow p-6 animate-pulse">
+    <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
       <div className="h-5 bg-gray-200 rounded w-44 mb-4" />
       <div className="space-y-3 h-[300px] flex flex-col justify-center">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -41,7 +41,7 @@ export function PorTipoAtestado({ data, isLoading }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         Por Tipo de Atestado
       </h3>

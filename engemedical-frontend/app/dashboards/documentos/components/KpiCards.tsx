@@ -21,7 +21,7 @@ export default function KpiCards({ kpis }: Props) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       {CARDS.map(({ key, label, icon: Icon, color }) => (
-        <div key={key} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition">
+        <div key={key} className="bg-white rounded-xl border border-gray-200 p-4 shadow-md hover:shadow-lg transition">
           <div className={`w-10 h-10 ${color} rounded-lg flex items-center justify-center mb-2`}>
             <Icon className="w-5 h-5 text-white" />
           </div>

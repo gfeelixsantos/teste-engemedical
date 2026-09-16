@@ -16,7 +16,7 @@ const XML_OPTIONS = [
 
 export function XmlPillsFilter({ selectedXml, onSelectXml }: XmlPillsProps) {
   return (
-    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4 text-center">
+    <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100 mb-4 text-center">
       <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
         Registro XML
       </h2>

@@ -12,10 +12,12 @@ export class ConvocacaoController {
   ) {
     const data = await this.convocacaoService.getDashboardData();
     const pageNum = parseInt(page || '1', 10);
-    const limitNum = parseInt(limit || '500', 10);
+    const limitNum = parseInt(limit || '100', 10);
     const start = (pageNum - 1) * limitNum;
     const end = start + limitNum;
 
+    // Envia apenas uma janela paginada de detalhes para não sobrecarregar a rede.
+    // A filtragem real por situação/empresa/exame deve usar o endpoint /detalhes.
     return {
       kpis: data.kpis,
       porSituacao: data.porSituacao || [],
@@ -43,7 +45,10 @@ export class ConvocacaoController {
     const data = await this.convocacaoService.getDashboardData();
     let detalhes = data.detalhes;
 
-    if (empresa) detalhes = detalhes.filter((d) => d.nomeEmpresa === empresa);
+    if (empresa) {
+      const empresaLower = empresa.trim().toLowerCase();
+      detalhes = detalhes.filter((d) => d.nomeEmpresa.trim().toLowerCase() === empresaLower);
+    }
     if (situacao) detalhes = detalhes.filter((d) => d.situacaoExame === situacao);
     if (exame) detalhes = detalhes.filter((d) => d.exame === exame);
 
