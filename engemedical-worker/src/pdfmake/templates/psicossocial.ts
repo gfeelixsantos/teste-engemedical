@@ -72,128 +72,31 @@ export async function gerarDocPsicossocial(
     );
 
   // ======= SAÚDE MENTAL E HÁBITOS =======
-  const saudeMentalGrid: { body: any[][] } = {
-    body: [
-      [
-        {
-          text: 'Aspecto Avaliado',
-          style: 'tableHeader',
-          alignment: 'center' as const,
-        },
-        {
-          text: 'Resposta',
-          style: 'tableHeader',
-          alignment: 'center' as const,
-        },
-      ],
-      [
-        { text: 'Transtorno Emocional', style: 'tableLabel' },
-        { text: form.transtornoEmocional || '-', alignment: 'center' as const },
-      ],
-      [
-        { text: 'Medicamentos Controlados', style: 'tableLabel' },
-        {
-          text: form.medicamentosControlados || '-',
-          alignment: 'center' as const,
-        },
-      ],
-      [
-        { text: 'Uso de Álcool/Drogas', style: 'tableLabel' },
-        { text: form.usoAlcoolDrogas || '-', alignment: 'center' as const },
-      ],
-    ],
-  };
+  const saudeMentalGrid = [
+    ['Transtorno Emocional', form.transtornoEmocional || '-'],
+    ['Medicamentos Controlados', form.medicamentosControlados || '-'],
+    ['Uso de Álcool/Drogas', form.usoAlcoolDrogas || '-'],
+  ];
 
   // ======= CONDIÇÕES CLÍNICAS E SENSORIAIS =======
-  const condicoesClinicasGrid: { body: any[][] } = {
-    body: [
-      [
-        {
-          text: 'Condição',
-          style: 'tableHeader',
-          alignment: 'center' as const,
-        },
-        {
-          text: 'Resposta',
-          style: 'tableHeader',
-          alignment: 'center' as const,
-        },
-      ],
-      [
-        { text: 'Tontura/Desmaios', style: 'tableLabel' },
-        { text: form.tonturaDesmaios || '-', alignment: 'center' as const },
-      ],
-      [
-        { text: 'Problemas Sensoriais', style: 'tableLabel' },
-        { text: form.problemasSensoriais || '-', alignment: 'center' as const },
-      ],
-      [
-        { text: 'Hipertensão/Diabetes', style: 'tableLabel' },
-        { text: form.hipertensaoDiabetes || '-', alignment: 'center' as const },
-      ],
-    ],
-  };
+  const condicoesClinicasGrid = [
+    ['Tontura/Desmaios', form.tonturaDesmaios || '-'],
+    ['Problemas Sensoriais', form.problemasSensoriais || '-'],
+    ['Hipertensão/Diabetes', form.hipertensaoDiabetes || '-'],
+  ];
 
   // ======= ASPECTOS PSICOSSOCIAIS =======
-  const aspectosPsicossociaisGrid: { body: any[][] } = {
-    body: [
-      [
-        { text: 'Aspecto', style: 'tableHeader', alignment: 'center' as const },
-        {
-          text: 'Resposta',
-          style: 'tableHeader',
-          alignment: 'center' as const,
-        },
-      ],
-      [
-        { text: 'Relacionamento Familiar', style: 'tableLabel' },
-        {
-          text: form.relacionamentoFamiliar || '-',
-          alignment: 'center' as const,
-        },
-      ],
-      [
-        { text: 'Medo de Altura/Espaços', style: 'tableLabel' },
-        { text: form.medoAlturaEspacos || '-', alignment: 'center' as const },
-      ],
-      [
-        { text: 'Experiência em Altura/Confinado', style: 'tableLabel' },
-        {
-          text: form.experienciaAlturaConfinado || '-',
-          alignment: 'center' as const,
-        },
-      ],
-    ],
-  };
+  const aspectosPsicossociaisGrid = [
+    ['Relacionamento Familiar', form.relacionamentoFamiliar || '-'],
+    ['Medo de Altura/Espaços', form.medoAlturaEspacos || '-'],
+    ['Experiência em Altura/Confinado', form.experienciaAlturaConfinado || '-'],
+  ];
 
   // ======= AUTOAVALIAÇÃO =======
-  const autoavaliacaoGrid: { body: any[][] } = {
-    body: [
-      [
-        {
-          text: 'Tipo de Trabalho',
-          style: 'tableHeader',
-          alignment: 'center' as const,
-        },
-        {
-          text: 'Resposta',
-          style: 'tableHeader',
-          alignment: 'center' as const,
-        },
-      ],
-      [
-        { text: 'Trabalho em Altura', style: 'tableLabel' },
-        { text: form.autoAvaliacaoAltura || '-', alignment: 'center' as const },
-      ],
-      [
-        { text: 'Trabalho em Espaço Confinado', style: 'tableLabel' },
-        {
-          text: form.autoAvaliacaoConfinado || '-',
-          alignment: 'center' as const,
-        },
-      ],
-    ],
-  };
+  const autoavaliacaoGrid = [
+    ['Trabalho em Altura', form.autoAvaliacaoAltura || '-'],
+    ['Trabalho em Espaço Confinado', form.autoAvaliacaoConfinado || '-'],
+  ];
 
   const doc: TDocumentDefinitions = {
     pageSize: 'A4',
@@ -292,88 +195,24 @@ export async function gerarDocPsicossocial(
       },
 
       // ===== SAÚDE MENTAL E HÁBITOS =====
-      {
-        text: 'Saúde Mental e Hábitos',
-        style: 'sectionTitle',
-        alignment: 'left',
-        margin: [0, 5, 0, 5] as [number, number, number, number],
-      },
-      {
-        table: {
-          widths: ['35%', '20%', '45%'],
-          body: saudeMentalGrid.body as any,
-        },
-        layout: {
-          hLineWidth: (i: number) => 0.5,
-          vLineWidth: (i: number) => 0.5,
-          hLineColor: (i: number) => '#aaaaaa',
-          vLineColor: (i: number) => '#aaaaaa',
-        },
-        margin: [0, 0, 0, 10] as [number, number, number, number],
-      },
+      createGridSection('Saúde Mental e Hábitos', saudeMentalGrid, {
+        margin: [0, 5, 0, 10],
+      }),
 
       // ===== CONDIÇÕES CLÍNICAS E SENSORIAIS =====
-      {
-        text: 'Condições Clínicas e Sensoriais',
-        style: 'sectionTitle',
-        alignment: 'left' as const,
-        margin: [0, 5, 0, 5] as [number, number, number, number],
-      },
-      {
-        table: {
-          widths: ['35%', '20%', '45%'],
-          body: condicoesClinicasGrid.body as any,
-        },
-        layout: {
-          hLineWidth: (i: number) => 0.5,
-          vLineWidth: (i: number) => 0.5,
-          hLineColor: (i: number) => '#aaaaaa',
-          vLineColor: (i: number) => '#aaaaaa',
-        },
-        margin: [0, 0, 0, 10] as [number, number, number, number],
-      },
+      createGridSection('Condições Clínicas e Sensoriais', condicoesClinicasGrid, {
+        margin: [0, 5, 0, 10],
+      }),
 
       // ===== ASPECTOS PSICOSSOCIAIS =====
-      {
-        text: 'Aspectos Psicossociais',
-        style: 'sectionTitle',
-        alignment: 'left',
-        margin: [0, 5, 0, 5] as [number, number, number, number],
-      },
-      {
-        table: {
-          widths: ['35%', '20%', '45%'],
-          body: aspectosPsicossociaisGrid.body as any,
-        },
-        layout: {
-          hLineWidth: (i: number) => 0.5,
-          vLineWidth: (i: number) => 0.5,
-          hLineColor: (i: number) => '#aaaaaa',
-          vLineColor: (i: number) => '#aaaaaa',
-        },
-        margin: [0, 0, 0, 10] as [number, number, number, number],
-      },
+      createGridSection('Aspectos Psicossociais', aspectosPsicossociaisGrid, {
+        margin: [0, 5, 0, 10],
+      }),
 
       // ===== AUTOAVALIAÇÃO =====
-      {
-        text: 'Autoavaliação',
-        style: 'sectionTitle',
-        alignment: 'left' as const,
-        margin: [0, 5, 0, 5] as [number, number, number, number],
-      },
-      {
-        table: {
-          widths: ['35%', '20%', '45%'],
-          body: autoavaliacaoGrid.body as any,
-        },
-        layout: {
-          hLineWidth: (i: number) => 0.5,
-          vLineWidth: (i: number) => 0.5,
-          hLineColor: (i: number) => '#aaaaaa',
-          vLineColor: (i: number) => '#aaaaaa',
-        },
-        margin: [0, 0, 0, 25],
-      },
+      createGridSection('Autoavaliação', autoavaliacaoGrid, {
+        margin: [0, 5, 0, 25],
+      }),
 
       // ===== INFORMAÇÕES RELEVANTES =====
       ...(form.informacoesRelevantes

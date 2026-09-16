@@ -1,9 +1,10 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { resolveAuthProxyContextFromTokens } from "../../_authContext.mjs";
+
 import { NEST_URL } from "@/config/constants";
 import { JWT } from "@/lib/jwt/jwt";
-import { resolveAuthProxyContextFromTokens } from "../../_authContext.mjs";
 
 const EMPRESA_PATTERN = /^\d{3,10}$/;
 
@@ -26,10 +27,14 @@ export async function GET(request: Request): Promise<NextResponse> {
     });
 
     if (!authContext.bearerToken) {
-      return NextResponse.json({ message: "Sessão ausente ou inválida." }, { status: 401 });
+      return NextResponse.json(
+        { message: "Sessão ausente ou inválida." },
+        { status: 401 },
+      );
     }
 
     const targetUrl = new URL(`${NEST_URL}cliente/ativacao`);
+
     targetUrl.searchParams.set("empresa", empresa);
     const response = await fetch(targetUrl, {
       headers: { Authorization: `Bearer ${authContext.bearerToken}` },
@@ -39,9 +44,15 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     return new NextResponse(body, {
       status: response.status,
-      headers: { "Content-Type": response.headers.get("Content-Type") ?? "application/json" },
+      headers: {
+        "Content-Type":
+          response.headers.get("Content-Type") ?? "application/json",
+      },
     });
   } catch {
-    return NextResponse.json({ message: "Falha ao consultar a Central de Ativação." }, { status: 502 });
+    return NextResponse.json(
+      { message: "Falha ao consultar a Central de Ativação." },
+      { status: 502 },
+    );
   }
 }

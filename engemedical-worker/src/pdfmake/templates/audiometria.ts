@@ -6,7 +6,7 @@ import { getExamesList } from 'src/exames/exames.provider';
 import { createGridSection, formatCPF, getImageBase64 } from 'src/utils/util';
 import { generateAudiogramSVG } from '../AudiometriaGraphics';
 import { buildPdfFooter } from '../pdfFooterHelper';
-import { getPaginaOrientacaoPlugSilicone } from './orientacaoPlug';
+
 
 export interface AudiometriaData {
   tipoAudiometro: string;
@@ -465,7 +465,7 @@ export async function gerarDocAudiometria(
 
   const resultadosGrid = {
     headerRows: 1,
-    widths: ['*', '*', '*', '*', '*'],
+    widths: ['12%', '15%', '25%', '24%', '24%'],
     body: [
       [
         { text: 'Ouvido', style: 'tableHeader', alignment: 'center' },
@@ -619,11 +619,11 @@ export async function gerarDocAudiometria(
             stack: [
               section('DADOS DO FUNCIONÁRIO', C.azulEscuro),
               card([
-                { columns: [{ text: 'Nome:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: NOME || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
-                { columns: [{ text: 'CPF:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: formatCPF(CPFFUNCIONARIO), fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
-                { columns: [{ text: 'Nascimento:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: `${DATANASCIMENTO || 'N/D'} — ${idade} anos`, fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
-                { columns: [{ text: 'Cargo:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: NOMECARGO || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
-                { columns: [{ text: 'Setor:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: NOMESETOR || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'Nome:', width: 90, fontSize: 7.5, bold: true, color: C.muted }, { text: NOME || 'N/D', fontSize: 9, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'CPF:', width: 90, fontSize: 7.5, bold: true, color: C.muted }, { text: formatCPF(CPFFUNCIONARIO), fontSize: 9, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'Nascimento:', width: 90, fontSize: 7.5, bold: true, color: C.muted }, { text: `${DATANASCIMENTO || 'N/D'} — ${idade} anos`, fontSize: 9, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'Cargo:', width: 90, fontSize: 7.5, bold: true, color: C.muted }, { text: NOMECARGO || 'N/D', fontSize: 9, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'Setor:', width: 90, fontSize: 7.5, bold: true, color: C.muted }, { text: NOMESETOR || 'N/D', fontSize: 9, color: C.texto }], margin: [0, 2, 0, 2] },
               ]),
             ],
           },
@@ -632,11 +632,11 @@ export async function gerarDocAudiometria(
             stack: [
               section('DADOS DA EMPRESA', C.verde),
               card([
-                { columns: [{ text: 'Razão social:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: NOMEEMPRESA || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
-                { columns: [{ text: 'CNPJ:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: CNPJEMPRESA || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
-                { columns: [{ text: 'Unidade:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: UNIDADEATENDIMENTO || 'N/D', fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'Razão social:', width: 90, fontSize: 7.5, bold: true, color: C.muted }, { text: NOMEEMPRESA || 'N/D', fontSize: 9, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'CNPJ:', width: 90, fontSize: 7.5, bold: true, color: C.muted }, { text: CNPJEMPRESA || 'N/D', fontSize: 9, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'Unidade:', width: 90, fontSize: 7.5, bold: true, color: C.muted }, { text: UNIDADEATENDIMENTO || 'N/D', fontSize: 9, color: C.texto }], margin: [0, 2, 0, 2] },
                 { text: '', margin: [0, 0, 0, 0] },
-                { columns: [{ text: 'Data do exame:', width: 90, fontSize: 8.5, bold: true, color: C.muted }, { text: new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo' }).format(new Date()), fontSize: 9.5, color: C.texto }], margin: [0, 2, 0, 2] },
+                { columns: [{ text: 'Data do exame:', width: 90, fontSize: 7.5, bold: true, color: C.muted }, { text: new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo' }).format(new Date()), fontSize: 9, color: C.texto }], margin: [0, 2, 0, 2] },
               ]),
             ],
           },
@@ -733,13 +733,7 @@ export async function gerarDocAudiometria(
         createGridSection('', anamneseGrid, { fontSize: 8 }),
       ]),
 
-      ...(await getPaginaOrientacaoPlugSilicone(
-        form,
-        asoData,
-        profissional,
-        assinaturaProfissional,
-        audiometria?.profissional,
-      )),
+
     ],
 
     footer: buildPdfFooter(

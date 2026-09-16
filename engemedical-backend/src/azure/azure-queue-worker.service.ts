@@ -35,6 +35,14 @@ export class AzureQueueWorkerService implements OnModuleInit, OnModuleDestroy {
       '[AZURE_QUEUE_WORKER] Iniciando listeners de fila no backend...',
     );
 
+    const queuesEnabled = String(process.env.AZURE_QUEUES_ENABLED || 'true').toLowerCase() === 'true';
+    if (!queuesEnabled) {
+      this.logger.warn(
+        '[AZURE_QUEUE_WORKER] Filas Azure desabilitadas por variavel de ambiente (AZURE_QUEUES_ENABLED=false). Polling nao sera iniciado.',
+      );
+      return;
+    }
+
     if (!this.azureService.isEnabled()) {
       this.logger.warn(
         '[AZURE_QUEUE_WORKER] Azure desabilitado no ambiente atual. Polling de filas nao sera iniciado.',

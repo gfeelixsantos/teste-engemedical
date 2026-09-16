@@ -269,62 +269,6 @@ export async function gerarDocExameClinico(
     form.ultimaMenstruacao.trim() !== '' &&
     form.ultimaMenstruacao !== 'N/D';
 
-  const habitosGridAdmissional = [
-    ['Tabagismo', form.tabagismo || 'N/D', 'Etilismo', form.etilismo || 'N/D'],
-    [
-      'Atividade Física',
-      form.atividadeFisica || 'N/D',
-      'Acima do Peso',
-      form.acimaPeso || 'N/D',
-    ],
-    [
-      'Trabalho em Altura',
-      form.trabalhoAltura || 'N/D',
-      'Espaço Confinado',
-      form.trabalhoEspacoConfinado || 'N/D',
-    ],
-    [
-      'Apto a Veículos',
-      form.aptoOperarVeiculos || 'N/D',
-      'Carregar Peso',
-      form.capacidadeCarregarPeso || 'N/D',
-    ],
-  ];
-
-  const menstruacaoGridDemissional =
-    isDemissional && hasMenstruacaoData
-      ? [['Última Menstruação', form.ultimaMenstruacao.trim(), '', '']]
-      : [];
-
-  const exameFisicoGrid = [
-    [
-      'Cabeça e Pescoço',
-      form.cabecaPescoco || 'N/D',
-      'Tórax',
-      form.torax || 'N/D',
-    ],
-    ['Abdome', form.abdome || 'N/D', 'Coluna', form.coluna || 'N/D'],
-    [
-      'Membros Superiores',
-      form.membrosSuperiores || 'N/D',
-      'Membros Inferiores',
-      form.membrosInferiores || 'N/D',
-    ],
-  ];
-
-  const pressaoRows = form.pressaoArterial?.map((registro: RegistroPa) => [
-    'Pressão arterial',
-    registro.valor || 'N/D',
-    'Horário',
-    registro.horario || 'N/D',
-  ]) || [['Pressão arterial', 'N/D', 'Horário', 'N/D']];
-
-  const dadosVitaisGrid = [
-    ['Peso (kg)', form.peso || 'N/D', 'Altura (m)', form.altura || 'N/D'],
-    ['IMC', form.imc || 'N/D', 'Resultado IMC', form.resultadoImc || 'N/D'],
-    ...pressaoRows,
-  ];
-
   const testesArticularesGrid = buildTestesArticularesGrid4Cols(
     form.testesArticulares,
   );
@@ -373,8 +317,8 @@ export async function gerarDocExameClinico(
 
   const field = (label: string, value: string) => ({
     columns: [
-      { text: label, width: 110, fontSize: 8.5, bold: true, color: C.muted },
-      { text: value || 'N/D', width: '*', fontSize: 9.5, color: C.texto },
+      { text: label, width: 110, fontSize: 7.5, bold: true, color: C.muted },
+      { text: value || 'N/D', width: '*', fontSize: 9, color: C.texto },
     ],
     margin: [0, 2, 0, 2] as [number, number, number, number],
   });
@@ -458,17 +402,68 @@ export async function gerarDocExameClinico(
         margin: [0, 0, 0, 0] as [number, number, number, number],
       },
 
-      // ═══ ANAMNESE (se admissional) ═══
+      // ═══ ANAMNESE + HÁBITOS lado a lado (se admissional) ═══
       ...(isAdmissional
         ? [
-            section('ANAMNESE E HISTÓRICO FAMILIAR', C.azulEscuro),
-            card([
-              field('Doenças familiares:', form.doencasFamiliares?.join(', ')),
-              field('Doenças pessoais:', form.doencasPessoais?.join(', ')),
-              field('Observação médica:', form.observacoesDoencasPessoais),
-              field('Afastamento > 15 dias:', form.afastamento),
-              field('Relato:', form.observacaoAfastamento),
-            ]),
+            {
+              columns: [
+                {
+                  width: '50%',
+                  stack: [
+                    section('ANAMNESE E HISTÓRICO FAMILIAR', C.azulEscuro),
+                    card([
+                      field('Doenças familiares:', form.doencasFamiliares?.join(', ')),
+                      field('Doenças pessoais:', form.doencasPessoais?.join(', ')),
+                      field('Observação médica:', form.observacoesDoencasPessoais),
+                      field('Afastamento > 15 dias:', form.afastamento),
+                      field('Relato:', form.observacaoAfastamento),
+                    ]),
+                  ],
+                },
+                {
+                  width: '50%',
+                  stack: [
+                    section('HÁBITOS E ESTILO DE VIDA', C.verde),
+                    card([
+                      {
+                        table: {
+                          widths: ['50%', '50%'],
+                          body: [
+                            [
+                              { text: 'Tabagismo', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+                              { text: 'Etilismo', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
+                            ],
+                            [
+                              { text: form.tabagismo || 'N/D', fontSize: 9, color: C.texto },
+                              { text: form.etilismo || 'N/D', fontSize: 9, color: C.texto },
+                            ],
+                            [
+                              { text: 'Ativ. Física', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 4, 0, 2] as [number, number, number, number] },
+                              { text: 'Acima do Peso', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 4, 0, 2] as [number, number, number, number] },
+                            ],
+                            [
+                              { text: form.atividadeFisica || 'N/D', fontSize: 9, color: C.texto },
+                              { text: form.acimaPeso || 'N/D', fontSize: 9, color: C.texto },
+                            ],
+                          ],
+                        },
+                        layout: {
+                          hLineWidth: (i: number) => (i === 1 || i === 3 ? 0.3 : 0),
+                          vLineWidth: () => 0,
+                          hLineColor: () => C.borda,
+                          paddingLeft: () => 4,
+                          paddingRight: () => 4,
+                          paddingTop: () => 2,
+                          paddingBottom: () => 2,
+                        },
+                      },
+                    ]),
+                  ],
+                },
+              ],
+              columnGap: 10,
+              margin: [0, 0, 0, 0] as [number, number, number, number],
+            },
           ]
         : []),
 
@@ -481,71 +476,6 @@ export async function gerarDocExameClinico(
             ]),
           ]
         : []),
-
-      // ═══ HÁBITOS + PRESSÃO ARTERIAL lado a lado ═══
-      {
-        columns: [
-          {
-            width: '50%',
-            stack: [
-              section('HÁBITOS E ESTILO DE VIDA', C.verde),
-              card([
-                {
-                  table: {
-                    widths: ['50%', '50%'],
-                    body: [
-                      [
-                        { text: 'Tabagismo', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
-                        { text: 'Etilismo', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 0, 0, 2] as [number, number, number, number] },
-                      ],
-                      [
-                        { text: form.tabagismo || 'N/D', fontSize: 9, color: C.texto },
-                        { text: form.etilismo || 'N/D', fontSize: 9, color: C.texto },
-                      ],
-                      [
-                        { text: 'Ativ. Física', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 4, 0, 2] as [number, number, number, number] },
-                        { text: 'Acima do Peso', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 4, 0, 2] as [number, number, number, number] },
-                      ],
-                      [
-                        { text: form.atividadeFisica || 'N/D', fontSize: 9, color: C.texto },
-                        { text: form.acimaPeso || 'N/D', fontSize: 9, color: C.texto },
-                      ],
-                    ],
-                  },
-                  layout: {
-                    hLineWidth: (i: number) => (i === 1 || i === 3 ? 0.3 : 0),
-                    vLineWidth: () => 0,
-                    hLineColor: () => C.borda,
-                    paddingLeft: () => 4,
-                    paddingRight: () => 4,
-                    paddingTop: () => 2,
-                    paddingBottom: () => 2,
-                  },
-                },
-              ]),
-            ],
-          },
-          {
-            width: '50%',
-            stack: [
-              section('PRESSÃO ARTERIAL', C.ciano),
-              card([
-                ...form.pressaoArterial?.map((reg: RegistroPa) => ({
-                  columns: [
-                    { text: reg.valor || 'N/D', width: '50%', fontSize: 10, bold: true, color: C.texto },
-                    { text: reg.horario ? `${reg.horario}h` : 'N/D', width: '50%', fontSize: 9, color: C.muted, alignment: 'right' as const },
-                  ],
-                  margin: [0, 2, 0, 2] as [number, number, number, number],
-                })) || [
-                  { text: 'N/D', fontSize: 10, bold: true, color: C.texto, margin: [0, 2, 0, 2] as [number, number, number, number] },
-                ],
-              ]),
-            ],
-          },
-        ],
-        columnGap: 10,
-        margin: [0, 0, 0, 0] as [number, number, number, number],
-      },
 
       // ═══ EXAME FÍSICO ═══
       section('EXAME FÍSICO', C.azulEscuro),
@@ -588,7 +518,7 @@ export async function gerarDocExameClinico(
         },
       ]),
 
-      // ═══ DADOS VITAIS ═══
+      // ═══ DADOS VITAIS + PRESSÃO ARTERIAL ═══
       section('DADOS VITAIS E ANTROPOMETRIA', C.verde),
       card([
         {
@@ -607,10 +537,26 @@ export async function gerarDocExameClinico(
                 { text: form.imc || 'N/D', fontSize: 9, color: C.texto },
                 { text: form.resultadoImc || 'N/D', fontSize: 9, color: C.texto },
               ],
+              ...(form.pressaoArterial?.length
+                ? [
+                    [
+                      { text: 'Pressão Arterial', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 4, 0, 2] as [number, number, number, number], colSpan: 2 },
+                      { text: '', colSpan: 2 },
+                      { text: 'Horário', fontSize: 7.5, bold: true, color: C.muted, margin: [0, 4, 0, 2] as [number, number, number, number] },
+                      { text: '' },
+                    ],
+                    ...form.pressaoArterial.map((reg: RegistroPa) => [
+                      { text: reg.valor || 'N/D', fontSize: 9, bold: true, color: C.texto, colSpan: 2 },
+                      { text: '', colSpan: 2 },
+                      { text: reg.horario ? `${reg.horario}h` : 'N/D', fontSize: 9, color: C.muted },
+                      { text: '' },
+                    ]),
+                  ]
+                : []),
             ],
           },
           layout: {
-            hLineWidth: (i: number) => (i === 1 ? 0.3 : 0),
+            hLineWidth: (i: number) => (i === 1 || i === 3 ? 0.3 : 0),
             vLineWidth: () => 0,
             hLineColor: () => C.borda,
             paddingLeft: () => 4,
