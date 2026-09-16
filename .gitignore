@@ -77,6 +77,7 @@ engemedical-backend/src/google/drive/googleDriveApi.json
 engemedical-worker/src/google/drive/googleDriveApi.json
 engemedical-worker/src/scripts/do-requeue.js
 engemedical-backend/scripts/migrate-legacy-blobs.ts
+engemedical-worker/src/scripts/*.js
 
 # ======================== STRAY FILES =========================
 # Arquivo solto duplicado de hooks/useSftpIntegration.ts
