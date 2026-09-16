@@ -6,7 +6,6 @@ interface ResolveFormularioParams {
   forms: {
     EXAME_FORM_MAP: Record<string, React.FC<any>>;
     KitAtendimento: React.FC<any>;
-    FichaClinicaWhirlpool: React.FC<any>;
   };
   templateKey?: string | null;
 }
@@ -22,31 +21,6 @@ export class AtendimentoRules {
   }
 
   // -------------------------
-  // Regra: Admissional
-  // -------------------------
-  static isAdmissional(func: Scheduling): boolean {
-    return func?.TIPOEXAMENOME?.toUpperCase().includes("ADM");
-  }
-
-  // -------------------------
-  // Regra: RH Brasil Whirlpool
-  // -------------------------
-  static isRhBrasilWhirlpool(func: Scheduling): boolean {
-    return (
-      func.CODIGOEMPRESA === "230890" &&
-      (func.NOMEUNIDADE.includes("WHIRLPOOL") ||
-        func.NOMEUNIDADE.includes("WHIRPOOL"))
-    );
-  }
-
-  // -------------------------
-  // Regra: Whirlpool Admissional (código 238590)
-  // -------------------------
-  static isWhirlpoolAdmissional(func: Scheduling): boolean {
-    return func.CODIGOEMPRESA === "238590";
-  }
-
-  // -------------------------
   // Seleção principal do formulário
   // -------------------------
   static resolveFormulario({
@@ -55,7 +29,7 @@ export class AtendimentoRules {
     forms,
     templateKey,
   }: ResolveFormularioParams) {
-    const { EXAME_FORM_MAP, KitAtendimento, FichaClinicaWhirlpool } = forms;
+    const { EXAME_FORM_MAP, KitAtendimento } = forms;
 
     let Formulario = (templateKey && EXAME_FORM_MAP[templateKey]) || EXAME_FORM_MAP[exame];
 
@@ -64,16 +38,6 @@ export class AtendimentoRules {
     // Regra KIT
     if (this.isEmpresaKit(funcionario)) {
       return KitAtendimento;
-    }
-
-    // Regras Whirlpool (admissional + empresa específica)
-    if (
-      exame === "Exame Clínico" &&
-      this.isAdmissional(funcionario) &&
-      (this.isRhBrasilWhirlpool(funcionario) ||
-        this.isWhirlpoolAdmissional(funcionario))
-    ) {
-      return FichaClinicaWhirlpool;
     }
 
     // Regra Audiometria Riclan ---> Formulário como kit de atendimento

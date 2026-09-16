@@ -25,6 +25,7 @@ export async function getPaginaOrientacaoPlugSilicone(
     DATAAGENDAMENTO,
     NOMECARGO,
     TIPOEXAMENOME,
+    NOMEEMPRESA,
   } = asoData;
 
   if (
@@ -33,11 +34,6 @@ export async function getPaginaOrientacaoPlugSilicone(
   ) {
     return [];
   }
-
-  const logoWhirlpoolUrl =
-    process.env.SOC_ORIENTACAO_PLUG_LOGO_URL ||
-    'https://sistema.soc.com.br/estatico/upload/empresas/1153506/logos/relatorio/1153506r16logorel.png';
-  const logoWhirlpool = await getImageBase64(logoWhirlpoolUrl);
 
   const imagemUsoProtetor = await getImageBase64(
     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgWgwWk2kvUkiXXb_FipaJixdX1_fGV1mjtA&s',
@@ -63,24 +59,9 @@ export async function getPaginaOrientacaoPlugSilicone(
         stack: [
           { text: 'Ficha de Inspeção e Treinamento do Uso do EPI' },
           { text: 'Documento integrante do PCA - Ref: 03' },
-          { text: 'Empresa: Whirlpool Latin América - Rio Claro', bold: true },
+          { text: `Empresa: ${NOMEEMPRESA || 'N/D'}`, bold: true },
         ],
       },
-      ...(logoWhirlpool
-        ? [
-            {
-              width: '*',
-              stack: [
-                {
-                  image: logoWhirlpool,
-                  width: 100,
-                  alignment: 'right' as const,
-                  margin: [0, 0, 0, 15] as [number, number, number, number],
-                },
-              ],
-            },
-          ]
-        : []),
     ],
     margin: [0, 0, 0, 10],
   });

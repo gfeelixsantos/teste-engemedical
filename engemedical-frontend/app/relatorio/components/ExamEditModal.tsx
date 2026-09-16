@@ -20,7 +20,6 @@ import Dinamometria from "@/app/atendimento/components/exames/Dinamometria";
 import Espirometria from "@/app/atendimento/components/exames/Espirometria";
 import ExamePadrao from "@/app/atendimento/components/exames/ExamePadrao";
 import FichaClinicaOcupacional from "@/app/atendimento/components/exames/FichaClinicaOcupacional";
-import FichaClinicaWhirlpool from "@/app/atendimento/components/exames/FichaClinicaWhirlpool";
 import FichaAssistencial from "@/app/atendimento/components/exames/FichaAssistencial";
 import KitAtendimento from "@/app/atendimento/components/exames/KitAtendimento";
 import Psicossocial from "@/app/atendimento/components/exames/Psicossocial";
@@ -166,7 +165,6 @@ const ExamEditModal: React.FC<ExamEditModalProps> = ({
       forms: {
         EXAME_FORM_MAP,
         KitAtendimento,
-        FichaClinicaWhirlpool,
       },
       templateKey,
     });

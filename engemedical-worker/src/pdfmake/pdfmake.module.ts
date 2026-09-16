@@ -5,6 +5,8 @@ import { BiometriaTermoService } from './biometria-termo.service';
 import { FacialTermoService } from './facial-termo.service';
 import { AsoWorkerService } from './aso-worker.service';
 import { TermoConsentimentoService } from './termo-consentimento.service';
+import { PuppeteerService } from './puppeteer.service';
+import { HtmlPdfService } from './html-pdf.service';
 import { AzureModule } from 'src/azure/azure.module';
 
 @Module({
@@ -16,6 +18,8 @@ import { AzureModule } from 'src/azure/azure.module';
     FacialTermoService,
     AsoWorkerService,
     TermoConsentimentoService,
+    PuppeteerService,
+    HtmlPdfService,
   ],
   exports: [
     PdfmakeService,
@@ -23,6 +27,8 @@ import { AzureModule } from 'src/azure/azure.module';
     FacialTermoService,
     AsoWorkerService,
     TermoConsentimentoService,
+    PuppeteerService,
+    HtmlPdfService,
   ],
 })
 export class PdfmakeModule {}

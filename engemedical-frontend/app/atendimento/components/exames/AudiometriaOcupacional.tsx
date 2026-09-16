@@ -1293,15 +1293,6 @@ const AudiometriaOcupacional: React.FC<AudiometriaProps> = ({
     }
 
     setFormData(nextFormData);
-
-    // Validação para aplicar formulário de plug de silicone - utilizado em admissional Whirlpool e RH Brasil
-    if (
-      (AtendimentoRules.isAdmissional(atendimento) &&
-        AtendimentoRules.isRhBrasilWhirlpool(atendimento)) ||
-      AtendimentoRules.isWhirlpoolAdmissional(atendimento)
-    ) {
-      setApplyFormPlug(true);
-    }
   }, [atendimento, formulario]);
 
   // Handler ultra-simples para inputs
@@ -1847,7 +1838,7 @@ const AudiometriaOcupacional: React.FC<AudiometriaProps> = ({
           {applyFormPlug && (
             <div className="p-4">
               <h3 className="font-semibold text-gray-700 mb-3 text-sm uppercase tracking-wide">
-                Atendimento Whirlpool
+                Orientação Plug Silicone
               </h3>
               <RadioGroup
                 className="flex flex-row gap-12"

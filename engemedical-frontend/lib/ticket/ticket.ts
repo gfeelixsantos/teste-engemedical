@@ -35,7 +35,6 @@ export enum TicketTypes {
   PREFERENCIAL = "PREFERENCIAL",
   RETIRADA_EXAMES = "RETIRADA_EXAMES",
   NORMAL = "NORMAL",
-  WHIRLPOOL = "WHIRLPOOL",
 }
 
 export interface Ticket {

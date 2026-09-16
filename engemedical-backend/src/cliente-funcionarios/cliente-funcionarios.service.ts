@@ -106,7 +106,7 @@ export class ClienteFuncionariosService {
     const search = normalizeSearch(query.q);
     const requestedStatus = normalizeStatus(query.status);
 
-    const company = this.accessService.assertCanAccess(
+    const company = await this.accessService.assertCanAccess(
       companyCode,
       registrationCode,
     );

@@ -71,7 +71,6 @@ export const getTicketTypeTone = (type: TicketTypes): ToneScale => {
     case TicketTypes.PREFERENCIAL:
       return PRIORITY_TONE;
     case TicketTypes.RETIRADA_EXAMES:
-    case TicketTypes.WHIRLPOOL:
       return PREFIXED_TONE;
     case TicketTypes.ATENDIMENTO:
     case TicketTypes.NORMAL:

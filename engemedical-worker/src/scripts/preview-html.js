@@ -51,7 +51,7 @@ const htmlPreview = `
             <td style="padding:16px 28px;background:#FFFFFF;border-bottom:1px solid #F1F5F9;">
               <table width="100%" style="font-size:13px;color:#334155;">
                 <tr>
-                  <td style="padding:5px 0;"><strong>Unidade:</strong> WHIRLPOOL RIO CLARO</td>
+                  <td style="padding:5px 0;"><strong>Unidade:</strong> UNIDADE RIO CLARO</td>
                   <td style="padding:5px 0;"><strong>Setor:</strong> M014718</td>
                 </tr>
                 <tr>

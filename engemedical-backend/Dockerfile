@@ -6,7 +6,7 @@ RUN corepack enable && corepack prepare pnpm@10.20.0 --activate
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY engemedical-backend/package.json engemedical-backend/pnpm-lock.yaml engemedical-backend/pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 
@@ -39,7 +39,6 @@ ENV PORT=3333
 COPY --from=build /app/dist ./dist
 COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/src/google/drive/googleDriveApi.json ./googleDriveApi.json
 
 # Se voce usa assets do Nest (como emails / views / uploads)
 COPY --from=build /app/public ./public

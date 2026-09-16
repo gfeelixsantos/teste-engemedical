@@ -861,7 +861,7 @@ const TicketOptionsScreen = ({
 
   const handleTicketOption = (tipo: TicketTypes) => {
     if (tipo === TicketTypes.ATENDIMENTO) {
-      setSubOptions([TicketTypes.NORMAL, TicketTypes.WHIRLPOOL]);
+      handleAtendimentoGeral();
     } else if (tipo === TicketTypes.PREFERENCIAL) {
       setShowPreferencialTypes(true);
     } else {
@@ -962,8 +962,6 @@ const TicketOptionsScreen = ({
         return <UserPlusIcon className={iconClass} />;
       case TicketTypes.RETIRADA_EXAMES:
         return <ClipboardDocumentCheckIcon className={iconClass} />;
-      case TicketTypes.WHIRLPOOL:
-        return <BuildingOfficeIcon className={iconClass} />;
       default:
         return <UserIcon className={iconClass} />;
     }
@@ -980,7 +978,7 @@ const TicketOptionsScreen = ({
 
   const subButtons = subOptions?.map((type) => ({
     type,
-    label: type === TicketTypes.NORMAL ? "ATENDIMENTO GERAL" : type,
+    label: "ATENDIMENTO GERAL",
   }));
 
   const buttonsToRender = subOptions ? subButtons : mainButtons;
@@ -1020,7 +1018,6 @@ const TicketOptionsScreen = ({
                 isLoading={checkingScheduling}
                 onBack={() => {
                   setShowBirthYearModal(false);
-                  setSubOptions([TicketTypes.NORMAL, TicketTypes.WHIRLPOOL]);
                 }}
                 onConfirm={handleBirthYearConfirm}
                 onOptOut={async () => {

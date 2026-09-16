@@ -23,7 +23,6 @@ import ExamePadrao from "./exames/ExamePadrao";
 import AudiometriaOcupacional from "./exames/AudiometriaOcupacional";
 import KitAtendimento from "./exames/KitAtendimento";
 import Ultrassom from "./exames/Ultrassom";
-import FichaClinicaWhirlpool from "./exames/FichaClinicaWhirlpool";
 import FichaAssistencial from "./exames/FichaAssistencial";
 import { AtendimentoRules } from "./AtendimentoRules";
 import { fetchExames, IExame } from "@/lib/exames/services/exames.service";
@@ -475,7 +474,6 @@ const AtendimentoModalExames = ({
       forms: {
         EXAME_FORM_MAP,
         KitAtendimento,
-        FichaClinicaWhirlpool,
       },
       templateKey,
     });

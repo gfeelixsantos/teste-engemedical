@@ -16,7 +16,6 @@ export enum TicketStatus {
 export enum TicketTypes {
   NORMAL = '',
   PREFERENCIAL = 'P',
-  WHIRLPOOL = 'W',
   RETIRADA_EXAMES = 'R',
 }
 
