@@ -106,6 +106,12 @@ describe('ClienteFuncionariosStatusService', () => {
     ).toBe('EXPIRADO');
   });
 
+  it('classifica exame clínico de 2025 como expirado em 2026, não pendente', () => {
+    expect(
+      service.resolve(employee(), scheduling(), today, ['15/09/2025']).status,
+    ).toBe('EXPIRANDO');
+  });
+
   it('retorna EXPIRANDO no limite de onze meses e permanece válido no dia anterior', () => {
     expect(
       service.resolve(employee({ DTASO: '15/10/2025' }), scheduling(), today).status,

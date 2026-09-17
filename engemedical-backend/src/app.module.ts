@@ -40,7 +40,6 @@ import { AuditLogModule } from './audit-log/audit-log.module';
 import { AtendimentoAuthModule } from './atendimento-auth/atendimento-auth.module';
 import { UnitsModule } from './units/units.module';
 import { TeleatendimentoModule } from './teleatendimento/teleatendimento.module';
-import { GoogleDriveModule } from './google/drive/google-drive.module';
 import { CommitmentsModule } from './commitments/commitments.module';
 import { MuralModule } from './mural/mural.module';
 import { CustomerEmailCampaignModule } from './customer-email-campaign/customer-email-campaign.module';
@@ -107,7 +106,6 @@ if (!isProd) {
     AtendimentoAuthModule,
     UnitsModule,
     TeleatendimentoModule,
-    GoogleDriveModule,
     CommitmentsModule,
     MuralModule,
     CustomerEmailCampaignModule,

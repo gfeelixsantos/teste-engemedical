@@ -32,8 +32,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
         }}
         showSearch={false}
         sidebarContent={<SidebarCliente />}
-        sidebarClassName="border-[#CBE3D3] border-r border-r-gray-200 bg-[linear-gradient(180deg,#F6FBF8_0%,#EDF7F1_100%)] shadow-[2px_0_12px_rgba(0,0,0,0.06)]"
-        headerChildren={<CompanySelector />}
+sidebarClassName="border-[#CBE3D3] border-r border-r-gray-200 bg-[linear-gradient(180deg,#F6FBF8_0%,#EDF7F1_100%)] shadow-[2px_0_12px_rgba(0,0,0,0.06)]"
       >
         {children}
       </AppShell>

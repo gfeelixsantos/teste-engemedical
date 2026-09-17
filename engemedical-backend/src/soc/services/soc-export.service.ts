@@ -735,6 +735,53 @@ export class SocExportService {
     }
   }
 
+  /** Histórico anual de exames usado pelo /management do projeto C#. */
+  async EdExamesRealizadosPorEmpresa(
+    empresaSolicitada: string,
+  ): Promise<ResultadoDataFichaExame[]> {
+    const credentials = getSocExportLayoutCredentials(
+      'SOC_ED_EXAMES_REALIZADOS_DATA_EMPRESA',
+      this.configService,
+    );
+    const now = new Date();
+    const result: ResultadoDataFichaExame[] = [];
+
+    for (const year of [now.getFullYear() - 1, now.getFullYear()]) {
+      const payload = {
+        empresa: empresaSolicitada,
+        ...credentials,
+        tipoSaida: 'json',
+        empresaTrabalho: empresaSolicitada,
+        dataInicio: `01/01/${year}`,
+        dataFim: `31/12/${year}`,
+      };
+      const response = await fetch(buildSocExportDataUrl(payload, this.configService), {
+        signal: AbortSignal.timeout(30000),
+      });
+      const responseDecode = new TextDecoder('iso-8859-1').decode(
+        await response.arrayBuffer(),
+      );
+      if (!response.ok) {
+        this.logger.error(
+          `Erro SOC histórico de exames: empresa=${empresaSolicitada} ano=${year} HTTP=${response.status} ${responseDecode.slice(0, 180)}`,
+        );
+        throw new Error(`SOC histórico de exames retornou HTTP ${response.status}`);
+      }
+      result.push(
+        ...safeParseSocJson<ResultadoDataFichaExame>(
+          responseDecode,
+          `histórico de exames da empresa ${empresaSolicitada}/${year}`,
+          this.logger,
+        ),
+      );
+    }
+
+    this.logger.log(
+      `[SOC] SOC_ED_EXAMES_REALIZADOS_DATA_EMPRESA: empresa=${empresaSolicitada} exames=${result.length}`,
+    );
+    return result;
+  }
+
   /**
    * Obtém o cache de resultados de fichas de exames.
    */

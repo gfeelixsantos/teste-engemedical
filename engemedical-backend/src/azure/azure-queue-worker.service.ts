@@ -9,15 +9,11 @@ import {
 import { DequeuedMessageItem, QueueClient } from '@azure/storage-queue';
 import { SocService } from '../soc/soc.service';
 import { AzureService } from './azure.service';
-import { GoogleDriveUploadService } from './google-drive-upload.service';
 
 @Injectable()
 export class AzureQueueWorkerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(AzureQueueWorkerService.name);
   private isRunning = false;
-  private readonly googleDriveQueueEnabled =
-    String(process.env.ENABLE_GOOGLE_DRIVE_QUEUE || 'false').toLowerCase() ===
-    'true';
   private readonly resultadoExameSocMaxAttempts = 3;
   private readonly resultadoExameSocRetryDelaysMs = [10_000, 20_000];
   private readonly resultadoExameSocVisibilityTimeout = 90;
@@ -27,7 +23,6 @@ export class AzureQueueWorkerService implements OnModuleInit, OnModuleDestroy {
     private readonly azureService: AzureService,
     @Inject(forwardRef(() => SocService))
     private readonly socService: SocService,
-    private readonly googleDriveUploadService: GoogleDriveUploadService,
   ) { }
 
   onModuleInit() {
@@ -60,13 +55,6 @@ export class AzureQueueWorkerService implements OnModuleInit, OnModuleDestroy {
     );
     this.pollResultadoExameSoc();
     this.pollSocged();
-    if (this.googleDriveQueueEnabled) {
-      this.pollGoogleDriveUpload();
-    } else {
-      this.logger.warn(
-        '[AZURE_QUEUE_WORKER] Fila GOOGLE-DRIVE desabilitada no ambiente atual. Polling nao sera iniciado.',
-      );
-    }
   }
 
   onModuleDestroy() {
@@ -253,61 +241,4 @@ export class AzureQueueWorkerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async pollGoogleDriveUpload() {
-    const queueClient = (this.azureService as any)
-      .queueGoogleDriveUploadClient as QueueClient;
-    if (!queueClient) return;
-
-    while (this.isRunning) {
-      try {
-        const response = await queueClient.receiveMessages({
-          numberOfMessages: 5,
-          visibilityTimeout: 300,
-        });
-
-        for (const message of response.receivedMessageItems) {
-          let payload: any;
-          try {
-            payload = this.parseQueuePayload(
-              message.messageText,
-              'GOOGLE-DRIVE',
-            );
-          } catch (parseError: any) {
-            this.logger.error(
-              `[AZURE_QUEUE_WORKER][GOOGLE-DRIVE] Erro ao parsear mensagem ${message.messageId}: ${parseError?.message ?? parseError}. Removendo item invalido da fila.`,
-            );
-            await queueClient.deleteMessage(
-              message.messageId,
-              message.popReceipt,
-            );
-            continue;
-          }
-
-          this.logger.log(
-            `[AZURE_QUEUE_WORKER][GOOGLE-DRIVE] Mensagem recebida: schedulingId=${payload.schedulingId ?? 'n/a'} | documentType=${payload.documentType ?? 'n/a'} | url=${payload.url ?? 'n/a'}`,
-          );
-
-          try {
-            await this.googleDriveUploadService.processAsoUpload(payload);
-            await queueClient.deleteMessage(
-              message.messageId,
-              message.popReceipt,
-            );
-            this.logger.log(
-              `[AZURE_QUEUE_WORKER][GOOGLE-DRIVE] Mensagem processada e removida: ${payload.schedulingId ?? 'n/a'}`,
-            );
-          } catch (error: any) {
-            this.logger.error(
-              `[AZURE_QUEUE_WORKER][GOOGLE-DRIVE] Erro ao processar upload: ${error?.message ?? error}`,
-            );
-          }
-        }
-      } catch (err: any) {
-        this.logger.error(
-          `[AZURE_QUEUE_WORKER][GOOGLE-DRIVE] Erro no polling: ${err?.message ?? err}`,
-        );
-      }
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-    }
-  }
 }

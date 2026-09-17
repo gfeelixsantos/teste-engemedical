@@ -21,6 +21,8 @@ export interface IEmployeeCommitment {
   company_contact?: string | null;
   emails_comunicado: string[];
   vehicle?: VehicleType | null;
+  companyCode?: string;
+  activationId?: string;
   created_at?: string | Date;
   updated_at?: string | Date;
 }
@@ -36,6 +38,8 @@ export interface ICreateCommitmentDto {
   company_contact?: string;
   emails_comunicado?: string[];
   vehicle?: VehicleType | null;
+  companyCode?: string;
+  activationId?: string;
 }
 
 export interface IUpdateCommitmentDto {

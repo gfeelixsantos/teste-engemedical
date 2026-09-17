@@ -16,7 +16,6 @@ import {
   EmailType,
   resultadosExamesQueue,
   UploadSocged,
-  UploadGoogleDrive,
   AsoProcessingMessage,
   AsoEnriquecimentoMessage,
   ResultadoExameSocMessage,
@@ -59,8 +58,6 @@ export class AzureService {
     process.env.AZURE_QUEUE_ASO_ENRIQUECIMENTO || 'aso-enriquecimento';
   private readonly queueExameEnriquecimento =
     process.env.AZURE_QUEUE_EXAME_ENRIQUECIMENTO || 'exames-enriquecimento';
-  private readonly queueGoogleDriveUpload =
-    process.env.AZURE_QUEUE_GOOGLE_DRIVE_UPLOAD || 'google-drive-upload';
   private readonly queueResultadoExameSoc =
     process.env.AZURE_QUEUE_RESULTADO_EXAME_SOC || 'resultado-exame-soc';
   private readonly queueCustomerEmailCampaign =
@@ -74,9 +71,6 @@ export class AzureService {
     process.env.AZURE_QUEUE_EXAME_ENRIQUECIMENTO_FALHAS || 'exames-enriquecimento-falhas';
   private readonly queueAsoProcessingFalhas =
     process.env.AZURE_QUEUE_ASO_PROCESSING_FALHAS || 'aso-processing-falhas';
-  private readonly googleDriveQueueEnabled =
-    String(process.env.ENABLE_GOOGLE_DRIVE_QUEUE || 'false').toLowerCase() ===
-    'true';
 
   private queueResultadosClient: QueueClient | null = null;
   private queueEmailClient: QueueClient | null = null;
@@ -84,7 +78,6 @@ export class AzureService {
   private queueAsoProcessingClient: QueueClient | null = null;
   private queueAsoEnriquecimentoClient: QueueClient | null = null;
   public queueExameEnriquecimentoClient: QueueClient | null = null;
-  public queueGoogleDriveUploadClient: QueueClient | null = null;
   public queueResultadoExameSocClient: QueueClient | null = null;
   private queueCustomerEmailCampaignClient: QueueClient | null = null;
   // Dead Letter Queue clients
@@ -161,9 +154,6 @@ export class AzureService {
     );
     this.queueExameEnriquecimentoClient =
       this.queueServiceClient.getQueueClient(this.queueExameEnriquecimento);
-    this.queueGoogleDriveUploadClient = this.queueServiceClient.getQueueClient(
-      this.queueGoogleDriveUpload,
-    );
     this.queueResultadoExameSocClient = this.queueServiceClient.getQueueClient(
       this.queueResultadoExameSoc,
     );
@@ -189,7 +179,6 @@ export class AzureService {
       this.queueAsoProcessingClient.createIfNotExists(),
       this.queueAsoEnriquecimentoClient.createIfNotExists(),
       this.queueExameEnriquecimentoClient.createIfNotExists(),
-      this.queueGoogleDriveUploadClient.createIfNotExists(),
       this.queueResultadoExameSocClient.createIfNotExists(),
       this.queueCustomerEmailCampaignClient.createIfNotExists(),
       this.queueEmailFalhasClient.createIfNotExists(),
@@ -828,24 +817,6 @@ export class AzureService {
     this.logger.log(`[QUEUE] SOCGED enfileirado`);
   }
 
-  async filaUploadGoogleDrive(payload: UploadGoogleDrive) {
-    if (!this.googleDriveQueueEnabled) {
-      this.logger.log(
-        `[QUEUE] GOOGLE_DRIVE desabilitado temporariamente. Pulando enfileiramento para schedulingId=${payload.schedulingId} documentType=${payload.documentType}`,
-      );
-      return;
-    }
-
-    const queueClient = this.getQueueClientOrThrow(
-      this.queueGoogleDriveUploadClient,
-      this.queueGoogleDriveUpload,
-    );
-    await queueClient.sendMessage(JSON.stringify(payload));
-    this.logger.log(
-      `[QUEUE] GOOGLE_DRIVE enfileirado para schedulingId=${payload.schedulingId} documentType=${payload.documentType}`,
-    );
-  }
-
   async filaAsoProcessing(payload: AsoProcessingMessage) {
     const queueClient = this.getQueueClientOrThrow(
       this.queueAsoProcessingClient,
@@ -1154,10 +1125,6 @@ export class AzureService {
         client: this.queueExameEnriquecimentoClient,
       },
       {
-        name: this.queueGoogleDriveUpload,
-        client: this.queueGoogleDriveUploadClient,
-      },
-      {
         name: this.queueResultadoExameSoc,
         client: this.queueResultadoExameSocClient,
       },
@@ -1213,7 +1180,6 @@ export class AzureService {
       [this.queueAsoProcessing]: this.queueAsoProcessingClient,
       [this.queueAsoEnriquecimento]: this.queueAsoEnriquecimentoClient,
       [this.queueExameEnriquecimento]: this.queueExameEnriquecimentoClient,
-      [this.queueGoogleDriveUpload]: this.queueGoogleDriveUploadClient,
       [this.queueResultadoExameSoc]: this.queueResultadoExameSocClient,
       // Dead Letter Queues
       [this.queueEmailFalhas]: this.queueEmailFalhasClient,
@@ -1235,7 +1201,6 @@ export class AzureService {
       this.queueAsoProcessing,
       this.queueAsoEnriquecimento,
       this.queueExameEnriquecimento,
-      this.queueGoogleDriveUpload,
       this.queueResultadoExameSoc,
       // Dead Letter Queues
       this.queueEmailFalhas,

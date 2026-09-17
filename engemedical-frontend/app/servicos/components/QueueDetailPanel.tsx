@@ -15,7 +15,6 @@ import {
   FileCheck,
   Send,
   Package,
-  HardDrive,
   Inbox,
   ChevronDown,
   ChevronRight,
@@ -37,7 +36,6 @@ const QUEUE_ICONS: Record<string, React.ReactNode> = {
   "aso-processing": <FileCheck className="h-5 w-5" />,
   "aso-enriquecimento": <FileCheck className="h-5 w-5" />,
   "exames-enriquecimento": <FileCheck className="h-5 w-5" />,
-  "google-drive-upload": <HardDrive className="h-5 w-5" />,
   "resultado-exame-soc": <Package className="h-5 w-5" />,
   "ged-batch": <Package className="h-5 w-5" />,
 };

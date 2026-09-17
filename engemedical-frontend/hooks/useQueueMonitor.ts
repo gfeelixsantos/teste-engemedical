@@ -87,13 +87,6 @@ export const QUEUE_WORKER_MAP: Record<string, QueueWorkerInfo> = {
     visibilitySeconds: 600,
     description: "Aplica a assinatura eletrônica em laudos e exames laboratoriais",
   },
-  "google-drive-upload": {
-    label: "Backup Google Drive",
-    consumer: "Backend (desabilitado)",
-    concurrency: 1,
-    visibilitySeconds: 300,
-    description: "Salva cópias de segurança dos documentos na nuvem do Google",
-  },
   "resultado-exame-soc": {
     label: "Processamento SOC (Resultados)",
     consumer: "Backend (SOC Service)",

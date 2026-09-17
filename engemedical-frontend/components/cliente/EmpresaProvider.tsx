@@ -83,11 +83,11 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
         // Cache no IndexedDB para offline
         try { await IndexDb.saveCompanies(serverEmpresas); } catch {}
 
-        const savedId = sessionStorage.getItem("selectedEmpresaId");
-        const sel = savedId
-          ? serverEmpresas.find((e) => String(e.CODIGO) === String(savedId))
-          : serverEmpresas[0];
-        setSelectedEmpresa(sel || serverEmpresas[0]);
+const savedId = sessionStorage.getItem("selectedEmpresaId");
+       const sel = savedId
+         ? serverEmpresas.find((e) => String(e.CODIGO) === String(savedId))
+         : null;
+       setSelectedEmpresa(sel);
 
         setStatus(missing.length > 0 ? "missing_companies" : "ok");
         setIsLoading(false);
@@ -117,11 +117,11 @@ export function EmpresaProvider({ children }: { children: ReactNode }) {
         setStatus("ok");
       }
 
-      const savedId = sessionStorage.getItem("selectedEmpresaId");
-      const sel = savedId
-        ? empresasFromDb.find((e) => String(e.CODIGO) === String(savedId))
-        : empresasFromDb[0];
-      setSelectedEmpresa(sel || empresasFromDb[0]);
+const savedId = sessionStorage.getItem("selectedEmpresaId");
+       const sel = savedId
+         ? empresasFromDb.find((e) => String(e.CODIGO) === String(savedId))
+         : null;
+       setSelectedEmpresa(sel);
 
       setIsLoading(false);
     };

@@ -89,10 +89,11 @@ export function QuickDashboard() {
       { name: "Válidos", value: data.validos, color: "#0BA942" },
       { name: "A vencer", value: data.aVencer, color: "#F59E0B" },
       { name: "Vencidos", value: data.vencidos, color: "#EF4444" },
+      { name: "Sem histórico", value: data.semHistorico, color: "#8B5CF6" },
     ];
   }, [data]);
 
-  const displayTotal = data ? data.validos + data.aVencer + data.vencidos : 0;
+  const displayTotal = data ? data.validos + data.aVencer + data.vencidos + data.semHistorico : 0;
   const animatedTotal = useCountUp(displayTotal);
 
   if (isLoading && !data) {
@@ -131,7 +132,6 @@ export function QuickDashboard() {
         <h3 className="text-base font-bold text-gray-900">Visão Geral</h3>
         <p className="mt-0.5 text-sm text-gray-500">
           {displayTotal.toLocaleString("pt-BR")} colaboradores • {data.porEmpresa.length} empresa(s)
-          {data.semHistorico > 0 ? ` • ${data.semHistorico} sem histórico` : ""}
         </p>
         {error && <p className="mt-1 text-[11px] text-amber-600">Aviso: {error}</p>}
       </div>

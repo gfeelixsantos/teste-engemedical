@@ -360,17 +360,6 @@ export type RiscosAso = {
 };
 
 export type AsoInfo = {
-  googleDrive?: {
-    fileId?: string | null;
-    fileName?: string | null;
-    uploadedAt?: Date;
-    pending?: boolean;
-    pendingAt?: Date;
-    source?: 'GOOGLE_DRIVE_QUEUE' | 'SOCGED_FALLBACK';
-    lastError?: string | null;
-    lastAttemptAt?: Date;
-  };
-
   // ✅ STATUS E ASSINATURA UNIFICADOS
   status: SignatureStatus;
   signature?: DocumentSignatureInfo;

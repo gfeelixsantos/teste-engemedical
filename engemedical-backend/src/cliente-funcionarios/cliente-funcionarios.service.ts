@@ -10,6 +10,7 @@ import {
   ClienteFuncionariosSchedulingReader,
   SchedulingSummary,
 } from './cliente-funcionarios.types';
+import { ResultadoDataFichaExame } from 'src/soc/types/ResultadoExameDataFicha';
 
 @Injectable()
 export class MongoClienteFuncionariosSchedulingReader
@@ -120,6 +121,13 @@ export class ClienteFuncionariosService {
         ferias: 'Sim',
       },
     );
+    const examHistory =
+      typeof (this.socExportService as SocExportServiceWithExamHistory)
+        .EdExamesRealizadosPorEmpresa === 'function'
+        ? await (this.socExportService as SocExportServiceWithExamHistory)
+            .EdExamesRealizadosPorEmpresa(companyCode)
+        : [];
+    const clinicHistoryByEmployee = this.groupClinicHistory(examHistory);
 
     const enriched = await Promise.all(
       employees.map(async (employee) => {
@@ -127,7 +135,12 @@ export class ClienteFuncionariosService {
           companyCode,
           String(employee.CODIGO ?? '').trim(),
         );
-        const resolved = this.statusService.resolve(employee, scheduling, new Date());
+        const resolved = this.statusService.resolve(
+          employee,
+          scheduling,
+          new Date(),
+          clinicHistoryByEmployee.get(String(employee.CODIGO ?? '').trim()) ?? [],
+        );
         return { employee, resolved, item: mapClienteFuncionario(employee, resolved) };
       }),
     );
@@ -172,6 +185,25 @@ export class ClienteFuncionariosService {
     );
   }
 
+  private groupClinicHistory(
+    history: ResultadoDataFichaExame[],
+  ): Map<string, Array<string | Date>> {
+    const grouped = new Map<string, Array<string | Date>>();
+    for (const exam of history) {
+      const code = String(exam.CODEXAME ?? '').trim().toLowerCase();
+      if (!['clinico', 'exm1', '11'].includes(code) || String(exam.TIPOFICHA ?? '').trim() === '6') {
+        continue;
+      }
+      const employeeCode = String(exam.CODFUNCIONARIO ?? '').trim();
+      const examDate = String(exam.DATAEXAME ?? '').trim();
+      if (!employeeCode || !examDate) continue;
+      const dates = grouped.get(employeeCode) ?? [];
+      dates.push(examDate);
+      grouped.set(employeeCode, dates);
+    }
+    return grouped;
+  }
+
   private toPage(value: unknown): number {
     const page = Number(value ?? 1);
     return Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
@@ -183,6 +215,12 @@ export class ClienteFuncionariosService {
     return Math.min(100, Math.max(10, Math.floor(limit)));
   }
 }
+
+type SocExportServiceWithExamHistory = SocExportService & {
+  EdExamesRealizadosPorEmpresa: (
+    empresaCode: string,
+  ) => Promise<ResultadoDataFichaExame[]>;
+};
 
 function normalizeSearch(value: unknown): string {
   return String(value ?? '')

@@ -1,308 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  AlertCircle,
-  ArrowRight,
-  Building2,
-  CheckCircle2,
-  ClipboardCheck,
-  Clock3,
-  UsersRound,
-} from "lucide-react";
-
+import { AlertCircle, ArrowRight, Building2, CheckCircle2, ClipboardCheck, Clock3, Upload, UsersRound } from "lucide-react";
 import { useEmpresas } from "@/components/cliente/EmpresaProvider";
+import { activationScheduleForDate, nextActivationDates } from "@/lib/activation-schedule";
 
-type Activation = {
-  status:
-    | "NOT_STARTED"
-    | "IN_PROGRESS"
-    | "SUBMITTED"
-    | "UNDER_REVIEW"
-    | "COMPLETED"
-    | "BLOCKED";
-  currentStep: "COMPANY" | "EMPLOYEES" | "APPOINTMENT" | "DOCUMENTS" | "REVIEW";
-  completedSteps: string[];
-  pendingItems: string[];
-  progress: number;
-};
+type Activation = { id?: string; status: "NOT_STARTED" | "IN_PROGRESS" | "SUBMITTED" | "UNDER_REVIEW" | "COMPLETED" | "BLOCKED"; currentStep: string; completedSteps: string[]; pendingItems: string[]; progress: number; contact?: { name: string; email: string; phone?: string }; appointmentId?: string; employeeSheet?: { filename: string; size: number; rowCount: number } };
+type Response = { company: { companyCode: string; companyName: string; cnpj: string; filialId: string }; activation: Activation };
+const labels: Record<string, string> = { APPOINTMENT: "Reunião de implantação", COMPANY: "Dados da empresa", CONTACT: "Contato principal", EMPLOYEES: "Planilha de funcionários", REVIEW: "Validação pela equipe" };
+const flow = ["APPOINTMENT", "COMPANY", "CONTACT", "EMPLOYEES", "REVIEW"];
 
-type ActivationResponse = {
-  company: {
-    companyCode: string;
-    companyName: string;
-    cnpj: string;
-    filialId: string;
-  };
-  activation: Activation;
-};
-
-const stepLabels: Record<string, string> = {
-  COMPANY: "Dados da empresa",
-  EMPLOYEES: "Pessoas e funcionários",
-  APPOINTMENT: "Reunião de implantação",
-  DOCUMENTS: "Documentos e autorizações",
-  REVIEW: "Revisão e envio",
-};
-
-const statusLabels: Record<Activation["status"], string> = {
-  NOT_STARTED: "Ainda não iniciada",
-  IN_PROGRESS: "Em andamento",
-  SUBMITTED: "Enviada para análise",
-  UNDER_REVIEW: "Em análise pela Engemedical",
-  COMPLETED: "Ativação concluída",
-  BLOCKED: "Precisa de atenção",
-};
-
-function formatCnpj(value: string) {
-  const digits = value.replace(/\D/g, "");
-
-  if (digits.length !== 14) return value || "CNPJ não informado";
-
-  return digits.replace(
-    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
-    "$1.$2.$3/$4-$5",
-  );
-}
+function formatCnpj(value: string) { const d = value.replace(/\D/g, ""); return d.length === 14 ? d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5") : value || "CNPJ não informado"; }
 
 export default function ClienteAtivacaoPage() {
   const { selectedEmpresa, isLoading: empresasLoading } = useEmpresas();
-  const [data, setData] = useState<ActivationResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const companyCode = selectedEmpresa?.CODIGO
-      ? String(selectedEmpresa.CODIGO)
-      : "";
-
-    if (!companyCode) {
-      setData(null);
-      setLoading(false);
-
-      return;
-    }
-
-    let cancelled = false;
-
-    setLoading(true);
-    setError(null);
-
-    fetch(`/api/cliente/ativacao?empresa=${encodeURIComponent(companyCode)}`, {
-      cache: "no-store",
-    })
-      .then(async (response) => {
-        const payload = await response.json().catch(() => ({}));
-
-        if (!response.ok)
-          throw new Error(
-            payload.message || "Não foi possível carregar a ativação.",
-          );
-
-        return payload as ActivationResponse;
-      })
-      .then((payload) => {
-        if (!cancelled) setData(payload);
-      })
-      .catch((cause: unknown) => {
-        if (!cancelled)
-          setError(
-            cause instanceof Error
-              ? cause.message
-              : "Não foi possível carregar a ativação.",
-          );
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedEmpresa?.CODIGO]);
-
-  if (empresasLoading || loading) {
-    return (
-      <div className="flex min-h-full items-center justify-center p-8 text-sm text-brand-700">
-        Carregando sua Central de Ativação...
-      </div>
-    );
-  }
-
-  if (!selectedEmpresa) {
-    return (
-      <div className="p-8">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-amber-200 bg-amber-50 p-8 text-amber-900">
-          <AlertCircle className="mb-3 h-6 w-6" />
-          <h1 className="text-xl font-semibold">Selecione uma empresa</h1>
-          <p className="mt-2 text-sm">
-            Escolha uma empresa na navegação lateral para consultar sua
-            ativação.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="p-8">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-rose-200 bg-rose-50 p-8 text-rose-900">
-          <AlertCircle className="mb-3 h-6 w-6" />
-          <h1 className="text-xl font-semibold">
-            Não foi possível carregar a ativação
-          </h1>
-          <p className="mt-2 text-sm">
-            {error || "Tente novamente em alguns instantes."}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const activation = data.activation;
-  const steps = ["COMPANY", "EMPLOYEES", "APPOINTMENT", "DOCUMENTS", "REVIEW"];
-
-  return (
-    <div className="min-h-full bg-[radial-gradient(circle_at_top_right,#E8F5ED_0%,#F8FBF9_35%,#F5F7F6_100%)] p-5 sm:p-8">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <header className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-brand-line bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand-700">
-              <ClipboardCheck className="h-3.5 w-3.5" /> Central de Ativação
-            </div>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-              Ative sua empresa com tranquilidade
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Acompanhe as etapas de implantação e conclua apenas o que ainda
-              precisa da sua atenção.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-white/80 bg-white/80 px-4 py-3 shadow-sm">
-            <p className="text-xs text-slate-500">Status atual</p>
-            <p className="mt-1 text-sm font-semibold text-brand-800">
-              {statusLabels[activation.status]}
-            </p>
-          </div>
-        </header>
-
-        <section className="rounded-3xl border border-brand-line bg-white p-6 shadow-[0_16px_45px_rgba(41,96,66,0.10)] sm:p-8">
-          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
-            <div className="flex gap-4">
-              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700">
-                <Building2 className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">
-                  Empresa ativa
-                </p>
-                <h2 className="mt-1 text-xl font-semibold text-slate-900">
-                  {data.company.companyName}
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  {formatCnpj(data.company.cnpj)}
-                  {data.company.filialId
-                    ? ` · Filial ${data.company.filialId}`
-                    : ""}
-                </p>
-              </div>
-            </div>
-            <div className="text-left md:text-right">
-              <p className="text-3xl font-semibold text-brand-700">
-                {activation.progress}%
-              </p>
-              <p className="text-xs text-slate-500">concluído</p>
-            </div>
-          </div>
-          <div className="mt-7 h-2 overflow-hidden rounded-full bg-brand-50">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-700 transition-all"
-              style={{ width: `${activation.progress}%` }}
-            />
-          </div>
-        </section>
-
-        <section id="activation-steps" className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {steps.map((step, index) => {
-            const complete = activation.completedSteps.includes(step);
-            const current = activation.currentStep === step;
-
-            return (
-              <div
-                key={step}
-                className={`rounded-2xl border p-5 ${complete ? "border-emerald-200 bg-emerald-50/70" : current ? "border-brand-300 bg-white shadow-sm" : "border-slate-200 bg-white/70"}`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-400">
-                    0{index + 1}
-                  </span>
-                  {complete ? (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                  ) : current ? (
-                    <Clock3 className="h-5 w-5 text-brand-600" />
-                  ) : (
-                    <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
-                  )}
-                </div>
-                <p className="mt-6 text-sm font-semibold text-slate-800">
-                  {stepLabels[step]}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {complete
-                    ? "Concluído"
-                    : current
-                      ? "Próximo passo"
-                      : "Pendente"}
-                </p>
-              </div>
-            );
-          })}
-        </section>
-
-        <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-          <div className="rounded-3xl border border-brand-line bg-white p-6 shadow-sm sm:p-8">
-            <div className="flex items-start gap-4">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-50 text-amber-700">
-                <AlertCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">
-                  Próximo passo recomendado
-                </p>
-                <h2 className="mt-2 text-xl font-semibold text-slate-900">
-                  {activation.pendingItems[0]
-                    ? stepLabels[activation.pendingItems[0]] ||
-                      activation.pendingItems[0]
-                    : "Sua ativação está em dia"}
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {activation.pendingItems.length
-                    ? "Conclua esta pendência para liberar a próxima etapa da implantação."
-                    : "Não há pendências para esta empresa no momento."}
-                </p>
-              </div>
-            </div>
-            <button
-              className="mt-7 inline-flex items-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-800"
-              onClick={() => document.getElementById("activation-steps")?.scrollIntoView({ behavior: "smooth", block: "center" })}
-              type="button"
-            >
-              Ver checklist <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="rounded-3xl border border-brand-line bg-brand-900 p-6 text-white shadow-sm sm:p-8">
-            <UsersRound className="h-6 w-6 text-brand-200" />
-            <h2 className="mt-5 text-lg font-semibold">Precisa de ajuda?</h2>
-            <p className="mt-2 text-sm leading-6 text-brand-100">
-              Nossa equipe acompanha sua ativação e poderá orientar cada etapa.
-            </p>
-            <button className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white underline decoration-brand-300 underline-offset-4">
-              Falar com a equipe <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-        </section>
-      </div>
-    </div>
-  );
+  const [data, setData] = useState<Response | null>(null); const [loading, setLoading] = useState(true); const [message, setMessage] = useState("");
+  const [meeting, setMeeting] = useState({ date: "", time: "" }); const [weekOffset, setWeekOffset] = useState(0); const [contact, setContact] = useState({ name: "", email: "", phone: "" }); const [file, setFile] = useState<File | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
+  const code = selectedEmpresa?.CODIGO ? String(selectedEmpresa.CODIGO) : "";
+  const load = async () => { if (!code) return; setLoading(true); setError(""); try { const r = await fetch(`/api/cliente/ativacao?empresa=${code}`, { cache: "no-store" }); const payload = await r.json().catch(() => ({})); if (!r.ok || !payload.company || !payload.activation) throw new Error(payload.message || "Não foi possível carregar a ativação."); setData(payload); } catch (cause) { setData(null); setError(cause instanceof Error ? cause.message : "Não foi possível carregar a ativação."); } finally { setLoading(false); } };
+  useEffect(() => { load(); }, [code]);
+  const availableDates = nextActivationDates(new Date(), 30);
+  const visibleDates = availableDates.slice(weekOffset * 5, weekOffset * 5 + 5);
+  const availableTimes = meeting.date ? activationScheduleForDate(meeting.date) : [];
+  const formatMeetingDate = (date: string) => new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" }).format(new Date(`${date}T12:00:00`));
+  const formatMonth = (date: string) => new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(new Date(`${date}T12:00:00`));
+  const toMeetingPayload = () => {
+    if (!meeting.date || !meeting.time) return null;
+    const start = `${meeting.date}T${meeting.time}:00-03:00`;
+    const endHour = String(Number(meeting.time.slice(0, 2)) + 1).padStart(2, "0");
+    return { start_time: start, end_time: `${meeting.date}T${endHour}:00:00-03:00` };
+  };
+  const call = async (action: string, body: Record<string, unknown>) => { setBusy(true); setMessage(""); setError(""); try { const r = await fetch(`/api/cliente/ativacao?action=${action}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, id: data?.activation.id, empresa: code }) }); const payload = await r.json().catch(() => ({})); if (!r.ok || !payload.company || !payload.activation) throw new Error(payload.message || "Não foi possível salvar esta etapa."); setData(payload); } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível salvar esta etapa."); } finally { setBusy(false); } };
+  const start = async () => { setBusy(true); setError(""); try { const r = await fetch(`/api/cliente/ativacao?action=start&empresa=${code}`, { method: "POST" }); const payload = await r.json().catch(() => ({})); if (!r.ok || !payload.company || !payload.activation) throw new Error(payload.message || "Não foi possível iniciar a ativação."); setData(payload); } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível iniciar a ativação."); } finally { setBusy(false); } };
+  const upload = async () => { if (!file || !data?.activation.id) return; setBusy(true); const form = new FormData(); form.append("id", data.activation.id); form.append("empresa", code); form.append("file", file); const r = await fetch("/api/cliente/ativacao?action=employee-sheet", { method: "POST", body: form }); const payload = await r.json().catch(() => ({})); setMessage(r.ok ? "Planilha enviada e validada para acompanhamento." : payload.message || "Não foi possível validar a planilha."); if (r.ok) setData(payload); setBusy(false); };
+  if (empresasLoading || loading) return <div className="flex min-h-full items-center justify-center p-8 text-sm text-brand-700">Carregando sua Central de Ativação...</div>;
+  if (!selectedEmpresa || !data) return <div className="p-8"><div className="mx-auto max-w-3xl rounded-3xl border border-amber-200 bg-amber-50 p-8 text-amber-900"><AlertCircle className="mb-3 h-6 w-6" /><h1 className="text-xl font-semibold">Não foi possível carregar a ativação</h1><p className="mt-2 text-sm">{error || "Selecione uma empresa na lateral e tente novamente."}</p><button onClick={load} className="mt-5 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white">Tentar novamente</button></div></div>;
+  const a = data.activation;
+  return <div className="min-h-full bg-[radial-gradient(circle_at_top_right,#E8F5ED_0%,#F8FBF9_35%,#F5F7F6_100%)] p-5 sm:p-8"><div className="mx-auto max-w-6xl space-y-6">
+    <header><div className="mb-3 inline-flex items-center gap-2 rounded-full border border-brand-line bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand-700"><ClipboardCheck className="h-3.5 w-3.5" /> Central de Ativação</div><h1 className="text-3xl font-semibold tracking-tight text-slate-900">Ative sua empresa com tranquilidade</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Acompanhe cada etapa e envie somente o que ainda precisa da sua atenção.</p></header>
+    <section className="rounded-3xl border border-brand-line bg-white p-6 shadow-sm sm:p-8"><div className="flex flex-col justify-between gap-5 md:flex-row"><div className="flex gap-4"><div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700"><Building2 className="h-6 w-6" /></div><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">Empresa ativa</p><h2 className="mt-1 text-xl font-semibold text-slate-900">{data.company.companyName}</h2><p className="mt-1 text-sm text-slate-500">{formatCnpj(data.company.cnpj)}{data.company.filialId ? ` · Filial ${data.company.filialId}` : ""}</p></div></div><div className="text-left md:text-right"><p className="text-3xl font-semibold text-brand-700">{a.progress}%</p><p className="text-xs text-slate-500">{a.status === "NOT_STARTED" ? "dormente" : "concluído"}</p></div></div><div className="mt-7 h-2 overflow-hidden rounded-full bg-brand-50"><div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-700" style={{ width: `${a.progress}%` }} /></div></section>
+    {(message || error) && <div className={`rounded-2xl border p-4 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-800" : "border-brand-line bg-brand-50 text-brand-800"}`}>{error || message}</div>}
+    {a.status === "NOT_STARTED" ? <section className="rounded-3xl border border-brand-line bg-white p-8 shadow-sm"><h2 className="text-xl font-semibold text-slate-900">Quando estiver pronto, sinalize o início</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Ao iniciar, abrimos o acompanhamento para nossa equipe e começamos pela reunião de implantação.</p><button disabled={busy} onClick={start} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">Iniciar ativação <ArrowRight className="h-4 w-4" /></button></section> : <>
+      <section className="grid gap-4 md:grid-cols-5">{flow.map((step, i) => { const done = a.completedSteps.includes(step); const current = a.currentStep === step; return <div key={step} className={`rounded-2xl border p-4 ${done ? "border-emerald-200 bg-emerald-50/70" : current ? "border-brand-300 bg-white shadow-sm" : "border-slate-200 bg-white/70"}`}><div className="flex justify-between"><span className="text-xs font-semibold text-slate-400">0{i + 1}</span>{done ? <CheckCircle2 className="h-5 w-5 text-emerald-600" /> : current ? <Clock3 className="h-5 w-5 text-brand-600" /> : <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />}</div><p className="mt-5 text-sm font-semibold text-slate-800">{labels[step]}</p><p className="mt-1 text-xs text-slate-500">{done ? "Concluído" : current ? "Próximo passo" : "Pendente"}</p></div>; })}</section>
+      {a.currentStep === "APPOINTMENT" && <section className="overflow-hidden rounded-[2rem] border border-brand-line bg-white shadow-[0_18px_50px_rgba(47,125,86,0.08)]"><div className="border-b border-slate-100 bg-gradient-to-r from-brand-50/80 via-white to-white px-6 py-6 sm:px-8"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start"><div><div className="inline-flex items-center gap-2 rounded-full border border-brand-line bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-brand-700"><Clock3 className="h-3.5 w-3.5" /> Primeiro passo</div><h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900">Escolha o melhor horário para começarmos</h2><p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Uma conversa de 1 hora para apresentar o processo e alinhar os próximos passos da ativação.</p></div><div className="rounded-2xl border border-brand-line bg-white px-4 py-3 text-left sm:min-w-[150px] sm:text-right"><p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Disponibilidade</p><p className="mt-1 text-sm font-semibold text-brand-700">Próximos dias úteis</p></div></div></div><div className="grid gap-0 lg:grid-cols-[1fr_260px]"><div className="p-6 sm:p-8"><div><div className="flex items-end justify-between gap-3"><div><p className="text-sm font-semibold text-slate-900">Escolha o dia da reunião</p><p className="mt-1 text-xs text-slate-500">Selecione uma semana para encontrar seu horário</p></div><span className="hidden rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 sm:inline-flex">Seg a sex</span></div><div className="mt-5 flex items-center justify-between gap-3"><button type="button" aria-label="Semana anterior" disabled={weekOffset === 0} onClick={() => setWeekOffset(value => Math.max(0, value - 1))} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200 text-lg text-slate-500 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-30">‹</button><p className="text-sm font-semibold capitalize text-slate-800">{visibleDates[0] ? formatMonth(visibleDates[0]) : "Sem disponibilidade"}</p><button type="button" aria-label="Próxima semana" disabled={(weekOffset + 1) * 5 >= availableDates.length} onClick={() => setWeekOffset(value => value + 1)} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200 text-lg text-slate-500 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-30">›</button></div><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">{visibleDates.map(date => { const [weekday, monthDay] = formatMeetingDate(date).split(","); return <button key={date} type="button" onClick={() => setMeeting({ date, time: "" })} className={`group rounded-2xl border px-3 py-4 text-left transition-all ${meeting.date === date ? "border-brand-600 bg-brand-50 text-brand-900 ring-2 ring-brand-200 shadow-md shadow-brand-700/10" : "border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50/50 hover:shadow-md"}`}><span className={`block text-[11px] font-bold uppercase tracking-[0.12em] ${meeting.date === date ? "text-brand-700" : "text-slate-400"}`}>{weekday}</span><span className="mt-1 block text-base font-semibold capitalize">{monthDay}</span><span className={`mt-2 block text-[11px] ${meeting.date === date ? "text-brand-600" : "text-slate-400"}`}>{activationScheduleForDate(date).length} horários</span></button>; })}</div></div>{meeting.date && <div className="mt-8 border-t border-slate-100 pt-7"><div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end"><div><p className="text-sm font-semibold text-slate-900">Horários disponíveis</p><p className="mt-1 text-xs text-slate-500">{formatMeetingDate(meeting.date)} · Horário de Brasília · 1 hora</p></div></div><div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">{availableTimes.map(time => <button key={time} type="button" onClick={() => setMeeting({ ...meeting, time })} className={`rounded-xl border px-3 py-3.5 text-sm font-semibold transition-all ${meeting.time === time ? "border-brand-600 bg-brand-700 text-white shadow-md shadow-brand-700/20" : "border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-brand-300 hover:bg-brand-50/50 hover:shadow-sm"}`}>{time}</button>)}</div></div>}</div><aside className="border-t border-slate-100 bg-slate-50/70 p-6 lg:border-l lg:border-t-0 sm:p-8"><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Sua reunião</p><div className="mt-5 flex items-start gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-100 text-brand-700"><ClipboardCheck className="h-5 w-5" /></div><div><p className="text-sm font-semibold text-slate-900">Reunião de implantação</p><p className="mt-1 text-xs leading-5 text-slate-500">Vamos explicar como sua ativação será conduzida.</p></div></div>{meeting.date && meeting.time ? <div className="mt-6 rounded-2xl border border-brand-line bg-white p-4"><p className="text-xs font-semibold capitalize text-brand-700">{formatMeetingDate(meeting.date)}</p><p className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{meeting.time}</p><p className="mt-1 text-xs text-slate-500">1 hora · Horário de Brasília</p></div> : <div className="mt-6 rounded-2xl border border-dashed border-slate-300 p-4 text-xs leading-5 text-slate-500">Escolha uma data e um horário para revisar os detalhes aqui.</div>}<button disabled={busy || !toMeetingPayload()} onClick={() => { const payload = toMeetingPayload(); if (payload) call("appointment", payload); }} className="mt-5 w-full rounded-xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-700/20 transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-50">Confirmar reunião</button><p className="mt-3 text-center text-[11px] leading-4 text-slate-400">Você poderá acompanhar esta reunião na sua agenda de compromissos.</p></aside></div></section>}
+      {a.currentStep === "COMPANY" && <section className="rounded-3xl border border-brand-line bg-white p-6 shadow-sm"><h2 className="text-xl font-semibold">Confirme os dados da empresa</h2><p className="mt-2 text-sm text-slate-600">Usamos o cadastro atual para evitar redigitação. Se houver divergência, informe a equipe.</p><div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">{data.company.companyName} · {formatCnpj(data.company.cnpj)}</div><button disabled={busy} onClick={() => call("company", {})} className="mt-5 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white">Confirmar dados</button></section>}
+      {a.currentStep === "CONTACT" && <section className="rounded-3xl border border-brand-line bg-white p-6 shadow-sm"><h2 className="text-xl font-semibold">Cadastre um contato principal</h2><div className="mt-5 grid gap-4 sm:grid-cols-3">{([['name','Nome'],['email','E-mail'],['phone','Telefone']] as const).map(([key, label]) => <label key={key} className="text-sm font-medium">{label}<input value={contact[key]} onChange={e => setContact({ ...contact, [key]: e.target.value })} className="mt-2 w-full rounded-xl border p-3" /></label>)}</div><button disabled={busy} onClick={() => call("contact", { ...contact, confirmed: true })} className="mt-5 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white">Salvar contato</button></section>}
+      {a.currentStep === "EMPLOYEES" && <section className="rounded-3xl border border-brand-line bg-white p-6 shadow-sm"><h2 className="text-xl font-semibold">Envie a planilha de funcionários</h2><p className="mt-2 text-sm text-slate-600">Aceitamos CSV, XLS ou XLSX. Validamos as colunas de nome completo e CPF antes de encaminhar para análise.</p><label className="mt-5 flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-brand-300 bg-brand-50 p-5 text-sm text-brand-800"><Upload className="h-5 w-5" /><span>{file?.name || "Selecionar planilha"}</span><input type="file" accept=".csv,.xls,.xlsx" onChange={e => setFile(e.target.files?.[0] || null)} className="sr-only" /></label><button disabled={busy || !file} onClick={upload} className="mt-5 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">Enviar e validar planilha</button></section>}
+      {a.currentStep === "REVIEW" && <section className="rounded-3xl border border-brand-line bg-brand-900 p-6 text-white shadow-sm"><UsersRound className="h-6 w-6 text-brand-200" /><h2 className="mt-4 text-xl font-semibold">Recebemos sua ativação</h2><p className="mt-2 text-sm leading-6 text-brand-100">A planilha foi validada e a equipe acompanhará a revisão. Os itens específicos do sistema serão tratados na próxima etapa do projeto.</p></section>}
+    </>}
+  </div></div>;
 }

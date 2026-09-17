@@ -13,7 +13,6 @@ import { SocCredentialedService } from './services/soc-credentialed.service';
 import { SocUploadService } from './services/soc-upload.service';
 import { AsoWorkerOrchestratorService } from './services/aso-worker-orchestrator.service';
 import { AzureModule } from 'src/azure/azure.module';
-import { GoogleDriveModule } from 'src/google/drive/google-drive.module';
 import { NodemailerModule } from '../nodemailer/nodemailer.module';
 import { UnitsModule } from '../units/units.module';
 import { SupabaseModule } from '../supabase/supabase.module';
@@ -25,7 +24,6 @@ import { SocInactivationCancellationRegistry } from './soc-inactivation-cancella
   imports: [
     forwardRef(() => MongoModule),
     forwardRef(() => AzureModule),
-    GoogleDriveModule,
     NodemailerModule,
     forwardRef(() => UnitsModule),
     SupabaseModule,

@@ -4,12 +4,6 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "builder": "swc",
-    "deleteOutDir": true,
-    "assets": [
-      {
-        "include": "google/drive/*.json",
-        "watchAssets": true
-      }
-    ]
+    "deleteOutDir": true
   }
 }

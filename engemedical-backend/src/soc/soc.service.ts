@@ -35,7 +35,6 @@ import {
   ResultadoExameSocMessage,
 } from 'src/azure/types/azure.types';
 import { AzureService } from 'src/azure/azure.service';
-import { GoogleDriveService } from 'src/google/drive/google-drive.service';
 import { FuncionarioEntity } from '../mongo/model/FuncionarioEntity';
 import { WsResultadoExame } from './webservice/resultadoExame/WsResultadoExame';
 import { WsFuncionarioModelo2 } from './webservice/funcionario/WsFuncionarioModelo2';
@@ -72,7 +71,6 @@ export class SocService {
     private readonly socCredentialedService: SocCredentialedService,
     private readonly socUploadService: SocUploadService,
     private readonly asoWorkerOrchestratorService: AsoWorkerOrchestratorService,
-    private readonly googleDriveService: GoogleDriveService,
     private readonly emailService: EmailService,
     private readonly logger: StructuredLogger,
     @Optional() private readonly r2Service?: R2SftpReportService,
@@ -776,106 +774,6 @@ export class SocService {
     return `${normalizedBase}.pdf`;
   }
 
-  private async uploadSocgedFileToGoogleDrive(params: {
-    scheduling: SchedulingDocument;
-    payload: UploadSocged;
-    mode: 'ASO' | 'PRONTUARIO';
-  }): Promise<void> {
-    const { scheduling, payload, mode } = params;
-
-    if (mode === 'ASO' && scheduling.ASOINFO?.googleDrive?.fileId) {
-      this.logger.log(
-        `[GDRIVE][SOCGED] Upload ASO ja realizado previamente. Pulando fallback para schedulingId=${payload.schedulingId || scheduling._id || 'n/a'} | fileId=${scheduling.ASOINFO.googleDrive.fileId}`,
-      );
-      return;
-    }
-
-    if (mode === 'ASO' && scheduling.ASOINFO?.googleDrive?.pending) {
-      const pendingAt = scheduling.ASOINFO.googleDrive.pendingAt
-        ? new Date(scheduling.ASOINFO.googleDrive.pendingAt)
-        : null;
-      const isFreshPending =
-        pendingAt && Date.now() - pendingAt.getTime() < 15 * 60 * 1000;
-
-      if (isFreshPending) {
-        this.logger.log(
-          `[GDRIVE][SOCGED] Upload ASO em processamento pela fila dedicada. Pulando fallback para schedulingId=${payload.schedulingId || scheduling._id || 'n/a'}`,
-        );
-        return;
-      }
-    }
-
-    if (!this.googleDriveService.isEnabled()) {
-      this.logger.warn(
-        `[GDRIVE][SOCGED] Integracao desabilitada. Pulando upload ${mode} para schedulingId=${payload.schedulingId || scheduling._id || 'n/a'}.`,
-      );
-      return;
-    }
-
-    if (!payload.arquivo || !payload.arquivo.length) {
-      this.logger.warn(
-        `[GDRIVE][SOCGED] Arquivo vazio. Pulando upload ${mode} para schedulingId=${payload.schedulingId || scheduling._id || 'n/a'}.`,
-      );
-      return;
-    }
-
-    try {
-      const driveFileId = await this.googleDriveService.uploadFromBuffer(
-        payload.nomeArquivo,
-        payload.arquivo,
-      );
-      if (!driveFileId) {
-        throw new Error('Google Drive retornou fileId vazio');
-      }
-
-      this.logger.log(
-        `[GDRIVE][SOCGED] Upload ${mode} concluido | schedulingId=${payload.schedulingId || scheduling._id || 'n/a'} | fileName=${payload.nomeArquivo} | fileId=${driveFileId}`,
-      );
-
-      if (mode === 'ASO') {
-        await this.mongoService.schedulingsCollection.updateOne(
-          { _id: scheduling._id as any },
-          {
-            $set: {
-              'ASOINFO.googleDrive': {
-                fileId: driveFileId,
-                fileName: payload.nomeArquivo,
-                uploadedAt: new Date(),
-                pending: false,
-                source: 'SOCGED_FALLBACK',
-                lastAttemptAt: new Date(),
-              },
-            },
-            $unset: {
-              'ASOINFO.googleDrive.pendingAt': '',
-              'ASOINFO.googleDrive.lastError': '',
-            },
-          },
-        );
-      }
-    } catch (error) {
-      if (mode === 'ASO') {
-        await this.mongoService.schedulingsCollection.updateOne(
-          { _id: scheduling._id as any } as any,
-          {
-            $set: {
-              'ASOINFO.googleDrive.pending': false,
-              'ASOINFO.googleDrive.lastAttemptAt': new Date(),
-              'ASOINFO.googleDrive.lastError':
-                error instanceof Error ? error.message : String(error),
-            },
-            $unset: {
-              'ASOINFO.googleDrive.pendingAt': '',
-            },
-          } as any,
-        );
-      }
-      this.logger.warn(
-        `[GDRIVE][SOCGED] Falha no upload ${mode} para schedulingId=${payload.schedulingId || scheduling._id || 'n/a'}: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
   private async findSchedulingForUpload(
     payload: UploadSocged,
   ): Promise<SchedulingDocument | null> {
@@ -1288,11 +1186,6 @@ export class SocService {
         payload.arquivo = await this.azureService.downloadBlob(asoUrl);
       }
 
-      await this.uploadSocgedFileToGoogleDrive({
-        scheduling,
-        payload,
-        mode: 'ASO',
-      });
     } else {
       const baseName = this.buildSocgedBaseName('Prontuario', scheduling);
       payload.nomeGed = payload.nomeGed || baseName;
@@ -1317,11 +1210,6 @@ export class SocService {
         payload.arquivo = await mergePdfs(buffers);
       }
 
-      await this.uploadSocgedFileToGoogleDrive({
-        scheduling,
-        payload,
-        mode: 'PRONTUARIO',
-      });
     }
 
     await this.socUploadService.uploadFile(payload);

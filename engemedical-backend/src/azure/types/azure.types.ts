@@ -42,13 +42,6 @@ export type UploadSocged = {
   url?: string;
 };
 
-export type UploadGoogleDrive = {
-  schedulingId: string;
-  documentType: 'ASO';
-  url?: string;
-  nomeArquivo?: string;
-};
-
 export type EmailType = {
   from?: string;
   to: string | string[];

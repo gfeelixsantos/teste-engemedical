@@ -38,7 +38,7 @@ export class CronJobs implements OnModuleInit {
 
   onModuleInit() {
     this.logger.log(
-      'CronJobs inicializado: 00:01 (manutenção), 19:20 (teste SFTP+Inativação), 03:00 (GED), 22:00 dia 23 (inativação)',
+      'CronJobs inicializado: 00:01 (manutenção), 13:30 (teste SFTP+Inativação), 03:00 (GED), 22:00 dia 23 (inativação)',
     );
   }
 
@@ -246,11 +246,11 @@ export class CronJobs implements OnModuleInit {
   }
 
   /**
-   * [TESTE] Executa todo dia às 19:20 — SFTP Grupo Tora + Inativação em massa.
+   * [TESTE] Executa todo dia às 13:30 — SFTP Grupo Tora + Inativação em massa.
    * Cron temporário para validação em ambiente de deploy.
    * O oficial continua sendo: SFTP 18:30 (Seg-Sex) e Inativação 22:00 (dia 23).
    */
-  @Cron('20 19 * * *', { timeZone: 'America/Sao_Paulo' })
+  @Cron('30 13 * * *', { timeZone: 'America/Sao_Paulo' })
   async testGrupoToraAndInactivation() {
     this.logger.log('[CRON][TESTE] Iniciando sequência de teste: SFTP Grupo Tora → Inativação em massa...');
 

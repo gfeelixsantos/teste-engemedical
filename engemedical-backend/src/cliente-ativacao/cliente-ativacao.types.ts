@@ -8,6 +8,7 @@ export type ClientActivationStatus =
 
 export type ClientActivationStep =
   | 'COMPANY'
+  | 'CONTACT'
   | 'EMPLOYEES'
   | 'APPOINTMENT'
   | 'DOCUMENTS'
@@ -30,10 +31,16 @@ export interface ClientActivationDocument {
   updatedAt: Date;
   submittedAt?: Date;
   completedAt?: Date;
+  contact?: { name: string; email: string; phone?: string };
+  unitId?: string;
+  appointmentId?: string;
+  employeeSheet?: { key: string; filename: string; size: number; rowCount: number; uploadedAt: Date };
 }
 
 export interface ClientActivationRepositoryPort {
   findByUserAndCompany(userId: string, companyCode: string): Promise<ClientActivationDocument | null>;
+  start?(document: ClientActivationDocument): Promise<ClientActivationDocument>;
+  update?(documentId: string, userId: string, companyCode: string, changes: Partial<ClientActivationDocument>): Promise<ClientActivationDocument>;
 }
 
 export interface ClientActivationResponse {
@@ -50,5 +57,8 @@ export interface ClientActivationResponse {
     completedSteps: ClientActivationStep[];
     pendingItems: string[];
     progress: number;
+    contact?: { name: string; email: string; phone?: string };
+    appointmentId?: string;
+    employeeSheet?: { filename: string; size: number; rowCount: number; uploadedAt: Date };
   };
 }

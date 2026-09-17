@@ -6,7 +6,6 @@ describe('AzureQueueWorkerService', () => {
   } as any;
 
   const mockSocService = {} as any;
-  const mockGoogleDriveUploadService = {} as any;
 
   let service: AzureQueueWorkerService;
 
@@ -16,7 +15,6 @@ describe('AzureQueueWorkerService', () => {
     service = new AzureQueueWorkerService(
       mockAzureService,
       mockSocService,
-      mockGoogleDriveUploadService,
     );
   });
 
@@ -27,14 +25,10 @@ describe('AzureQueueWorkerService', () => {
     const pollSocgedSpy = jest
       .spyOn(service as any, 'pollSocged')
       .mockImplementation(() => Promise.resolve());
-    const pollGoogleDriveUploadSpy = jest
-      .spyOn(service as any, 'pollGoogleDriveUpload')
-      .mockImplementation(() => Promise.resolve());
     service.onModuleInit();
 
     expect(pollResultadoExameSocSpy).toHaveBeenCalled();
     expect(pollSocgedSpy).toHaveBeenCalled();
-    expect(pollGoogleDriveUploadSpy).not.toHaveBeenCalled();
     expect('pollExamResults' in (service as any)).toBe(false);
     expect('pollAsoEnriquecimento' in (service as any)).toBe(false);
   });

@@ -17,6 +17,7 @@ export class ClienteFuncionariosStatusService {
     employee: CadastroFuncionarioPorSituacao,
     scheduling: SchedulingSummary | null,
     today: Date,
+    examHistoryDates: Array<string | Date> = [],
   ): ResolvedFuncionarioStatus {
     const schedulingStatus = this.normalizeStatus(scheduling?.atendimentoStatus);
     const schedulingStatuses = new Set<FuncionarioStatus>([
@@ -36,6 +37,7 @@ export class ClienteFuncionariosStatusService {
 
     const examDates = [
       this.readDate((employee as CadastroFuncionarioPorSituacao & { DTASO?: unknown }).DTASO),
+      ...examHistoryDates.map((value) => this.readDate(value)),
       ...(scheduling?.examDates ?? []).map((value) => this.readDate(value)),
     ].filter((value): value is DateTime => value !== null);
 
